@@ -70,7 +70,7 @@ void ssd_init_params(struct ssdparams *spp, uint64_t capacity, uint32_t nparts)
 	uint64_t blk_size, total_size;
 
 	spp->secsz = LBA_SIZE;
-	spp->secs_per_pg = 4096 / LBA_SIZE; // pg == 4KB
+	spp->secs_per_pg = LOGICAL_PAGE_SIZE / LBA_SIZE; // pg == 4KB
 	spp->pgsz = spp->secsz * spp->secs_per_pg;
 
 	spp->nchs = NAND_CHANNELS;

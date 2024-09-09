@@ -74,6 +74,11 @@ enum {
 #define NAND_CHANNELS (8)
 #define LUNS_PER_NAND_CH (2)
 #define PLNS_PER_LUN (1)
+#ifdef MAPPING_16KB
+#define LOGICAL_PAGE_SIZE KB(16)
+#else
+#define LOGICAL_PAGE_SIZE KB(4)
+#endif
 #define FLASH_PAGE_SIZE KB(32)
 #define ONESHOT_PAGE_SIZE (FLASH_PAGE_SIZE * 1)
 #define BLKS_PER_PLN (8192)

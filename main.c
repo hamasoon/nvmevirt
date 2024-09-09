@@ -598,6 +598,12 @@ static void __print_base_config(void)
 
 	NVMEV_INFO("Version %x.%x for >> %s <<\n",
 			(NVMEV_VERSION & 0xff00) >> 8, (NVMEV_VERSION & 0x00ff), type);
+	
+#ifdef MAPPING_16KB
+	NVMEV_INFO("Mapping with 16kb\n");
+#else
+	NVMEV_INFO("Mapping with 4kb\n");
+#endif
 }
 
 static int NVMeV_init(void)

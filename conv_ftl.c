@@ -5,6 +5,13 @@
 
 #include "nvmev.h"
 #include "conv_ftl.h"
+#define ROUND_UP(x, y) ((((x) + (y) - 1) / (y)) * (y))
+#define PAGE_ROUND_UP(x) ROUND_UP(x, LOGICAL_PAGE_SIZE)
+
+static inline bool first_sector_in_page(struct ssdparams *spp, uint64_t lpn)
+{
+	return (lpn % spp->pgs_per_flashpg) == 0;
+}
 
 static inline bool last_pg_in_wordline(struct conv_ftl *conv_ftl, struct ppa *ppa)
 {
@@ -935,11 +942,14 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 	uint64_t nr_lba = (cmd->rw.length + 1);
 	uint64_t start_lpn = lba / spp->secs_per_pg;
 	uint64_t end_lpn = (lba + nr_lba - 1) / spp->secs_per_pg;
+	struct ppa start_ppa, end_ppa;
 
 	uint64_t lpn;
 	uint32_t nr_parts = ns->nr_parts;
 
-	uint64_t nsecs_latest;
+	uint64_t nsecs_start = req->nsecs_start;
+	uint64_t nsecs_write_buffer;
+	uint64_t nsecs_latest = 0;
 	uint64_t nsecs_xfer_completed;
 	uint32_t allocated_buf_size;
 
@@ -950,19 +960,59 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 		.xfer_size = spp->pgsz * spp->pgs_per_oneshotpg,
 	};
 
+	struct nand_cmd srd = {
+		.type = USER_IO,
+		.cmd = NAND_READ,
+		.interleave_pci_dma = true,
+		.stime = nsecs_start,
+		.xfer_size = spp->pgsz,
+	};
+
 	NVMEV_DEBUG_VERBOSE("%s: start_lpn=%lld, len=%lld, end_lpn=%lld", __func__, start_lpn, nr_lba, end_lpn);
 	if ((end_lpn / nr_parts) >= spp->tt_pgs) {
 		NVMEV_ERROR("%s: lpn passed FTL range (start_lpn=%lld > tt_pgs=%ld)\n",
 				__func__, start_lpn, spp->tt_pgs);
 		return false;
 	}
-
-	allocated_buf_size = buffer_allocate(wbuf, LBA_TO_BYTE(nr_lba));
-	if (allocated_buf_size < LBA_TO_BYTE(nr_lba))
+	
+	// round up to the nearest page size
+	allocated_buf_size = buffer_allocate(wbuf, LBA_TO_BYTE(ROUND_UP(nr_lba, spp->secs_per_pg)));
+	if (allocated_buf_size < LBA_TO_BYTE(ROUND_UP(nr_lba, spp->secs_per_pg)))
 		return false;
 
-	nsecs_latest =
-		ssd_advance_write_buffer(conv_ftl->ssd, req->nsecs_start, LBA_TO_BYTE(nr_lba));
+	if (LBA_TO_BYTE(ROUND_UP(nr_lba, spp->secs_per_pg)) <= (KB(4) * nr_parts)) {
+		srd.stime += spp->fw_4kb_rd_lat;
+	} else {
+		srd.stime += spp->fw_rd_lat;
+	}
+
+	// if not aligned or smaller than a page request, then we have to read first
+	// but i think ssd_advance_nand is super slow... 
+	// those we have to make another way to measure read time?
+	if ((lba % spp->secs_per_pg != 0) || nr_lba < spp->secs_per_pg) {
+		struct conv_ftl *local_ftl = &conv_ftls[start_lpn % nr_parts];
+		start_ppa = get_maptbl_ent(local_ftl, start_lpn / nr_parts);
+		srd.ppa = &start_ppa;
+		if (mapped_ppa(&start_ppa)) {
+			nsecs_latest = ssd_advance_nand(local_ftl->ssd, &srd);
+		}
+	}
+
+	// if not aligned, then have to read first
+	// if (((lba + nr_lba) % spp->secs_per_pg != 0)) {
+	// 	struct conv_ftl *local_ftl  = &conv_ftls[end_lpn % nr_parts];
+	// 	end_ppa = get_maptbl_ent(local_ftl, end_lpn / nr_parts);
+	// 	srd.ppa = &end_ppa;
+	// 	if (mapped_ppa(&end_ppa) && (end_ppa.g.pg != start_ppa.g.pg)) {
+	// 		nsecs_read = ssd_advance_nand(local_ftl->ssd, &srd);
+	// 		nsecs_latest = max(nsecs_read, nsecs_latest);
+	// 		NVMEV_INFO("end is not aligned, read first\n");
+	// 	}
+	// }
+
+	nsecs_write_buffer =
+		ssd_advance_write_buffer(conv_ftl->ssd, nsecs_start, LBA_TO_BYTE(nr_lba));
+	nsecs_latest = max(nsecs_write_buffer, nsecs_latest);
 	nsecs_xfer_completed = nsecs_latest;
 
 	swr.stime = nsecs_latest;
