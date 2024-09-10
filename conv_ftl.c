@@ -342,6 +342,8 @@ static void conv_init_ftl(struct conv_ftl *conv_ftl, struct convparams *cpp, str
 
 	conv_ftl->ssd = ssd;
 
+	conv_ftl->gc_cnt = 0;
+
 	/* initialize maptbl */
 	init_maptbl(conv_ftl); // mapping table
 
@@ -773,7 +775,10 @@ static int do_gc(struct conv_ftl *conv_ftl, bool force)
 		    victim_line->ipc, victim_line->vpc, conv_ftl->lm.victim_line_cnt,
 		    conv_ftl->lm.full_line_cnt, conv_ftl->lm.free_line_cnt);
 
+	conv_ftl->gc_cnt += 1;
 	conv_ftl->wfc.credits_to_refill = victim_line->ipc;
+
+	NVMEV_INFO("GC-count: %lld", conv_ftl->gc_cnt);
 
 	/* copy back valid data */
 	for (flashpg = 0; flashpg < spp->flashpgs_per_blk; flashpg++) {
@@ -870,7 +875,7 @@ static bool conv_read(struct nvmev_ns *ns, struct nvmev_request *req, struct nvm
 		return false;
 	}
 
-	if (LBA_TO_BYTE(nr_lba) <= (KB(4) * nr_parts)) {
+	if (LBA_TO_BYTE(ROUND_UP(nr_lba, spp->secs_per_pg)) <= (KB(4) * nr_parts)) {
 		srd.stime += spp->fw_4kb_rd_lat;
 	} else {
 		srd.stime += spp->fw_rd_lat;
@@ -963,7 +968,7 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 	struct nand_cmd srd = {
 		.type = USER_IO,
 		.cmd = NAND_READ,
-		.interleave_pci_dma = true,
+		.interleave_pci_dma = false,
 		.stime = nsecs_start,
 		.xfer_size = spp->pgsz,
 	};
@@ -998,22 +1003,20 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 		}
 	}
 
-	// if not aligned, then have to read first
-	// if (((lba + nr_lba) % spp->secs_per_pg != 0)) {
-	// 	struct conv_ftl *local_ftl  = &conv_ftls[end_lpn % nr_parts];
-	// 	end_ppa = get_maptbl_ent(local_ftl, end_lpn / nr_parts);
-	// 	srd.ppa = &end_ppa;
-	// 	if (mapped_ppa(&end_ppa) && (end_ppa.g.pg != start_ppa.g.pg)) {
-	// 		nsecs_read = ssd_advance_nand(local_ftl->ssd, &srd);
-	// 		nsecs_latest = max(nsecs_read, nsecs_latest);
-	// 		NVMEV_INFO("end is not aligned, read first\n");
-	// 	}
-	// }
+	// if last page is not aligned, then we have to read last page
+	if (((lba + nr_lba) % spp->secs_per_pg != 0)) {
+		struct conv_ftl *local_ftl  = &conv_ftls[end_lpn % nr_parts];
+		end_ppa = get_maptbl_ent(local_ftl, end_lpn / nr_parts);
+		srd.ppa = &end_ppa;
+		if (mapped_ppa(&end_ppa) && (end_ppa.g.pg != start_ppa.g.pg)) {
+			uint64_t nsecs_read = ssd_advance_nand(local_ftl->ssd, &srd);
+			nsecs_latest = max(nsecs_read, nsecs_latest);
+		}
+	}
 
 	nsecs_write_buffer =
-		ssd_advance_write_buffer(conv_ftl->ssd, nsecs_start, LBA_TO_BYTE(nr_lba));
+		ssd_advance_write_buffer(conv_ftl->ssd, nsecs_latest, LBA_TO_BYTE(nr_lba));
 	nsecs_latest = max(nsecs_write_buffer, nsecs_latest);
-	nsecs_xfer_completed = nsecs_latest;
 
 	swr.stime = nsecs_latest;
 

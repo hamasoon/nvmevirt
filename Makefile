@@ -41,7 +41,8 @@ unload:
 	sudo rmmod nvmev
 
 fio_single:
-	sudo fio --name=randwrite --ioengine=libaio --iodepth=1 --rw=write --bs=4k --size=8G --numjobs=1 --filename=/dev/nvme3n1 --direct=1
+	sudo fio --name=randwrite --ioengine=libaio --iodepth=1 --rw=write --bs=4k --size=16G --numjobs=1 \
+	--filename=/dev/nvme3n1 --direct=1 --group_reporting --norandommap
 
 fio:
 	./fio.sh
