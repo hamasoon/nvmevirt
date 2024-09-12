@@ -966,6 +966,11 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 	uint64_t nsecs_xfer_completed;
 	uint32_t allocated_buf_size;
 
+	// latency checking
+	uint64_t read_time = 0;
+	uint64_t buffer_alloc_time = 0;
+	uint64_t write_time = 0;
+
 	struct nand_cmd swr = {
 		.type = USER_IO,
 		.cmd = NAND_WRITE,
@@ -1022,9 +1027,15 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 		}
 	}
 
+	read_time = nsecs_latest > 0 ? nsecs_latest - nsecs_start : 0;
+
 	nsecs_write_buffer =
 		ssd_advance_write_buffer(conv_ftl->ssd, nsecs_latest, LBA_TO_BYTE(nr_lba));
+
+	buffer_alloc_time = nsecs_write_buffer - nsecs_latest;
+
 	nsecs_latest = max(nsecs_write_buffer, nsecs_latest);
+	nsecs_xfer_completed = nsecs_latest;
 
 	swr.stime = nsecs_latest;
 
@@ -1062,6 +1073,9 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 			swr.ppa = &ppa;
 
 			nsecs_completed = ssd_advance_nand(conv_ftl->ssd, &swr);
+
+			write_time = nsecs_completed - nsecs_latest;
+
 			nsecs_latest = max(nsecs_completed, nsecs_latest);
 
 			schedule_internal_operation(req->sq_id, nsecs_completed, wbuf,
@@ -1081,6 +1095,8 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 	}
 	ret->status = NVME_SC_SUCCESS;
 
+	NVMEV_INFO("Read time: %lld, Buffer alloc time: %lld, Write time: %lld, Total time:\n", read_time, buffer_alloc_time, write_time, nsecs_latest - nsecs_start);
+	
 	return true;
 }
 
