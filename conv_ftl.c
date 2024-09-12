@@ -5,8 +5,16 @@
 
 #include "nvmev.h"
 #include "conv_ftl.h"
+#define ROUND_DOWN(x, y) ((x) & ~((y)-1))
 #define ROUND_UP(x, y) ((((x) + (y) - 1) / (y)) * (y))
-#define PAGE_ROUND_UP(x) ROUND_UP(x, LOGICAL_PAGE_SIZE)
+
+static inline get_aligned_size(struct ssdparams *spp, uint64_t start_lba, uint64_t size)
+{
+	uint64_t aligned_start = ROUND_DOWN(start_lba, spp->secs_per_pg);
+	uint64_t aligned_end = ROUND_UP(start_lba + size, spp->secs_per_pg);
+
+	return aligned_end - aligned_start;
+}
 
 static inline bool first_sector_in_page(struct ssdparams *spp, uint64_t lpn)
 {
@@ -875,7 +883,7 @@ static bool conv_read(struct nvmev_ns *ns, struct nvmev_request *req, struct nvm
 		return false;
 	}
 
-	if (LBA_TO_BYTE(ROUND_UP(nr_lba, spp->secs_per_pg)) <= (KB(4) * nr_parts)) {
+	if (LBA_TO_BYTE(get_aligned_size(spp, lba, nr_lba - 1)) <= (KB(4) * nr_parts)) {
 		srd.stime += spp->fw_4kb_rd_lat;
 	} else {
 		srd.stime += spp->fw_rd_lat;
@@ -981,8 +989,8 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 	}
 	
 	// round up to the nearest page size
-	allocated_buf_size = buffer_allocate(wbuf, LBA_TO_BYTE(ROUND_UP(nr_lba, spp->secs_per_pg)));
-	if (allocated_buf_size < LBA_TO_BYTE(ROUND_UP(nr_lba, spp->secs_per_pg)))
+	allocated_buf_size = buffer_allocate(wbuf, LBA_TO_BYTE(get_aligned_size(spp, lba, nr_lba - 1)));
+	if (allocated_buf_size < LBA_TO_BYTE(get_aligned_size(spp, lba, nr_lba - 1)))
 		return false;
 
 	if (LBA_TO_BYTE(ROUND_UP(nr_lba, spp->secs_per_pg)) <= (KB(4) * nr_parts)) {
