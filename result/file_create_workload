@@ -1,0 +1,7 @@
+sudo mkdir a
+sudo mkdir a/b
+sudo mkdir b
+sudo mkdir b/c
+sudo mkdir a/b/c
+sudo mkdir c
+sudo rm -rf a b c

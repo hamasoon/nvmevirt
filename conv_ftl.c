@@ -8,7 +8,7 @@
 #define ROUND_DOWN(x, y) ((x) & ~((y)-1))
 #define ROUND_UP(x, y) ((((x) + (y) - 1) / (y)) * (y))
 
-static inline get_aligned_size(struct ssdparams *spp, uint64_t start_lba, uint64_t size)
+static inline uint64_t get_aligned_size(struct ssdparams *spp, uint64_t start_lba, uint64_t size)
 {
 	uint64_t aligned_start = ROUND_DOWN(start_lba, spp->secs_per_pg);
 	uint64_t aligned_end = ROUND_UP(start_lba + size, spp->secs_per_pg);
@@ -962,9 +962,14 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 
 	uint64_t nsecs_start = req->nsecs_start;
 	uint64_t nsecs_write_buffer;
-	uint64_t nsecs_latest = 0;
+	uint64_t nsecs_latest = nsecs_start;
 	uint64_t nsecs_xfer_completed;
 	uint32_t allocated_buf_size;
+
+	//check actual latency
+	uint64_t read_lat = 0;
+	uint64_t buffer_lat = 0;
+	uint64_t write_lat = 0;
 
 	struct nand_cmd swr = {
 		.type = USER_IO,
@@ -1022,10 +1027,15 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 		}
 	}
 
+	read_lat = nsecs_latest - nsecs_start;
+
 	nsecs_write_buffer =
 		ssd_advance_write_buffer(conv_ftl->ssd, nsecs_latest, LBA_TO_BYTE(nr_lba));
+
+	buffer_lat = nsecs_write_buffer - nsecs_latest;
 	nsecs_latest = max(nsecs_write_buffer, nsecs_latest);
 
+	nsecs_xfer_completed = nsecs_latest;
 	swr.stime = nsecs_latest;
 
 	for (lpn = start_lpn; lpn <= end_lpn; lpn++) {
@@ -1072,6 +1082,8 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 		check_and_refill_write_credit(conv_ftl);
 	}
 
+	write_lat = nsecs_latest - nsecs_xfer_completed;
+
 	if ((cmd->rw.control & NVME_RW_FUA) || (spp->write_early_completion == 0)) {
 		/* Wait all flash operations */
 		ret->nsecs_target = nsecs_latest;
@@ -1080,6 +1092,9 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 		ret->nsecs_target = nsecs_xfer_completed;
 	}
 	ret->status = NVME_SC_SUCCESS;
+
+	NVMEV_INFO("CPU%d: read_lat=%lld, buffer_lat=%lld, write_lat=%lld\n", smp_processor_id(),
+		   read_lat, buffer_lat, write_lat);
 
 	return true;
 }
