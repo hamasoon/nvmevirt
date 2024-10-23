@@ -1,7 +1,8 @@
 # Select one of the targets to build
 #CONFIG_NVMEVIRT_NVM := y
-#CONFIG_NVMEVIRT_SSD := y
-CONFIG_NVMEVIRT_SSD_16KB := y
+CONFIG_NVMEVIRT_SSD := y
+#CONFIG_NVMEVIRT_SSD_16KB := y
+#CONFIG_NVMEVIRT_SSD_32KB := y
 #CONFIG_NVMEVIRT_ZNS := y
 #CONFIG_NVMEVIRT_KV := y
 
@@ -17,6 +18,9 @@ nvmev-$(CONFIG_NVMEVIRT_SSD) += ssd.o conv_ftl.o pqueue/pqueue.o channel_model.o
 
 ccflags-$(CONFIG_NVMEVIRT_SSD_16KB) += -DBASE_SSD=SAMSUNG_970PRO -DMAPPING_16KB
 nvmev-$(CONFIG_NVMEVIRT_SSD_16KB) += ssd.o conv_ftl.o pqueue/pqueue.o channel_model.o
+
+ccflags-$(CONFIG_NVMEVIRT_SSD_32KB) += -DBASE_SSD=SAMSUNG_970PRO -DMAPPING_32KB
+nvmev-$(CONFIG_NVMEVIRT_SSD_32KB) += ssd.o conv_ftl.o pqueue/pqueue.o channel_model.o
 
 ccflags-$(CONFIG_NVMEVIRT_ZNS) += -DBASE_SSD=WD_ZN540
 #ccflags-$(CONFIG_NVMEVIRT_ZNS) += -DBASE_SSD=ZNS_PROTOTYPE

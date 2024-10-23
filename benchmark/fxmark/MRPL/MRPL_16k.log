@@ -1,0 +1,23 @@
+### SYSTEM         = Linux layfort-MS-7D75 6.8.0-45-generic #45~22.04.1-Ubuntu SMP PREEMPT_DYNAMIC Wed Sep 11 15:25:05 UTC 2 x86_64 x86_64 x86_64 GNU/Linux
+### DISK_SIZE      = 14G
+### DURATION       = 30s
+### DIRECTIO       = bufferedio,directio
+### MEDIA_TYPES    = nvme
+### FS_TYPES       = tmpfs,ext4,ext4_no_jnl
+### BENCH_TYPES    = MWRL,MWRM,MWCL,MWCM,MWUM,MWUL,filebench_varmail,filebench_oltp,filebench_fileserver,dbench_client,MRPL,MRPM,MRPH,MRDM,MRDL,MRPM_bg,MRDM_bg,MRDL_bg
+### NCORES         = 1,2,4,8,16
+### CORE_SEQ       = 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31
+
+
+### MODEL_NAME     = AMD Ryzen 9 7950X3D 16-Core Processor
+### PHYSICAL_CHIPS = 1
+### CORE_PER_CHIP  = 16
+### SMT_LEVEL      = 2
+
+
+## nvme:ext4:MRPL:16:directio
+# ncpu secs works works/sec real.sec user.sec nice.sec sys.sec idle.sec iowait.sec irq.sec softirq.sec steal.sec guest.sec user.util nice.util sys.util idle.util iowait.util irq.util softirq.util steal.util guest.util
+
+16 29.998604 280716461.000000 9357650.789855 30.0641 28.9 0 451.59 0.52 0 0 0 0 0 6.00819 0 93.8837 0.108106 0 0 0 0 0
+
+### NUM_TEST_CONF  = 1

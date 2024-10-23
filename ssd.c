@@ -6,6 +6,9 @@
 #include "nvmev.h"
 #include "ssd.h"
 
+static uint64_t write_cnt = 0;
+DEFINE_MUTEX(write_count_lock);
+
 static inline uint64_t __get_ioclock(struct ssd *ssd)
 {
 	return cpu_clock(ssd->cpu_nr_dispatcher);
@@ -419,6 +422,10 @@ uint64_t ssd_advance_nand(struct ssd *ssd, struct nand_cmd *ncmd)
 
 	case NAND_WRITE:
 		/* write: transfer data through channel first */
+		mutex_lock(&write_count_lock);
+		NVMEV_INFO("Write count: %llu\n", ++write_cnt);
+		mutex_unlock(&write_count_lock);
+
 		chnl_stime = max(lun->next_lun_avail_time, cmd_stime);
 
 		chnl_etime = chmodel_request(ch->perf_model, chnl_stime, ncmd->xfer_size);

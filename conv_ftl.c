@@ -2,11 +2,21 @@
 
 #include <linux/ktime.h>
 #include <linux/sched/clock.h>
+#include <linux/mutex.h>
 
 #include "nvmev.h"
 #include "conv_ftl.h"
 #define ROUND_DOWN(x, y) ((x) & ~((y)-1))
 #define ROUND_UP(x, y) ((((x) + (y) - 1) / (y)) * (y))
+
+static uint64_t read_cnt = 0;
+DEFINE_MUTEX(read_count_lock);
+
+static uint64_t ftl_write_cnt = 0;
+DEFINE_MUTEX(ftl_write_count_lock);
+
+static uint64_t agg_write_cnt = 0;
+DEFINE_MUTEX(agg_write_count_lock);
 
 static inline uint64_t get_aligned_size(struct ssdparams *spp, uint64_t start_lba, uint64_t size)
 {
@@ -786,7 +796,7 @@ static int do_gc(struct conv_ftl *conv_ftl, bool force)
 	conv_ftl->gc_cnt += 1;
 	conv_ftl->wfc.credits_to_refill = victim_line->ipc;
 
-	NVMEV_INFO("GC-count: %lld", conv_ftl->gc_cnt);
+	// NVMEV_INFO("GC-count: %lld", conv_ftl->gc_cnt);
 
 	/* copy back valid data */
 	for (flashpg = 0; flashpg < spp->flashpgs_per_blk; flashpg++) {
@@ -921,6 +931,10 @@ static bool conv_read(struct nvmev_ns *ns, struct nvmev_request *req, struct nvm
 				srd.ppa = &prev_ppa;
 				nsecs_completed = ssd_advance_nand(conv_ftl->ssd, &srd);
 				nsecs_latest = max(nsecs_completed, nsecs_latest);
+
+				// mutex_lock(&read_count_lock);
+				// NVMEV_INFO("Read count: %llu, Xfer size: %d i %d", ++read_cnt, xfer_size, i);
+				// mutex_unlock(&read_count_lock);
 			}
 
 			xfer_size = spp->pgsz;
@@ -933,6 +947,10 @@ static bool conv_read(struct nvmev_ns *ns, struct nvmev_request *req, struct nvm
 			srd.ppa = &prev_ppa;
 			nsecs_completed = ssd_advance_nand(conv_ftl->ssd, &srd);
 			nsecs_latest = max(nsecs_completed, nsecs_latest);
+
+			// mutex_lock(&read_count_lock);
+			// NVMEV_INFO("Read count: %llu, Xfer size: %d i %d", ++read_cnt, xfer_size, i);
+			// mutex_unlock(&read_count_lock);
 		}
 	}
 
@@ -994,8 +1012,9 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 	}
 	
 	// round up to the nearest page size
-	allocated_buf_size = buffer_allocate(wbuf, LBA_TO_BYTE(get_aligned_size(spp, lba, nr_lba - 1)));
-	if (allocated_buf_size < LBA_TO_BYTE(get_aligned_size(spp, lba, nr_lba - 1)))
+	uint64_t aligned_size = get_aligned_size(spp, lba, nr_lba - 1);
+	allocated_buf_size = buffer_allocate(wbuf, LBA_TO_BYTE(aligned_size));
+	if (allocated_buf_size < LBA_TO_BYTE(aligned_size))
 		return false;
 
 	if (LBA_TO_BYTE(ROUND_UP(nr_lba, spp->secs_per_pg)) <= (KB(4) * nr_parts)) {
@@ -1036,7 +1055,6 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 	nsecs_latest = max(nsecs_write_buffer, nsecs_latest);
 	nsecs_xfer_completed = nsecs_latest;
 
-	nsecs_xfer_completed = nsecs_latest;
 	swr.stime = nsecs_latest;
 
 	for (lpn = start_lpn; lpn <= end_lpn; lpn++) {
@@ -1068,14 +1086,20 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 		/* need to advance the write pointer here */
 		advance_write_pointer(conv_ftl, USER_IO);
 
+		mutex_lock(&ftl_write_count_lock);
+		NVMEV_INFO("FTL Write count: %llu", ++ftl_write_cnt);
+		mutex_unlock(&ftl_write_count_lock);
+
 		/* Aggregate write io in flash page */
 		if (last_pg_in_wordline(conv_ftl, &ppa)) {
+			mutex_lock(&agg_write_count_lock);
+			NVMEV_INFO("Agg Write count: %llu", ++agg_write_cnt);
+			mutex_unlock(&agg_write_count_lock);
+
 			swr.ppa = &ppa;
 
 			nsecs_completed = ssd_advance_nand(conv_ftl->ssd, &swr);
-
 			write_lat = nsecs_completed - nsecs_latest;
-
 			nsecs_latest = max(nsecs_completed, nsecs_latest);
 
 			schedule_internal_operation(req->sq_id, nsecs_completed, wbuf,
@@ -1097,8 +1121,8 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 	}
 	ret->status = NVME_SC_SUCCESS;
 
-	NVMEV_INFO("CPU%d: read_lat=%lld, buffer_lat=%lld, write_lat=%lld\n", smp_processor_id(),
-		   read_lat, buffer_lat, write_lat);
+	// NVMEV_INFO("CPU%d: read_lat=%lld, buffer_lat=%lld, write_lat=%lld\n", smp_processor_id(),
+	// 	   read_lat, buffer_lat, write_lat);
 
 	return true;
 }

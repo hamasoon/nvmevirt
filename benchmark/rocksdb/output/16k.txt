@@ -1,0 +1,53 @@
+Initializing RocksDB Options from the specified file
+Initializing RocksDB Options from command-line flags
+Integrated BlobDB: blob cache disabled
+RocksDB:    version 9.8.0
+Date:       Fri Oct  4 23:53:28 2024
+CPU:        32 * AMD Ryzen 9 7950X3D 16-Core Processor
+CPUCache:   1024 KB
+Keys:       10 bytes each (+ 0 bytes user-defined timestamp)
+Values:     1200 bytes each (600 bytes after compression)
+Entries:    20000000
+Prefix:    0 bytes
+Keys per prefix:    0
+RawSize:    23078.9 MB (estimated)
+FileSize:   11634.8 MB (estimated)
+Write rate: 0 bytes/second
+Read rate: 0 ops/second
+Compression: ZSTD
+Compression sampling rate: 0
+Memtablerep: VectorRepFactory
+Perf Level: 1
+------------------------------------------------
+Initializing RocksDB Options from the specified file
+Initializing RocksDB Options from command-line flags
+Integrated BlobDB: blob cache disabled
+DB path: [/mnt/nvme/db]
+fillrandom   :       0.825 micros/op 1212337 ops/sec 16.497 seconds 20000000 operations; 1399.0 MB/s
+Microseconds per write:
+Count: 20000000 Average: 0.8248  StdDev: 22.88
+Min: 0  Median: 0.5105  Max: 4955
+Percentiles: P50: 0.51 P75: 0.77 P99: 1.58 P99.9: 2.78 P99.99: 1272.40
+------------------------------------------------------
+[       0,       1 ] 19590445  97.952%  97.952% ####################
+(       1,       2 ]   359868   1.799%  99.752% 
+(       2,       3 ]    37966   0.190%  99.941% 
+(       3,       4 ]     4350   0.022%  99.963% 
+(       4,       6 ]     2078   0.010%  99.974% 
+(       6,      10 ]      630   0.003%  99.977% 
+(      10,      15 ]      210   0.001%  99.978% 
+(      15,      22 ]       97   0.000%  99.978% 
+(      22,      34 ]      195   0.001%  99.979% 
+(      34,      51 ]      206   0.001%  99.980% 
+(      51,      76 ]      179   0.001%  99.981% 
+(      76,     110 ]       88   0.000%  99.982% 
+(     110,     170 ]        7   0.000%  99.982% 
+(     170,     250 ]       45   0.000%  99.982% 
+(     250,     380 ]        1   0.000%  99.982% 
+(     380,     580 ]        1   0.000%  99.982% 
+(     580,     870 ]        1   0.000%  99.982% 
+(     870,    1300 ]     1745   0.009%  99.991% 
+(    1300,    1900 ]        2   0.000%  99.991% 
+(    1900,    2900 ]     1878   0.009% 100.000% 
+(    2900,    4400 ]        2   0.000% 100.000% 
+(    4400,    6600 ]        6   0.000% 100.000% 

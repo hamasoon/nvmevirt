@@ -5,6 +5,7 @@
 
 #include <linux/pci.h>
 #include <linux/msi.h>
+#include <linux/mutex.h>
 #include <asm/apic.h>
 
 #include "nvme.h"
