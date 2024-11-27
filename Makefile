@@ -34,7 +34,7 @@ dis:
 load:
 	sudo insmod ./nvmev.ko \
 	memmap_start=48G \
-	memmap_size=2G \
+	memmap_size=16G \
 	cpus=10,11,12,13
 
 unload:
@@ -48,16 +48,20 @@ mount:
 umount:
 	sudo umount /mnt/nvme
 
-fio_line:
-	sudo fio --name=randwrite --ioengine=libaio --iodepth=1 --rw=write --bs=4k --size=32k --numjobs=1 \
+fio_write:
+	sudo fio --name=randwrite --ioengine=psync --iodepth=1 --rw=randwrite --bs=4k --size=2G --numjobs=1 \
+	--filename=/dev/nvme3n1 --direct=1 --group_reporting --norandommap
+
+fio_read:
+	sudo fio --name=test --ioengine=sync --iodepth=1 --rw=read --bs=64k --size=8G --numjobs=1 \
 	--filename=/dev/nvme3n1 --direct=1 --group_reporting --norandommap
 
 fio_single_write:
-	sudo fio --name=test --ioengine=sync --iodepth=1 --rw=randwrite --bs=8k --size=2G --numjobs=1 \
+	sudo fio --name=test --ioengine=sync --iodepth=1 --rw=write --bs=32k --size=8G --numjobs=1 \
 	--filename=/dev/nvme3n1 --direct=1 --group_reporting
 
 fio_single_read:
-	sudo fio --name=test --ioengine=libaio --iodepth=32 --rw=read --bs=8k --size=14G --numjobs=4 \
+	sudo fio --name=test --ioengine=libaio --iodepth=32 --rw=read --bs=16k --size=8G --numjobs=4 \
 	--filename=/dev/nvme3n1 --direct=1 --group_reporting
 
 fio:

@@ -51,8 +51,8 @@ def clear_workloads():
 if __name__ == '__main__':
     seq_list = ['seq', 'rand']
     job_type_list = ['read']
-    sync_list = ['async']
-    block_size_list = ['4k', '8k', '16k', '32k']
+    sync_list = ['sync']
+    block_size_list = ['4k', '8k', '16k', '32k', '64k', '128k']
     size = '127G'
     runtime = 60
     

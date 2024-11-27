@@ -444,6 +444,9 @@ struct nvmev_dev *VDEV_INIT(void)
 
 	nvmev_vdev->admin_q = NULL;
 
+	nvmev_vdev->user_write = 0;
+	nvmev_vdev->device_write = 0;
+
 	return nvmev_vdev;
 }
 

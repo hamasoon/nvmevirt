@@ -5,7 +5,6 @@
 
 #include <linux/pci.h>
 #include <linux/msi.h>
-#include <linux/mutex.h>
 #include <asm/apic.h>
 
 #include "nvme.h"
@@ -192,7 +191,7 @@ struct nvmev_io_work {
 
 	bool is_internal;
 	void *write_buffer;
-	size_t buffs_to_release;
+	size_t buffer_release_code;
 
 	unsigned int next, prev;
 };
@@ -258,8 +257,12 @@ struct nvmev_dev {
 	struct proc_dir_entry *proc_io_units;
 	struct proc_dir_entry *proc_stat;
 	struct proc_dir_entry *proc_debug;
+	struct proc_dir_entry *proc_waf;
 
 	unsigned long long *io_unit_stat;
+	
+	unsigned long long user_write;
+	unsigned long long device_write;
 };
 
 struct nvmev_request {

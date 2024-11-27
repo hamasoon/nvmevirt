@@ -7,6 +7,7 @@
 #include "pqueue/pqueue.h"
 #include "ssd_config.h"
 #include "channel_model.h"
+
 /*
     Default malloc size (when sector size is 512B)
     Channel = 40 * 8 = 320
@@ -131,10 +132,37 @@ struct nand_cmd {
 	struct ppa *ppa;
 };
 
+/*
+size: size of buffer
+num_blocks: number of blocks
+block_size: size of block. same as page size
+flush_threshold: threshold for flushing buffer(currently half of num_blocks)
+flushing: whether buffer is currently flushing
+free_blocks: list of free blocks
+used_blocks: list of used blocks
+*/
 struct buffer {
-	size_t size;
-	size_t remaining;
 	spinlock_t lock;
+	size_t size;
+	size_t num_blocks;
+	size_t block_size;
+	size_t flush_threshold;
+	bool flushing;
+	struct list_head free_blocks;
+	struct list_head used_blocks;
+};
+
+/*
+lpn: logical page number
+valid: whether the block is valid. if false, the block is currently begin written to NAND
+sectors: represent the sectors of the page
+list: list head for buffer
+*/
+struct buffer_block_list_entry {
+	uint64_t lpn;
+	bool valid;
+	bool *sectors;
+    struct list_head list;
 };
 
 /*
@@ -262,10 +290,11 @@ uint64_t ssd_advance_pcie(struct ssd *ssd, uint64_t request_time, uint64_t lengt
 uint64_t ssd_advance_write_buffer(struct ssd *ssd, uint64_t request_time, uint64_t length);
 uint64_t ssd_next_idle_time(struct ssd *ssd);
 
-void buffer_init(struct buffer *buf, size_t size);
-uint32_t buffer_allocate(struct buffer *buf, size_t size);
+void buffer_init(struct buffer *buf, size_t size, struct ssdparams *spp);
+uint32_t buffer_allocate(struct ssdparams *spp, struct buffer *buf, uint64_t start_lpn, uint64_t end_lpn, uint64_t start_offset, uint64_t size);
 bool buffer_release(struct buffer *buf, size_t size);
 void buffer_refill(struct buffer *buf);
+struct buffer_block_list_entry *buffer_search(struct buffer *buf, uint64_t lpn);
 
 void adjust_ftl_latency(int target, int lat);
 #endif

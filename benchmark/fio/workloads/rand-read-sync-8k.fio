@@ -1,0 +1,16 @@
+[global]
+size=127G
+direct=1
+time_based
+runtime=60
+
+ioengine=sync
+numjobs=${JOBS}
+iodepth=${DEPTH}
+group_reporting
+
+[rand-read-sync-8k]
+filename=/dev/nvme3n1
+rw=randread
+random_distribution=random
+bs=8k

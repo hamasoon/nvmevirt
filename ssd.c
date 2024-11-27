@@ -6,44 +6,130 @@
 #include "nvmev.h"
 #include "ssd.h"
 
-static uint64_t write_cnt = 0;
-DEFINE_MUTEX(write_count_lock);
-
 static inline uint64_t __get_ioclock(struct ssd *ssd)
 {
 	return cpu_clock(ssd->cpu_nr_dispatcher);
 }
 
-void buffer_init(struct buffer *buf, size_t size)
+void buffer_init(struct buffer *buf, size_t size, struct ssdparams *spp)
 {
 	spin_lock_init(&buf->lock);
 	buf->size = size;
-	buf->remaining = size;
+	buf->num_blocks = size / spp->pgsz;
+	buf->flush_threshold = buf->num_blocks / 2;
+	buf->block_size = spp->pgsz;
+	buf->flushing = false;
+	INIT_LIST_HEAD(&buf->free_blocks);
+	INIT_LIST_HEAD(&buf->used_blocks);
+	
+	for (int i = 0; i < buf->num_blocks; i++) {
+		struct buffer_block_list_entry* block = 
+			(struct buffer_block_list_entry*)kmalloc(sizeof(struct buffer_block_list_entry), GFP_KERNEL);
+		block->lpn = INVALID_LPN;
+		block->valid = true;
+		block->sectors = kmalloc(sizeof(bool) * (spp->pgsz / LBA_SIZE), GFP_KERNEL);
+		list_add_tail(&block->list, &buf->free_blocks);
+	}
 }
 
-uint32_t buffer_allocate(struct buffer *buf, size_t size)
+/* get block from buffer that match with lpn return NULL if not found */
+static struct buffer_block_list_entry* __buffer_get_block(struct buffer *buf, uint64_t lpn)
 {
-	NVMEV_ASSERT(size <= buf->size);
-
-	while (!spin_trylock(&buf->lock)) {
-		cpu_relax();
+	struct buffer_block_list_entry *block;
+	list_for_each_entry(block, &buf->used_blocks, list) {
+		if (block->lpn == lpn && block->valid) {
+			return block;
+		}
 	}
 
-	if (buf->remaining < size) {
-		size = 0;
-	}
-
-	buf->remaining -= size;
-
-	spin_unlock(&buf->lock);
-	return size;
+	return NULL;
 }
 
-bool buffer_release(struct buffer *buf, size_t size)
+/* check write buffer have enough space for save request */
+static bool __check_writebuffer(struct buffer *buf, uint64_t start_lpn, uint64_t end_lpn)
+{
+	size_t cnt = 0;
+
+	for ( uint64_t lpn = start_lpn; lpn <= end_lpn; lpn++) {
+		if (__buffer_get_block(buf, lpn) == NULL) {
+			cnt++;
+		}
+	}
+
+	return cnt > list_count_nodes(&buf->free_blocks);
+}
+
+/* fill single block of buffer */
+static void __fill_block(struct buffer *buf, uint64_t lpn, uint64_t size, uint64_t offset)
+{
+	if (size == 0) return;
+
+	struct buffer_block_list_entry *block = __buffer_get_block(buf, lpn);
+
+	if (block == NULL) {
+		block = list_first_entry(&buf->free_blocks, struct buffer_block_list_entry, list);
+		list_move_tail(&block->list, &buf->used_blocks);
+		block->lpn = lpn;
+	}
+
+	for (size_t i = 0; i < size / LBA_SIZE; i++)
+		block->sectors[i + offset] = true;
+}
+
+/* fill buffer with data */
+static void __fill_buffer(struct ssdparams *spp, struct buffer *buf, uint64_t start_lpn, uint64_t start_offset, uint64_t size)
+{
+	uint64_t pgsz = spp->pgsz;
+	uint64_t start_size = min((spp->secs_per_pg - start_offset) * LBA_SIZE, size);
+
+	/* handle first page */
+	__fill_block(buf, start_lpn++, start_size, start_offset);
+
+	for (size -= start_size; size > pgsz; size -= pgsz) {
+		__fill_block(buf, start_lpn++, pgsz, 0);
+	}
+
+	/* handle last page */
+	__fill_block(buf, start_lpn, size, 0);
+}
+
+uint32_t buffer_allocate(struct ssdparams *spp, struct buffer *buf, uint64_t start_lpn, uint64_t end_lpn, uint64_t start_offset, uint64_t size)
+{
+	uint64_t pg_size = spp->pgsz;
+	struct buffer_block *block;
+
+	while (!spin_trylock(&buf->lock))
+		;
+
+	/* check if buffer have enough space */
+	if (__check_writebuffer(buf, start_lpn, end_lpn)) {
+		spin_unlock(&buf->lock);
+		return -1;
+	}
+
+	__fill_buffer(spp, buf, start_lpn, start_offset, size);
+	spin_unlock(&buf->lock);
+	return 0;
+}
+
+bool buffer_release(struct buffer *buf, size_t delete_code)
 {
 	while (!spin_trylock(&buf->lock))
 		;
-	buf->remaining += size;
+
+	struct buffer_block_list_entry *block, *tmp;
+	/* move all marked used blocks to free blocks */
+	list_for_each_entry_safe(block, tmp, &buf->used_blocks, list) {
+		if (block->valid == false) {
+			list_move_tail(&block->list, &buf->free_blocks);
+			block->lpn = INVALID_LPN;
+			block->valid = true;
+			for (size_t i = 0; i < buf->block_size / LBA_SIZE; i++)
+				block->sectors[i] = false;
+		}
+	}
+
+	buf->flushing = false;
 	spin_unlock(&buf->lock);
 
 	return true;
@@ -53,8 +139,29 @@ void buffer_refill(struct buffer *buf)
 {
 	while (!spin_trylock(&buf->lock))
 		;
-	buf->remaining = buf->size;
+	
+	struct buffer_block_list_entry *block, *tmp;
+	list_for_each_entry_safe(block, tmp, &buf->used_blocks, list) {
+		list_move_tail(&block->list, &buf->free_blocks);
+		block->lpn = INVALID_LPN;
+		block->valid = true;
+		for (size_t i = 0; i < buf->block_size / LBA_SIZE; i++)
+			block->sectors[i] = false;
+	}
+
 	spin_unlock(&buf->lock);
+}
+
+struct buffer_block_list_entry *buffer_search(struct buffer *buf, uint64_t lpn)
+{
+	struct buffer_block_list_entry *block;
+	list_for_each_entry(block, &buf->used_blocks, list) {
+		if (block->lpn == lpn) {
+			return block;
+		}
+	}
+
+	return NULL;
 }
 
 static void check_params(struct ssdparams *spp)
@@ -74,7 +181,7 @@ void ssd_init_params(struct ssdparams *spp, uint64_t capacity, uint32_t nparts)
 
 	spp->secsz = LBA_SIZE;
 	spp->secs_per_pg = LOGICAL_PAGE_SIZE / LBA_SIZE; // pg == 4KB
-	spp->pgsz = spp->secsz * spp->secs_per_pg;
+	spp->pgsz = LOGICAL_PAGE_SIZE;
 
 	spp->nchs = NAND_CHANNELS;
 	spp->pls_per_lun = PLNS_PER_LUN;
@@ -272,6 +379,32 @@ static void ssd_init_ch(struct ssd_channel *ch, struct ssdparams *spp)
 	ch->perf_model->xfer_lat += (spp->fw_ch_xfer_lat * UNIT_XFER_SIZE / KB(4));
 }
 
+static void ssd_remove_buffer(struct ssd *ssd)
+{
+	if (ssd->write_buffer == NULL) return;
+
+	struct list_head *pos, *q;
+	list_for_each_safe(pos, q, &ssd->write_buffer->free_blocks) {
+		struct buffer_block_list_entry *block =
+		    list_entry(pos, struct buffer_block_list_entry, list);
+		list_del(pos);
+		kfree(block->sectors);
+		kfree(block);
+	}
+
+	pos = NULL;
+	q = NULL;
+	list_for_each_safe(pos, q, &ssd->write_buffer->used_blocks) {
+		struct buffer_block_list_entry *block =
+		    list_entry(pos, struct buffer_block_list_entry, list);
+		list_del(pos);
+		kfree(block->sectors);
+		kfree(block);
+	}
+
+	kfree(ssd->write_buffer);
+}
+
 static void ssd_remove_ch(struct ssd_channel *ch)
 {
 	int i;
@@ -314,7 +447,7 @@ void ssd_init(struct ssd *ssd, struct ssdparams *spp, uint32_t cpu_nr_dispatcher
 	ssd_init_pcie(ssd->pcie, spp);
 
 	ssd->write_buffer = kmalloc(sizeof(struct buffer), GFP_KERNEL);
-	buffer_init(ssd->write_buffer, spp->write_buffer_size);
+	buffer_init(ssd->write_buffer, spp->write_buffer_size, spp);
 
 	return;
 }
@@ -323,7 +456,8 @@ void ssd_remove(struct ssd *ssd)
 {
 	uint32_t i;
 
-	kfree(ssd->write_buffer);
+	ssd_remove_buffer(ssd);
+
 	if (ssd->pcie) {
 		kfree(ssd->pcie->perf_model);
 		kfree(ssd->pcie);
@@ -379,7 +513,7 @@ uint64_t ssd_advance_nand(struct ssd *ssd, struct nand_cmd *ncmd)
 		ssd, ncmd->stime, ppa->g.ch, ppa->g.lun, ppa->g.blk, ppa->g.pg, c, ppa->ppa);
 
 	if (ppa->ppa == UNMAPPED_PPA) {
-		NVMEV_ERROR("Error ppa 0x%llx\n", ppa->ppa);
+		NVMEV_ERROR("Error ppa 0x%llx - %d\n", ppa->ppa, ncmd->cmd);
 		return cmd_stime;
 	}
 
@@ -422,10 +556,6 @@ uint64_t ssd_advance_nand(struct ssd *ssd, struct nand_cmd *ncmd)
 
 	case NAND_WRITE:
 		/* write: transfer data through channel first */
-		mutex_lock(&write_count_lock);
-		NVMEV_INFO("Write count: %llu\n", ++write_cnt);
-		mutex_unlock(&write_count_lock);
-
 		chnl_stime = max(lun->next_lun_avail_time, cmd_stime);
 
 		chnl_etime = chmodel_request(ch->perf_model, chnl_stime, ncmd->xfer_size);
