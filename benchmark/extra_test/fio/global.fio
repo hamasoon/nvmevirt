@@ -1,7 +1,0 @@
-filesize=2G
-numjobs=${JOBS}
-iodepth=${DEPTH}
-filename=${DEV}
-group_reporting=1
-runtime=300
-direct=1

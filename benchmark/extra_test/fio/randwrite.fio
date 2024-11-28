@@ -1,5 +1,0 @@
-[global]
-include global.fio
-
-[randwrite]
-rw=randwrite
