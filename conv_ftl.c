@@ -7,18 +7,9 @@
 #include "conv_ftl.h"
 #define ROUND_DOWN(x, y) ((x) & ~((y)-1))
 #define ROUND_UP(x, y) ((((x) + (y) - 1) / (y)) * (y))
-
-// get ftl instance index
-static inline int __get_ftl_instance_idx(uint64_t lpn, struct nvmev_ns *ns, struct ssdparams *spp)
-{
-	return (lpn / spp->pgs_per_flashpg) % ns->nr_parts;
-}
-
-// get local lpn in a partition
-static inline uint64_t __get_local_lpn(uint64_t lpn, struct nvmev_ns *ns, struct ssdparams *spp)
-{
-    return (lpn / (spp->pgs_per_flashpg * ns->nr_parts)) * spp->pgs_per_flashpg + (lpn % spp->pgs_per_flashpg);
-}
+#define GET_FTL_IDX(lpn) (lpn / (FLASH_PAGE_SIZE / LOGICAL_PAGE_SIZE) & SSD_PARTITIONS)
+#define LOCAL_LPN(lpn) ((lpn / ((FLASH_PAGE_SIZE / LOGICAL_PAGE_SIZE) * SSD_PARTITIONS))\
+		* (FLASH_PAGE_SIZE / LOGICAL_PAGE_SIZE) + (lpn % (FLASH_PAGE_SIZE / LOGICAL_PAGE_SIZE)))
 
 static inline uint64_t get_aligned_size(struct ssdparams *spp, uint64_t start_lba, uint64_t size)
 {
@@ -37,7 +28,13 @@ static inline bool first_sector_in_page(struct ssdparams *spp, uint64_t lpn)
 // currently, threshold is half of the total blocks
 static inline bool check_flush_buffer(struct buffer *buf)
 {
-	return list_count_nodes(&buf->free_blocks) < buf->flush_threshold && !buf->flushing;
+	int cnt = 0;
+	struct buffer_physical_page_entry *block;
+	list_for_each_entry(block, &buf->used_ppgs, list) {
+		if (block->valid) cnt++;
+	}
+
+	return cnt > buf->flush_threshold;
 }
 
 static inline bool last_pg_in_wordline(struct conv_ftl *conv_ftl, struct ppa *ppa)
@@ -908,9 +905,9 @@ static bool conv_read(struct nvmev_ns *ns, struct nvmev_request *req, struct nvm
 	// interleaving read requests over all parts
 	for (i = 0; (i < nr_parts) && (start_lpn <= end_lpn); i++, start_lpn += pgs_per_flashpg) {
 		xfer_size = 0;
-		int ftl_instance_idx = __get_ftl_instance_idx(start_lpn, ns, spp);
+		int ftl_instance_idx = GET_FTL_IDX(start_lpn);
 		conv_ftl = &conv_ftls[ftl_instance_idx];
-		prev_ppa = get_maptbl_ent(conv_ftl, __get_local_lpn(start_lpn, ns, spp));
+		prev_ppa = get_maptbl_ent(conv_ftl, LOCAL_LPN(start_lpn));
 
 		uint64_t local_start_lpn = start_lpn;
 		
@@ -919,7 +916,7 @@ static bool conv_read(struct nvmev_ns *ns, struct nvmev_request *req, struct nvm
 			// local_end_lpn is the last lpn in the current flash page or the end of the request
 			uint64_t local_end_lpn = min(end_lpn, local_start_lpn + pgs_per_flashpg - 1);
 			for (uint64_t lpn = local_start_lpn; lpn <= local_end_lpn; lpn++) {
-				uint64_t local_lpn = __get_local_lpn(lpn, ns, spp);
+				uint64_t local_lpn = LOCAL_LPN(lpn);
 
 				struct ppa cur_ppa = get_maptbl_ent(conv_ftl, local_lpn);
 				if (!mapped_ppa(&cur_ppa) || !valid_ppa(conv_ftl, &cur_ppa)) {
@@ -1055,93 +1052,112 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 	// check is it time to flush buffer(half full)
 	if (check_flush_buffer(wbuf)) {
 		NVMEV_INFO("Time to flush buffer");
-		wbuf->flushing = true;
-
 		while (!spin_trylock(&wbuf->lock))
 			;
 
 		/* read phase of read-modify-write operation fill empty cell of write buffer */
-		struct buffer_block_list_entry *block;
-		list_for_each_entry(block, &wbuf->used_blocks, list) {
-			bool cells_full = true;
-			uint64_t lpn = block->lpn;
-			uint64_t local_lpn = __get_local_lpn(lpn, ns, spp);
-			conv_ftl = &conv_ftls[__get_ftl_instance_idx(lpn, ns, spp)];
-			struct ppa ppa = get_maptbl_ent(conv_ftl, local_lpn);
-
-			if (!mapped_ppa(&ppa)) {
-				/* check if all sectors in the block are full */
-				for (int i = 0; i < wbuf->block_size/LBA_SIZE; i++) {
-					if (!block->sectors[i]) {
-						cells_full = false;
-						break;
-					}
-				}
-
-				if (!cells_full) {
-					if (srd.xfer_size <= KB(4)) {
-						srd.stime += spp->fw_4kb_rd_lat;
-					} else {
-						srd.stime += spp->fw_rd_lat;
-					}
-
-					srd.ppa = &ppa;
-					nsecs_completed = ssd_advance_nand(conv_ftl->ssd, &srd);
-					nsecs_latest = max(nsecs_completed, nsecs_latest);
-				}
-			}
-		}
-
-		block = NULL;
-		swr.stime = nsecs_latest;
-
-		/* write phase of read-modify-write operation */
-		list_for_each_entry(block, &wbuf->used_blocks, list) {
-			uint64_t lpn = block->lpn;
-
-			/* check if the block is valid */
-			if (lpn == INVALID_LPN) {
+		struct buffer_physical_page_entry *ppg;
+		struct buffer_page *page;
+		list_for_each_entry(ppg, &wbuf->used_ppgs, list) {
+			if(!ppg->valid || ppg->ftl_idx != wbuf->pg_per_ppg) {
 				continue;
 			}
 
-			uint64_t local_lpn = __get_local_lpn(lpn, ns, spp);
-			int ftl_instance_idx = __get_ftl_instance_idx(lpn, ns, spp);
-			conv_ftl = &conv_ftls[ftl_instance_idx];
+			size_t ftl_idx = ppg->ftl_idx;
+			conv_ftl = &conv_ftls[ftl_idx];
+			for (int i = 0; i < wbuf->pg_per_ppg; i++) {
+				page = &ppg->pages[i];
+				bool cells_full = true;
+				uint64_t lpn = page->lpn;
+				uint64_t local_lpn = LOCAL_LPN(lpn);
+				struct ppa ppa = get_maptbl_ent(conv_ftl, local_lpn);
 
-			struct ppa ppa = get_maptbl_ent(conv_ftl, local_lpn);
+				// TODO: fix to apply aggregate read
+				if (!mapped_ppa(&ppa)) {
+					/* check if all sectors in the block are full */
+					for (int i = 0; i < wbuf->ppg_size/LBA_SIZE; i++) {
+						if (!page->sectors[i]) {
+							cells_full = false;
+							break;
+						}
+					}
 
-			if (mapped_ppa(&ppa)) {
-				mark_page_invalid(conv_ftl, &ppa);
-				set_rmap_ent(conv_ftl, INVALID_LPN, &ppa);
+					if (!cells_full) {
+						if (srd.xfer_size <= KB(4)) {
+							srd.stime += spp->fw_4kb_rd_lat;
+						} else {
+							srd.stime += spp->fw_rd_lat;
+						}
+
+						srd.ppa = &ppa;
+						nsecs_completed = ssd_advance_nand(conv_ftl->ssd, &srd);
+						nsecs_latest = max(nsecs_completed, nsecs_latest);
+					}
+				}
+			}
+		}
+
+		ppg = NULL;
+		swr.stime = nsecs_latest;
+
+		/* write phase of read-modify-write operation */
+		list_for_each_entry(ppg, &wbuf->used_ppgs, list) {
+			if (!ppg->valid || ppg->ftl_idx != wbuf->pg_per_ppg) {
+				continue;
 			}
 
-			/* new write */
-			ppa = get_new_page(conv_ftl, USER_IO);
-			/* update maptbl */
-			set_maptbl_ent(conv_ftl, local_lpn, &ppa);
-			NVMEV_DEBUG("%s: got new ppa %lld, ", __func__, ppa2pgidx(conv_ftl, &ppa));
-			/* update rmap */
-			set_rmap_ent(conv_ftl, local_lpn, &ppa);
+			struct ppa ppa;
+			size_t ftl_idx = ppg->ftl_idx;
+			conv_ftl = &conv_ftls[ftl_idx];
 
-			mark_page_valid(conv_ftl, &ppa);
+			/* Assumption: all pages in physical buffer page  */
+			for (int i = 0; i < wbuf->pg_per_ppg; i++) {
+				struct buffer_page *page = &ppg->pages[i];
+				uint64_t lpn = ppg->pages[i].lpn;
 
-			/* need to advance the write pointer here */
-			advance_write_pointer(conv_ftl, USER_IO);
+				/* check if the block is valid */
+				if (lpn == INVALID_LPN) {
+					continue;
+				}
 
-			block->valid = false;
+				uint64_t local_lpn = LOCAL_LPN(lpn);
+				ppa = get_maptbl_ent(conv_ftl, local_lpn);
+
+				if (mapped_ppa(&ppa)) {
+					mark_page_invalid(conv_ftl, &ppa);
+					set_rmap_ent(conv_ftl, INVALID_LPN, &ppa);
+				}
+
+				/* new write */
+				ppa = get_new_page(conv_ftl, USER_IO);
+				/* update maptbl */
+				set_maptbl_ent(conv_ftl, local_lpn, &ppa);
+				NVMEV_DEBUG("%s: got new ppa %lld, ", __func__, ppa2pgidx(conv_ftl, &ppa));
+				/* update rmap */
+				set_rmap_ent(conv_ftl, local_lpn, &ppa);
+
+				mark_page_valid(conv_ftl, &ppa);
+
+				/* need to advance the write pointer here */
+				advance_write_pointer(conv_ftl, USER_IO);
+
+				nvmev_vdev->device_write += spp->pgsz;
+			}
+
+			ppg->valid = false;
 
 			swr.ppa = &ppa;
+			swr.xfer_size = spp->pgs_per_flashpg * spp->pgsz;
 			nsecs_completed = ssd_advance_nand(conv_ftl->ssd, &swr);
 			nsecs_latest = max(nsecs_completed, nsecs_latest);
+			ppg->complete_time = nsecs_completed;
+
+			schedule_internal_operation(req->sq_id, nsecs_completed, wbuf);
+
 			consume_write_credit(conv_ftl);
 			check_and_refill_write_credit(conv_ftl);
-
-			nvmev_vdev->device_write += spp->pgsz;
 		}
 		spin_unlock(&wbuf->lock);
-
-		/* reset buffer in future */
-		schedule_internal_operation(req->sq_id, nsecs_completed, wbuf, 0);
 	}
 
 

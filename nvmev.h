@@ -314,7 +314,7 @@ void nvmev_proc_admin_cq(int new_db, int old_db);
 // OPS I/O QUEUE
 struct buffer;
 void schedule_internal_operation(int sqid, unsigned long long nsecs_target,
-				struct buffer *write_buffer, size_t buffs_to_release);
+				struct buffer *write_buffer);
 void NVMEV_IO_WORKER_INIT(struct nvmev_dev *nvmev_vdev);
 void NVMEV_IO_WORKER_FINAL(struct nvmev_dev *nvmev_vdev);
 int nvmev_proc_io_sq(int qid, int new_db, int old_db);

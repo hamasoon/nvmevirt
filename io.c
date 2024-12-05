@@ -317,7 +317,7 @@ static void __enqueue_io_req(int sqid, int cqid, int sq_entry, unsigned long lon
 }
 
 void schedule_internal_operation(int sqid, unsigned long long nsecs_target,
-				 struct buffer *write_buffer, size_t release_code)
+				 struct buffer *write_buffer)
 {
 	struct nvmev_io_worker *worker;
 	struct nvmev_io_work *w;
@@ -343,7 +343,6 @@ void schedule_internal_operation(int sqid, unsigned long long nsecs_target,
 
 	w->is_internal = true;
 	w->write_buffer = write_buffer;
-	w->buffer_release_code = release_code;
 	mb(); /* IO worker shall see the updated w at once */
 
 	__insert_req_sorted(entry, worker, nsecs_target);

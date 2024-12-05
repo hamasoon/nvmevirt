@@ -25,6 +25,9 @@
 #define INVALID_PPA (~(0ULL))
 #define INVALID_LPN (~(0ULL))
 #define UNMAPPED_PPA (~(0ULL))
+#define GET_FTL_IDX(lpn) (lpn / (FLASH_PAGE_SIZE / LOGICAL_PAGE_SIZE) & SSD_PARTITIONS)
+#define LOCAL_LPN(lpn) ((lpn / ((FLASH_PAGE_SIZE / LOGICAL_PAGE_SIZE) * SSD_PARTITIONS))\
+		* (FLASH_PAGE_SIZE / LOGICAL_PAGE_SIZE) + (lpn % (FLASH_PAGE_SIZE / LOGICAL_PAGE_SIZE)))
 
 enum {
 	NAND_READ = 0,
@@ -134,22 +137,22 @@ struct nand_cmd {
 
 /*
 size: size of buffer
-num_blocks: number of blocks
+num_pgg: number of blocks
 block_size: size of block. same as page size
-flush_threshold: threshold for flushing buffer(currently half of num_blocks)
-flushing: whether buffer is currently flushing
-free_blocks: list of free blocks
-used_blocks: list of used blocks
+flush_threshold: threshold for flushing buffer(currently half of num_pgg)
+free_ppgs: list of free blocks
+used_ppgs: list of used blocks
 */
 struct buffer {
 	spinlock_t lock;
 	size_t size;
-	size_t num_blocks;
-	size_t block_size;
+	size_t num_pgg;
+	size_t pg_per_ppg;
+	size_t ppg_size;
+	size_t pg_size;
 	size_t flush_threshold;
-	bool flushing;
-	struct list_head free_blocks;
-	struct list_head used_blocks;
+	struct list_head free_ppgs;
+	struct list_head used_ppgs;
 };
 
 /*
@@ -158,11 +161,18 @@ valid: whether the block is valid. if false, the block is currently begin writte
 sectors: represent the sectors of the page
 list: list head for buffer
 */
-struct buffer_block_list_entry {
-	uint64_t lpn;
+struct buffer_physical_page_entry {
 	bool valid;
-	bool *sectors;
+	int ftl_idx;
+	int pg_idx;
+	uint64_t complete_time;
+	struct buffer_page *pages;
     struct list_head list;
+};
+
+struct buffer_page {
+	uint64_t lpn;
+	bool *sectors;
 };
 
 /*
@@ -290,11 +300,11 @@ uint64_t ssd_advance_pcie(struct ssd *ssd, uint64_t request_time, uint64_t lengt
 uint64_t ssd_advance_write_buffer(struct ssd *ssd, uint64_t request_time, uint64_t length);
 uint64_t ssd_next_idle_time(struct ssd *ssd);
 
-void buffer_init(struct buffer *buf, size_t size, struct ssdparams *spp);
+void buffer_init(struct buffer *buf, size_t size, struct ssdparams *spp, size_t nr_parts);
 uint32_t buffer_allocate(struct ssdparams *spp, struct buffer *buf, uint64_t start_lpn, uint64_t end_lpn, uint64_t start_offset, uint64_t size);
-bool buffer_release(struct buffer *buf, size_t size);
+bool buffer_release(struct buffer *buf, uint64_t complete_time);
 void buffer_refill(struct buffer *buf);
-struct buffer_block_list_entry *buffer_search(struct buffer *buf, uint64_t lpn);
+struct buffer_page *buffer_search(struct buffer *buf, uint64_t lpn);
 
 void adjust_ftl_latency(int target, int lat);
 #endif
