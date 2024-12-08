@@ -1,0 +1,5 @@
+[global]
+include global_timeline.fio
+
+[randread]
+rw=randread

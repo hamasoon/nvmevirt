@@ -1,0 +1,5 @@
+[global]
+include global.fio
+
+[seqwrite]
+rw=write

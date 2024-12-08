@@ -19,13 +19,15 @@ void buffer_init(struct ssd *ssd, size_t size, struct ssdparams *spp, size_t nr_
 		buf->size = size;
 		buf->pg_size = spp->pgsz;
 		buf->ppg_size = spp->pgs_per_flashpg * buf->pg_size;
-		buf->num_pgg = buf->size / buf->ppg_size;
+		buf->ppg_per_buf = buf->size / buf->ppg_size;
 		buf->pg_per_ppg = spp->pgs_per_flashpg;
-		buf->flush_threshold = buf->num_pgg / 4;
+		buf->sec_per_pg = spp->secs_per_pg;
+		buf->free_pgs_cnt = buf->ppg_per_buf * buf->pg_per_ppg;
+		buf->flush_threshold = buf->ppg_per_buf / 2;
 		INIT_LIST_HEAD(&buf->free_ppgs);
 		INIT_LIST_HEAD(&buf->used_ppgs);
 		
-		for (int i = 0; i < buf->num_pgg; i++) {
+		for (int i = 0; i < buf->ppg_per_buf; i++) {
 			struct buffer_physical_page_entry* block = 
 				(struct buffer_physical_page_entry*)kmalloc(sizeof(struct buffer_physical_page_entry), GFP_KERNEL);
 			block->valid = true;
@@ -45,7 +47,7 @@ static struct buffer_physical_page_entry* __buffer_get_block(struct buffer *buf,
 {
 	struct buffer_physical_page_entry *block;
 	list_for_each_entry(block, &buf->used_ppgs, list) {
-		if (block->valid && block->pg_idx < buf->num_pgg) {
+		if (block->valid && block->pg_idx < buf->ppg_per_buf) {
 			return block;
 		}
 	}
@@ -69,30 +71,8 @@ static struct buffer_page* __buffer_get_page(struct buffer *buf, uint64_t lpn)
 	return NULL;
 }
 
-static size_t __count_free_pages(struct buffer *buf)
-{
-	size_t cnt = 0;
-	struct buffer_physical_page_entry *block;
-	list_for_each_entry(block, &buf->used_ppgs, list) {
-		if (block->valid) {
-			for (size_t i = 0; i < buf->pg_per_ppg; i++) {
-				
-			}
-		}
-	}
-
-	return cnt;
-}
-
-
-/* check write buffer have enough space for save request */
-static bool __check_writebuffer(struct buffer *buf, uint64_t start_lpn, uint64_t end_lpn)
-{
-
-}
-
 /* fill single block of buffer */
-static void __fill_page(struct buffer *buf, uint64_t lpn, uint64_t size, uint64_t offset)
+static void __buffer_fill_page(struct buffer *buf, uint64_t lpn, uint64_t size, uint64_t offset)
 {
 	if (size == 0) return;
 
@@ -111,45 +91,61 @@ static void __fill_page(struct buffer *buf, uint64_t lpn, uint64_t size, uint64_
 
 		page = &block->pages[block->pg_idx++];
 	}
+	else {
+		buf->free_pgs_cnt++;
+	}
 
 	page->lpn = lpn;
 
-	for (size_t i = 0; i < size / LBA_SIZE; i++)
+	for (size_t i = 0; i < size / LBA_SIZE; i++) {
 		page->sectors[i + offset] = true;
+	}
 }
 
-/* fill buffer with data */
-static void __fill_buffer(struct ssdparams *spp, struct buffer *buf, uint64_t start_lpn, uint64_t start_offset, uint64_t size)
+uint32_t buffer_allocate(struct ssd *ssd, uint64_t start_lpn, uint64_t end_lpn, uint64_t start_offset, uint64_t size)
 {
+	struct ssdparams *spp = &ssd->sp;
+	struct buffer *buf = &ssd->write_buffer[0];
+	uint32_t nr_parts = SSD_PARTITIONS;
 	uint64_t pgsz = spp->pgsz;
 	uint64_t start_size = min((spp->secs_per_pg - start_offset) * LBA_SIZE, size);
-
-	/* handle first page */
-	__fill_page(buf, start_lpn++, start_size, start_offset);
-
-	for (size -= start_size; size > pgsz; size -= pgsz) {
-		__fill_page(buf, start_lpn++, pgsz, 0);
-	}
-
-	/* handle last page */
-	__fill_page(buf, start_lpn, size, 0);
-}
-
-uint32_t buffer_allocate(struct ssdparams *spp, struct buffer *buf, uint64_t start_lpn, uint64_t end_lpn, uint64_t start_offset, uint64_t size)
-{
-	uint64_t pg_size = spp->pgsz;
-	struct buffer_block *block;
+	size_t required_pgs[SSD_PARTITIONS] = {0, };
+	size_t ftl_idx;
 
 	while (!spin_trylock(&buf->lock))
 		;
 
-	/* check if buffer have enough space */
-	if (__check_writebuffer(buf, start_lpn, end_lpn) == false) {
-		spin_unlock(&buf->lock);
-		return -1;
+	for (size_t i = 0; (i < nr_parts) && (start_lpn <= end_lpn); i++, start_lpn += spp->pgs_per_flashpg) {
+		ftl_idx = GET_FTL_IDX(start_lpn);
+		buf = &ssd->write_buffer[ftl_idx];
+		uint64_t local_start_lpn = start_lpn;
+		
+		for(;local_start_lpn <= end_lpn; local_start_lpn += spp->pgs_per_flashpg * nr_parts) {
+			uint64_t local_end_lpn = min(end_lpn, local_start_lpn + spp->pgs_per_flashpg - 1);
+			for (uint64_t lpn = local_start_lpn + 1; lpn <= local_end_lpn; lpn++) {
+				if (__buffer_get_page(buf, lpn) == NULL) required_pgs[ftl_idx]++;
+			}
+		}
+
+		if (required_pgs[ftl_idx] > buf->free_pgs_cnt) {
+			spin_unlock(&buf->lock);
+			return -1;
+		}
 	}
 
-	__fill_buffer(spp, buf, start_lpn, start_offset, size);
+	/* handle first page */
+	buf = &ssd->write_buffer[GET_FTL_IDX(start_lpn)];
+	__buffer_fill_page(buf, start_lpn++, start_size, start_offset);
+
+	for (size -= start_size; size > pgsz; size -= pgsz) {
+		buf = &ssd->write_buffer[GET_FTL_IDX(start_lpn)];
+		__buffer_fill_page(buf, start_lpn++, pgsz, 0);
+	}
+
+	/* handle last page */
+	buf = &ssd->write_buffer[GET_FTL_IDX(start_lpn)];
+	__buffer_fill_page(buf, start_lpn, size, 0);
+
 	spin_unlock(&buf->lock);
 	return 0;
 }
@@ -166,11 +162,14 @@ bool buffer_release(struct buffer *buf, uint64_t complete_time)
 			list_move_tail(&block->list, &buf->free_ppgs);
 			block->complete_time = 0;
 			block->valid = true;
-			for (int i = 0; i < buf->pg_per_ppg; i++) {
+			for (int i = 0; i < block->pg_idx; i++) {
 				block->pages[i].lpn = INVALID_LPN;
-				for (size_t i = 0; i < buf->ppg_size / LBA_SIZE; i++)
+				for (size_t i = 0; i < buf->ppg_size / LBA_SIZE; i++) {
 					block->pages[i].sectors[i] = false;
+				}
 			}
+			buf->free_pgs_cnt += block->pg_idx;
+			block->pg_idx = 0;
 		}
 	}
 
@@ -189,11 +188,14 @@ void buffer_refill(struct buffer *buf)
 		list_move_tail(&block->list, &buf->free_ppgs);
 		block->complete_time = 0;
 		block->valid = true;
-		for (int i = 0; i < buf->pg_per_ppg; i++) {
+		for (int i = 0; i < block->pg_idx; i++) {
 			block->pages[i].lpn = INVALID_LPN;
-			for (size_t i = 0; i < buf->ppg_size / LBA_SIZE; i++)
+			for (size_t i = 0; i < buf->ppg_size / LBA_SIZE; i++) {
 				block->pages[i].sectors[i] = false;
+			}
 		}
+		buf->free_pgs_cnt += block->pg_idx;
+		block->pg_idx = 0;
 	}
 
 	spin_unlock(&buf->lock);
@@ -432,33 +434,24 @@ static void ssd_init_ch(struct ssd_channel *ch, struct ssdparams *spp)
 
 static void ssd_remove_buffer(struct ssd *ssd)
 {
-	if (ssd->write_buffer == NULL) return;
-
-	struct list_head *pos, *q;
-	list_for_each_safe(pos, q, &ssd->write_buffer->free_ppgs) {
-		struct buffer_physical_page_entry *ppgs =
-		    list_entry(pos, struct buffer_physical_page_entry, list);
-		list_del(pos);
-		for (int i = 0; i < ssd->write_buffer->pg_per_ppg; i++) {
-			kfree(ppgs->pages[i].sectors);
-			kfree(ppgs->pages);
+	for (int i = 0; i < SSD_PARTITIONS; i++) {
+		struct buffer *buf = &ssd->write_buffer[i];
+		struct buffer_physical_page_entry *block, *tmp;
+		list_for_each_entry_safe(block, tmp, &buf->free_ppgs, list) {
+			for (int i = 0; i < buf->pg_per_ppg; i++) {
+				kfree(block->pages[i].sectors);
+			}
+			kfree(block->pages);
+			kfree(block);
 		}
-		kfree(ppgs);
-	}
-
-	pos = NULL;
-	q = NULL;
-	list_for_each_safe(pos, q, &ssd->write_buffer->used_ppgs) {
-		struct buffer_physical_page_entry *ppgs =
-		    list_entry(pos, struct buffer_physical_page_entry, list);
-		list_del(pos);
-		for (int i = 0; i < ssd->write_buffer->pg_per_ppg; i++) {
-			kfree(ppgs->pages[i].sectors);
-			kfree(ppgs->pages);
+		list_for_each_entry_safe(block, tmp, &buf->used_ppgs, list) {
+			for (int i = 0; i < buf->pg_per_ppg; i++) {
+				kfree(block->pages[i].sectors);
+			}
+			kfree(block->pages);
+			kfree(block);
 		}
-		kfree(ppgs);
 	}
-	kfree(ssd->write_buffer);
 }
 
 static void ssd_remove_ch(struct ssd_channel *ch)

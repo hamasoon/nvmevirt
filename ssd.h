@@ -137,9 +137,9 @@ struct nand_cmd {
 
 /*
 size: size of buffer
-num_pgg: number of blocks
+ppg_per_buf: number of blocks
 block_size: size of block. same as page size
-flush_threshold: threshold for flushing buffer(currently half of num_pgg)
+flush_threshold: threshold for flushing buffer(currently half of ppg_per_buf)
 free_ppgs: list of free blocks
 used_ppgs: list of used blocks
 */
@@ -147,10 +147,12 @@ struct buffer {
 	spinlock_t lock;
 	int ftl_idx;
 	size_t size;
-	size_t num_pgg;
+	size_t ppg_per_buf;
 	size_t pg_per_ppg;
+	size_t sec_per_pg;
 	size_t ppg_size;
 	size_t pg_size;
+	size_t free_pgs_cnt;
 	size_t flush_threshold;
 	struct list_head free_ppgs;
 	struct list_head used_ppgs;
@@ -301,7 +303,7 @@ uint64_t ssd_advance_write_buffer(struct ssd *ssd, uint64_t request_time, uint64
 uint64_t ssd_next_idle_time(struct ssd *ssd);
 
 void buffer_init(struct ssd *ssd, size_t size, struct ssdparams *spp, size_t nr_parts);
-uint32_t buffer_allocate(struct ssdparams *spp, struct buffer *buf, uint64_t start_lpn, uint64_t end_lpn, uint64_t start_offset, uint64_t size);
+uint32_t buffer_allocate(struct ssd *ssd, uint64_t start_lpn, uint64_t end_lpn, uint64_t start_offset, uint64_t size);
 bool buffer_release(struct buffer *buf, uint64_t complete_time);
 void buffer_refill(struct buffer *buf);
 struct buffer_page *buffer_search(struct buffer *buf, uint64_t lpn);

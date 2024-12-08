@@ -1,0 +1,5 @@
+[global]
+include global.fio
+
+[randread]
+rw=randread
