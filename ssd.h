@@ -145,6 +145,7 @@ used_ppgs: list of used blocks
 */
 struct buffer {
 	spinlock_t lock;
+	int ftl_idx;
 	size_t size;
 	size_t num_pgg;
 	size_t pg_per_ppg;
@@ -163,7 +164,6 @@ list: list head for buffer
 */
 struct buffer_physical_page_entry {
 	bool valid;
-	int ftl_idx;
 	int pg_idx;
 	uint64_t complete_time;
 	struct buffer_page *pages;
@@ -252,7 +252,7 @@ struct ssd {
 	struct ssdparams sp;
 	struct ssd_channel *ch;
 	struct ssd_pcie *pcie;
-	struct buffer *write_buffer;
+	struct buffer write_buffer[SSD_PARTITIONS];
 	unsigned int cpu_nr_dispatcher;
 };
 
@@ -300,7 +300,7 @@ uint64_t ssd_advance_pcie(struct ssd *ssd, uint64_t request_time, uint64_t lengt
 uint64_t ssd_advance_write_buffer(struct ssd *ssd, uint64_t request_time, uint64_t length);
 uint64_t ssd_next_idle_time(struct ssd *ssd);
 
-void buffer_init(struct buffer *buf, size_t size, struct ssdparams *spp, size_t nr_parts);
+void buffer_init(struct ssd *ssd, size_t size, struct ssdparams *spp, size_t nr_parts);
 uint32_t buffer_allocate(struct ssdparams *spp, struct buffer *buf, uint64_t start_lpn, uint64_t end_lpn, uint64_t start_offset, uint64_t size);
 bool buffer_release(struct buffer *buf, uint64_t complete_time);
 void buffer_refill(struct buffer *buf);

@@ -10,30 +10,33 @@ static inline uint64_t __get_ioclock(struct ssd *ssd)
 	return cpu_clock(ssd->cpu_nr_dispatcher);
 }
 
-void buffer_init(struct buffer *buf, size_t size, struct ssdparams *spp, size_t nr_parts)
+void buffer_init(struct ssd *ssd, size_t size, struct ssdparams *spp, size_t nr_parts)
 {
-	spin_lock_init(&buf->lock);
-	buf->size = size;
-	buf->pg_size = spp->pgsz;
-	buf->ppg_size = spp->pgs_per_flashpg * buf->pg_size;
-	buf->num_pgg = buf->size / buf->ppg_size;
-	buf->pg_per_ppg = spp->pgs_per_flashpg;
-	buf->flush_threshold = buf->num_pgg / 4;
-	INIT_LIST_HEAD(&buf->free_ppgs);
-	INIT_LIST_HEAD(&buf->used_ppgs);
-	
-	for (int i = 0; i < buf->num_pgg; i++) {
-		struct buffer_physical_page_entry* block = 
-			(struct buffer_physical_page_entry*)kmalloc(sizeof(struct buffer_physical_page_entry), GFP_KERNEL);
-		block->valid = true;
-		block->ftl_idx = -1;
-		block->complete_time = 0;
-		block->pages = (struct buffer_page*)kmalloc(sizeof(struct buffer_page) * buf->pg_per_ppg, GFP_KERNEL);
-		for (int j = 0; j < buf->pg_per_ppg; j++) {
-			block->pages[j].lpn = INVALID_LPN;
-			block->pages[j].sectors = kmalloc(sizeof(bool) * (spp->pgsz / LBA_SIZE), GFP_KERNEL);
+	for (int i = 0; i < nr_parts; i++) {
+		struct buffer *buf = &ssd->write_buffer[i];
+		spin_lock_init(&buf->lock);
+		buf->ftl_idx = i;
+		buf->size = size;
+		buf->pg_size = spp->pgsz;
+		buf->ppg_size = spp->pgs_per_flashpg * buf->pg_size;
+		buf->num_pgg = buf->size / buf->ppg_size;
+		buf->pg_per_ppg = spp->pgs_per_flashpg;
+		buf->flush_threshold = buf->num_pgg / 4;
+		INIT_LIST_HEAD(&buf->free_ppgs);
+		INIT_LIST_HEAD(&buf->used_ppgs);
+		
+		for (int i = 0; i < buf->num_pgg; i++) {
+			struct buffer_physical_page_entry* block = 
+				(struct buffer_physical_page_entry*)kmalloc(sizeof(struct buffer_physical_page_entry), GFP_KERNEL);
+			block->valid = true;
+			block->complete_time = 0;
+			block->pages = (struct buffer_page*)kmalloc(sizeof(struct buffer_page) * buf->pg_per_ppg, GFP_KERNEL);
+			for (int j = 0; j < buf->pg_per_ppg; j++) {
+				block->pages[j].lpn = INVALID_LPN;
+				block->pages[j].sectors = kmalloc(sizeof(bool) * (spp->pgsz / LBA_SIZE), GFP_KERNEL);
+			}
+			list_add_tail(&block->list, &buf->free_ppgs);
 		}
-		list_add_tail(&block->list, &buf->free_ppgs);
 	}
 }
 
@@ -42,7 +45,7 @@ static struct buffer_physical_page_entry* __buffer_get_block(struct buffer *buf,
 {
 	struct buffer_physical_page_entry *block;
 	list_for_each_entry(block, &buf->used_ppgs, list) {
-		if (block->ftl_idx == ftl_idx && block->valid && block->ftl_idx < buf->num_pgg) {
+		if (block->valid && block->pg_idx < buf->num_pgg) {
 			return block;
 		}
 	}
@@ -66,41 +69,26 @@ static struct buffer_page* __buffer_get_page(struct buffer *buf, uint64_t lpn)
 	return NULL;
 }
 
-/* check write buffer have enough space for save request */
-static bool __check_writebuffer(struct buffer *buf, uint64_t start_lpn, uint64_t end_lpn)
+static size_t __count_free_pages(struct buffer *buf)
 {
 	size_t cnt = 0;
-	int free_pgs[SSD_PARTITIONS] = {0, };
-	// count left free pages
-
 	struct buffer_physical_page_entry *block;
 	list_for_each_entry(block, &buf->used_ppgs, list) {
 		if (block->valid) {
-			for (int i = 0; i < buf->pg_per_ppg; i++)  {
-				if (block->pages[i].lpn == INVALID_LPN) {
-					free_pgs[block->ftl_idx]++;
-				}
+			for (size_t i = 0; i < buf->pg_per_ppg; i++) {
+				
 			}
 		}
 	}
 
-	for ( uint64_t lpn = start_lpn; lpn <= end_lpn; lpn++) {
-		if (__buffer_get_page(buf, lpn) == NULL) {
-			if (__buffer_get_block(buf, lpn) == NULL) {
-				cnt++;
-			}
-			else {
-				if (free_pgs[GET_FTL_IDX(lpn)] == 0) {
-					cnt++;
-				}
-				else {
-					free_pgs[GET_FTL_IDX(lpn)]--;
-				}
-			}
-		}
-	}
+	return cnt;
+}
 
-	return round_up(cnt, buf->pg_per_ppg) / buf->pg_per_ppg <= list_count_nodes(&buf->free_ppgs);
+
+/* check write buffer have enough space for save request */
+static bool __check_writebuffer(struct buffer *buf, uint64_t start_lpn, uint64_t end_lpn)
+{
+
 }
 
 /* fill single block of buffer */
@@ -514,8 +502,7 @@ void ssd_init(struct ssd *ssd, struct ssdparams *spp, uint32_t cpu_nr_dispatcher
 	ssd->pcie = kmalloc(sizeof(struct ssd_pcie), GFP_KERNEL);
 	ssd_init_pcie(ssd->pcie, spp);
 
-	ssd->write_buffer = kmalloc(sizeof(struct buffer), GFP_KERNEL);
-	buffer_init(ssd->write_buffer, spp->write_buffer_size, spp, SSD_PARTITIONS); // possible problem?
+	buffer_init(ssd, spp->write_buffer_size, spp, SSD_PARTITIONS); // possible problem?
 
 	return;
 }
