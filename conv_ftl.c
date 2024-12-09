@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: GPL-2.0-only
-
 #include <linux/ktime.h>
 #include <linux/sched/clock.h>
 
@@ -7,9 +6,6 @@
 #include "conv_ftl.h"
 #define ROUND_DOWN(x, y) ((x) & ~((y)-1))
 #define ROUND_UP(x, y) ((((x) + (y) - 1) / (y)) * (y))
-#define GET_FTL_IDX(lpn) (lpn / (FLASH_PAGE_SIZE / LOGICAL_PAGE_SIZE) & SSD_PARTITIONS)
-#define LOCAL_LPN(lpn) ((lpn / ((FLASH_PAGE_SIZE / LOGICAL_PAGE_SIZE) * SSD_PARTITIONS))\
-		* (FLASH_PAGE_SIZE / LOGICAL_PAGE_SIZE) + (lpn % (FLASH_PAGE_SIZE / LOGICAL_PAGE_SIZE)))
 
 static inline uint64_t get_aligned_size(struct ssdparams *spp, uint64_t start_lba, uint64_t size)
 {
@@ -28,12 +24,13 @@ static inline bool first_sector_in_page(struct ssdparams *spp, uint64_t lpn)
 // currently, threshold is half of the total blocks
 static inline bool check_flush_buffer(struct buffer *buf)
 {
-	int cnt = 0;
-	struct buffer_physical_page_entry *block;
+	size_t cnt = 0;
+	struct buffer_ppg *block;
 	list_for_each_entry(block, &buf->used_ppgs, list) {
-		if (block->valid) cnt++;
+		if (block->valid && block->pg_idx >= buf->pg_per_ppg) cnt++;
 	}
 
+	// NVMEV_INFO("ftl_idx: %d, flush_threshold: %lu, cnt: %lu", buf->ftl_idx, buf->flush_threshold, cnt);
 	return cnt > buf->flush_threshold;
 }
 
@@ -861,6 +858,7 @@ static bool conv_read(struct nvmev_ns *ns, struct nvmev_request *req, struct nvm
 {
 	struct conv_ftl *conv_ftls = (struct conv_ftl *)ns->ftls;
 	struct conv_ftl *conv_ftl = &conv_ftls[0];
+	struct ssd *ssd = conv_ftl->ssd;
 	struct buffer *wbuf = NULL;
 	/* spp are shared by all instances*/
 	struct ssdparams *spp = &conv_ftl->ssd->sp;
@@ -905,7 +903,7 @@ static bool conv_read(struct nvmev_ns *ns, struct nvmev_request *req, struct nvm
 		xfer_size = 0;
 		int ftl_idx = GET_FTL_IDX(start_lpn);
 		conv_ftl = &conv_ftls[ftl_idx];
-		wbuf = &conv_ftl->ssd->write_buffer[ftl_idx];
+		wbuf = &ssd->write_buffer[ftl_idx];
 		prev_ppa = get_maptbl_ent(conv_ftl, LOCAL_LPN(start_lpn));
 
 		uint64_t local_start_lpn = start_lpn;
@@ -985,6 +983,7 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 
 	/* wbuf and spp are shared by all instances */
 	struct ssdparams *spp = &conv_ftl->ssd->sp;
+	struct ssd *ssd = conv_ftl->ssd;
 	struct buffer *wbuf;
 
 	struct nvme_command *cmd = req->cmd;
@@ -1038,7 +1037,7 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 		return false;
 	}
 	
-	if (buffer_allocate(conv_ftl->ssd, start_lpn, end_lpn, start_offset, size) < 0){
+	if (buffer_allocate(ssd, start_lpn, end_lpn, start_offset, size) < 0){
 		NVMEV_DEBUG("%s: buffer_allocate failed\n", __func__);
 		return false;
 	}
@@ -1048,7 +1047,7 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 
 	// have to fix this
 	nsecs_write_buffer =
-		ssd_advance_write_buffer(conv_ftl->ssd, nsecs_latest, LBA_TO_BYTE(nr_lba));
+		ssd_advance_write_buffer(ssd, nsecs_latest, LBA_TO_BYTE(nr_lba));
 
 	buffer_lat = nsecs_write_buffer - nsecs_latest;
 	nsecs_latest = max(nsecs_write_buffer, nsecs_latest);
@@ -1057,15 +1056,17 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 	swr.stime = nsecs_latest;
 
 	for (size_t i = 0; i < ns->nr_parts; i++){
-		wbuf = conv_ftls[i].ssd->write_buffer;
+		conv_ftl = &conv_ftls[i];
+		wbuf = &ssd->write_buffer[i];
+
+		while (!spin_trylock(&wbuf->lock))
+			;
 
 		if (check_flush_buffer(wbuf)) {
-			NVMEV_INFO("Time to flush buffer");
-			while (!spin_trylock(&wbuf->lock))
-				;
+			NVMEV_INFO("RMW Start\n");
 
 			/* read phase of read-modify-write operation fill empty cell of write buffer */
-			struct buffer_physical_page_entry *ppg;
+			struct buffer_ppg *ppg;
 			struct buffer_page *page;
 			struct ppa prev_ppa;
 			struct ppa ppa;
@@ -1076,7 +1077,6 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 				}
 
 				size_t ftl_idx = wbuf->ftl_idx;
-				conv_ftl = &conv_ftls[ftl_idx];
 				prev_ppa = get_maptbl_ent(conv_ftl, LOCAL_LPN(ppg->pages[0].lpn));
 
 				for (int i = 0; i < wbuf->pg_per_ppg; i++) {
@@ -1086,28 +1086,28 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 					uint64_t local_lpn = LOCAL_LPN(lpn);
 					ppa = get_maptbl_ent(conv_ftl, local_lpn);
 
-					// TODO: support aggregate read
-					if (!mapped_ppa(&ppa)) {
-						/* check if all sectors in the block are full */
-						for (int i = 0; i < wbuf->ppg_size/LBA_SIZE; i++) {
-							if (!page->sectors[i]) {
-								cells_full = false;
-								break;
-							}
-						}
+					if (!mapped_ppa(&ppa) || !valid_ppa(conv_ftl, &ppa)) {
+						continue;
+					}
 
-						if (!cells_full) {
-							if (is_same_flash_page(conv_ftl, ppa, prev_ppa)) {
-								xfer_size += spp->pgsz;
-								continue;
-							} 
-							
-							if (xfer_size > 0) {
-								srd.xfer_size = xfer_size;
-								srd.ppa = &ppa;
-								nsecs_completed = ssd_advance_nand(conv_ftl->ssd, &srd);
-								nsecs_latest = max(nsecs_completed, nsecs_latest);
-							}
+					for (int i = 0; i < wbuf->ppg_size/LBA_SIZE; i++) {
+						if (!page->sectors[i]) {
+							cells_full = false;
+							break;
+						}
+					}
+
+					if (!cells_full) {
+						if (is_same_flash_page(conv_ftl, ppa, prev_ppa)) {
+							xfer_size += spp->pgsz;
+							continue;
+						} 
+						
+						if (xfer_size > 0) {
+							srd.xfer_size = xfer_size;
+							srd.ppa = &ppa;
+							nsecs_completed = ssd_advance_nand(conv_ftl->ssd, &srd);
+							nsecs_latest = max(nsecs_completed, nsecs_latest);
 						}
 					}
 					
@@ -1164,25 +1164,26 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 
 					/* need to advance the write pointer here */
 					advance_write_pointer(conv_ftl, USER_IO);
+					
+					consume_write_credit(conv_ftl);
+					check_and_refill_write_credit(conv_ftl);
 				}
 
 				ppg->valid = false;
 
 				swr.ppa = &ppa;
-				swr.xfer_size = spp->pgs_per_flashpg * spp->pgsz;
+				swr.xfer_size = wbuf->ppg_size;
 				nsecs_completed = ssd_advance_nand(conv_ftl->ssd, &swr);
 				nsecs_latest = max(nsecs_completed, nsecs_latest);
 				ppg->complete_time = nsecs_completed;
 
 				schedule_internal_operation(req->sq_id, nsecs_completed, wbuf);
 
-				nvmev_vdev->device_write += spp->pgs_per_flashpg * spp->pgsz;
-
-				consume_write_credit(conv_ftl);
-				check_and_refill_write_credit(conv_ftl);
+				nvmev_vdev->device_write += wbuf->ppg_size;
 			}
-			spin_unlock(&wbuf->lock);
 		}
+
+		spin_unlock(&wbuf->lock);
 	}
 
 

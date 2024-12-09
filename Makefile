@@ -33,16 +33,16 @@ dis:
 
 load:
 	sudo insmod ./nvmev.ko \
-	memmap_start=28G \
-	memmap_size=4G \
-	cpus=7,8
+	memmap_start=48G \
+	memmap_size=8G \
+	cpus=10,11,12,13
 
 unload:
 	sudo rmmod nvmev
 
-fio_single:
-	sudo fio --name=randwrite --ioengine=sync --iodepth=1 --rw=randwrite --bs=4k --size=512k --numjobs=1 \
-	--filename=/dev/nvme2n1 --direct=1 --group_reporting --norandommap
+fio_write:
+	sudo fio --name=randwrite --ioengine=libaio --iodepth=32 --rw=randwrite --bs=4k --size=4G --numjobs=4 \
+	--filename=/dev/nvme3n1 --direct=1 --group_reporting --norandommap
 
-fio:
-	./fio.sh
+# fio:
+# 	./fio.sh

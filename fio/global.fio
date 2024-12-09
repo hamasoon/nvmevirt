@@ -1,4 +1,4 @@
-filesize=8G
+filesize=4G
 numjobs=${JOB}
 iodepth=${DEPTH}
 filename=${DEV}

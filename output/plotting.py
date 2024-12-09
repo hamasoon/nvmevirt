@@ -27,7 +27,7 @@ def read_data(type, target_data):
                     with open(filepath, 'r') as f:
                         raw_data = json.loads(f.read())
                         if target_data == 'lat_ns':
-                            data.at[sz, f'{r}-{rw_type}-{s}'] = float(raw_data['jobs'][0][rw_type]['lat_ns']['mean'])
+                            data.at[sz, f'{r}-{rw_type}-{s}'] = float(raw_data['jobs'][0][rw_type]['lat_ns']['mean']) / 1000
                         elif target_data == 'bw':
                             data.at[sz, f'{r}-{rw_type}-{s}'] = float(raw_data['jobs'][0][rw_type]['bw']) / 1000
                         # data[r][rw_type][s][sz] = raw_data['jobs'][target_data]
@@ -84,7 +84,7 @@ def plot_data(data1, data2, data3, random='rand', rw_type='read', sync='sync', x
         plt.plot(size, data2[data_type], label='16K', marker='x')
         plt.plot(size, data3[data_type], label='32K', marker='s')
     elif plot_type == 'bar':
-        w = 0.3
+        w = 0.2
         x = range(len(size))
         plt.bar([i - w for i in x], data1[data_type], width=w, label='4K', align='center')
         plt.bar(x, data2[data_type], width=w, label='16K', align='center')
@@ -114,9 +114,9 @@ def plot_mix_data(data1, data2, data3, type):
         plt.savefig(os.path.join(os.path.dirname(__file__), 'plot/mix/' + sz + '.png'))
         
 if __name__ == '__main__':
-    data1 = read_data('4k', 'bw')
-    data2 = read_data('16k', 'bw')
-    data3 = read_data('32k', 'bw')
+    data1 = read_data('4k', 'lat_ns')
+    data2 = read_data('16k', 'lat_ns')
+    data3 = read_data('32k', 'lat_ns')
     
     print(data1)
     
@@ -127,7 +127,7 @@ if __name__ == '__main__':
     for r in random:
         for rw_type in rw:
             for s in sync:
-                plot_data(data1, data2, data3, r, rw_type, s)
+                plot_data(data1, data2, data3, r, rw_type, s, 'Block Size(Byte)', 'Latency(us)')
     
     # data = read_data('origin', 'bw')
     

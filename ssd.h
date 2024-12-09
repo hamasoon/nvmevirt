@@ -25,7 +25,7 @@
 #define INVALID_PPA (~(0ULL))
 #define INVALID_LPN (~(0ULL))
 #define UNMAPPED_PPA (~(0ULL))
-#define GET_FTL_IDX(lpn) (lpn / (FLASH_PAGE_SIZE / LOGICAL_PAGE_SIZE) & SSD_PARTITIONS)
+#define GET_FTL_IDX(lpn) (lpn / (FLASH_PAGE_SIZE / LOGICAL_PAGE_SIZE) % SSD_PARTITIONS)
 #define LOCAL_LPN(lpn) ((lpn / ((FLASH_PAGE_SIZE / LOGICAL_PAGE_SIZE) * SSD_PARTITIONS))\
 		* (FLASH_PAGE_SIZE / LOGICAL_PAGE_SIZE) + (lpn % (FLASH_PAGE_SIZE / LOGICAL_PAGE_SIZE)))
 
@@ -164,7 +164,7 @@ valid: whether the block is valid. if false, the block is currently begin writte
 sectors: represent the sectors of the page
 list: list head for buffer
 */
-struct buffer_physical_page_entry {
+struct buffer_ppg {
 	bool valid;
 	int pg_idx;
 	uint64_t complete_time;

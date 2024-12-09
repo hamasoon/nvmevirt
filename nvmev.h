@@ -191,7 +191,7 @@ struct nvmev_io_work {
 
 	bool is_internal;
 	void *write_buffer;
-	size_t buffer_release_code;
+	uint64_t completed_time;
 
 	unsigned int next, prev;
 };

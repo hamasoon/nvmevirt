@@ -171,3 +171,12 @@ sphinx_*/
 
 # Local makefile
 Makefile.local
+/fio/
+/output/
+/benchmark/
+/.vscode/
+/.venv/
+fio.sh
+ret.txt
+bench.py
+.clang-format

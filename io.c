@@ -627,7 +627,7 @@ static int nvmev_io_worker(void *data)
 				if (w->is_internal) {
 #if (SUPPORTED_SSD_TYPE(CONV) || SUPPORTED_SSD_TYPE(ZNS))
 					buffer_release((struct buffer *)w->write_buffer,
-						       w->buffer_release_code);
+						       w->nsecs_target);
 #endif
 				} else {
 					__fill_cq_result(w);
