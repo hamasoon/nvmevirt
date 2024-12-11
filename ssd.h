@@ -7,6 +7,7 @@
 #include "pqueue/pqueue.h"
 #include "ssd_config.h"
 #include "channel_model.h"
+#include "conv_ftl.h"
 
 /*
     Default malloc size (when sector size is 512B)
@@ -254,7 +255,7 @@ struct ssd {
 	struct ssdparams sp;
 	struct ssd_channel *ch;
 	struct ssd_pcie *pcie;
-	struct buffer write_buffer[SSD_PARTITIONS];
+	struct buffer write_buffer;
 	unsigned int cpu_nr_dispatcher;
 };
 
@@ -302,8 +303,8 @@ uint64_t ssd_advance_pcie(struct ssd *ssd, uint64_t request_time, uint64_t lengt
 uint64_t ssd_advance_write_buffer(struct ssd *ssd, uint64_t request_time, uint64_t length);
 uint64_t ssd_next_idle_time(struct ssd *ssd);
 
-void buffer_init(struct ssd *ssd, size_t size, struct ssdparams *spp, size_t nr_parts);
-uint32_t buffer_allocate(struct ssd *ssd, uint64_t start_lpn, uint64_t end_lpn, uint64_t start_offset, uint64_t size);
+void buffer_init(struct buffer *buf, size_t size, struct ssdparams *spp, size_t nr_parts);
+uint32_t buffer_allocate(struct nvmev_ns *ns, uint64_t start_lpn, uint64_t end_lpn, uint64_t start_offset, uint64_t size);
 bool buffer_release(struct buffer *buf, uint64_t complete_time);
 void buffer_refill(struct buffer *buf);
 struct buffer_page *buffer_search(struct buffer *buf, uint64_t lpn);
