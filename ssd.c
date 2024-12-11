@@ -10,7 +10,7 @@ static inline uint64_t __get_ioclock(struct ssd *ssd)
 	return cpu_clock(ssd->cpu_nr_dispatcher);
 }
 
-void buffer_init(struct buffer *buf, size_t size, struct ssdparams *spp, size_t nr_parts)
+void buffer_init(struct buffer *buf, size_t size, struct ssdparams *spp)
 {
 	spin_lock_init(&buf->lock);
 	buf->size = size;
@@ -508,7 +508,7 @@ void ssd_init(struct ssd *ssd, struct ssdparams *spp, uint32_t cpu_nr_dispatcher
 	ssd->pcie = kmalloc(sizeof(struct ssd_pcie), GFP_KERNEL);
 	ssd_init_pcie(ssd->pcie, spp);
 
-	buffer_init(&ssd->write_buffer, spp->write_buffer_size, spp, SSD_PARTITIONS);
+	buffer_init(&ssd->write_buffer, spp->write_buffer_size / SSD_PARTITIONS, spp);
 
 	return;
 }
