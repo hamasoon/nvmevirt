@@ -418,6 +418,7 @@ void conv_init_namespace(struct nvmev_ns *ns, uint32_t id, uint64_t size, void *
 	for (i = 0; i < nr_parts; i++) {
 		ssd = kmalloc(sizeof(struct ssd), GFP_KERNEL);
 		ssd_init(ssd, &spp, cpu_nr_dispatcher);
+		ssd->write_buffer.ftl_idx = i;
 		conv_init_ftl(&conv_ftls[i], &cpp, ssd);
 	}
 
@@ -903,7 +904,7 @@ static bool conv_read(struct nvmev_ns *ns, struct nvmev_request *req, struct nvm
 		xfer_size = 0;
 		int ftl_idx = GET_FTL_IDX(start_lpn);
 		conv_ftl = &conv_ftls[ftl_idx];
-		wbuf = &ssd->write_buffer[ftl_idx];
+		wbuf = &conv_ftl->ssd->write_buffer;
 		prev_ppa = get_maptbl_ent(conv_ftl, LOCAL_LPN(start_lpn));
 
 		uint64_t local_start_lpn = start_lpn;
@@ -1037,7 +1038,7 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 		return false;
 	}
 	
-	if (buffer_allocate(ssd, start_lpn, end_lpn, start_offset, size) < 0){
+	if (buffer_allocate(ns, start_lpn, end_lpn, start_offset, size) < 0){
 		NVMEV_DEBUG("%s: buffer_allocate failed\n", __func__);
 		return false;
 	}
@@ -1057,7 +1058,7 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 
 	for (size_t i = 0; i < ns->nr_parts; i++){
 		conv_ftl = &conv_ftls[i];
-		wbuf = &ssd->write_buffer[i];
+		wbuf = &conv_ftl->ssd->write_buffer;
 
 		while (!spin_trylock(&wbuf->lock))
 			;
