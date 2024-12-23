@@ -925,10 +925,6 @@ static bool conv_read(struct nvmev_ns *ns, struct nvmev_request *req, struct nvm
 					continue;
 				}
 
-				NVMEV_INFO("LPN: %llu, PPA: %lld, CH:%d, LUN:%d, PL:%d, BLK:%d, PG:%d\n", 
-				local_lpn, ppa2pgidx(conv_ftl, &cur_ppa), 
-				cur_ppa.g.ch, cur_ppa.g.lun, cur_ppa.g.pl, cur_ppa.g.blk, cur_ppa.g.pg);
-
 				// if the lpn is in the write buffer, advance the write buffer, not the NAND
 				if (buffer_search(wbuf, lpn) != NULL) {
 					nsecs_completed = ssd_advance_write_buffer(conv_ftl->ssd, nsecs_start, LBA_TO_BYTE(nr_lba));
@@ -1038,15 +1034,13 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 		return false;
 	}
 	
-	if (buffer_allocate(ns, start_lpn, end_lpn, start_offset, size) < 0){
+	if (!buffer_allocate(ns, start_lpn, end_lpn, start_offset, size)){
 		NVMEV_DEBUG("%s: buffer_allocate failed\n", __func__);
 		return false;
 	}
 
-	// what is this?
 	nvmev_vdev->user_write += size;
 
-	// have to fix this
 	nsecs_write_buffer =
 		ssd_advance_write_buffer(ssd, nsecs_latest, LBA_TO_BYTE(nr_lba));
 
@@ -1064,8 +1058,6 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 			;
 
 		if (check_flush_buffer(wbuf)) {
-			NVMEV_INFO("RMW Start\n");
-
 			/* read phase of read-modify-write operation fill empty cell of write buffer */
 			struct buffer_ppg *ppg;
 			struct buffer_page *page;

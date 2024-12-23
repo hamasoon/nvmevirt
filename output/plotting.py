@@ -114,20 +114,20 @@ def plot_mix_data(data1, data2, data3, type):
         plt.savefig(os.path.join(os.path.dirname(__file__), 'plot/mix/' + sz + '.png'))
         
 if __name__ == '__main__':
-    data1 = read_data('4k', 'lat_ns')
-    data2 = read_data('16k', 'lat_ns')
-    data3 = read_data('32k', 'lat_ns')
+    data1 = read_data('4k', 'bw')
+    data2 = read_data('16k', 'bw')
+    data3 = read_data('32k', 'bw')
     
     print(data1)
     
     random = ['rand', 'seq']
     rw = ['read', 'write']
-    sync = ['async', 'sync']
+    sync = ['async']
     
     for r in random:
         for rw_type in rw:
             for s in sync:
-                plot_data(data1, data2, data3, r, rw_type, s, 'Block Size(Byte)', 'Latency(us)')
+                plot_data(data1, data2, data3, r, rw_type, s, 'Block Size(Byte)', 'BandWidth (MB/s)', 'line')
     
     # data = read_data('origin', 'bw')
     

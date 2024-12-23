@@ -36,8 +36,6 @@ void buffer_init(struct buffer *buf, size_t size, struct ssdparams *spp)
 		}
 		list_add_tail(&block->list, &buf->free_ppgs);
 	}
-
-	NVMEV_INFO("ppg cnt: %lu, pg cnt: %lu, sec cnt: %lu", buf->ppg_per_buf, buf->pg_per_ppg, buf->sec_per_pg);
 }
 
 /* get block from buffer that match with lpn return NULL if not found */
@@ -74,8 +72,6 @@ static void __buffer_fill_page(struct buffer *buf, uint64_t lpn, uint64_t size, 
 {
 	if (size == 0) return;
 
-	NVMEV_INFO("ftl idx: %d, lpn: %llu, size: %llu, offset: %llu", buf->ftl_idx, lpn, size, offset);
-
 	while (!spin_trylock(&buf->lock))
 		;
 
@@ -99,12 +95,10 @@ static void __buffer_fill_page(struct buffer *buf, uint64_t lpn, uint64_t size, 
 		page->sectors[i + offset] = true;
 	}
 
-	NVMEV_INFO("ftl idx: %d, free_nodes: %lu, used_nodes: %lu", buf->ftl_idx, list_count_nodes(&buf->free_ppgs), list_count_nodes(&buf->used_ppgs));
-
 	spin_unlock(&buf->lock);
 }
 
-uint32_t buffer_allocate(struct nvmev_ns *ns, uint64_t start_lpn, uint64_t end_lpn, uint64_t start_offset, uint64_t size)
+bool buffer_allocate(struct nvmev_ns *ns, uint64_t start_lpn, uint64_t end_lpn, uint64_t start_offset, uint64_t size)
 {
 	struct conv_ftl *conv_ftls = (struct conv_ftl *)ns->ftls;
 	struct conv_ftl *conv_ftl = &conv_ftls[0];
@@ -118,6 +112,8 @@ uint32_t buffer_allocate(struct nvmev_ns *ns, uint64_t start_lpn, uint64_t end_l
 	uint64_t start_size = min((spp->secs_per_pg - start_offset) * LBA_SIZE, size);
 	size_t required_pgs[SSD_PARTITIONS] = {0, };
 	size_t ftl_idx;
+
+	NVMEV_INFO("buffer allocate start_lpn: %llu, end_lpn: %llu, start_offset: %llu, size: %llu", start_lpn, end_lpn, start_offset, size);
 
 	for (size_t i = 0; (i < nr_parts) || (s_lpn <= e_lpn); i++, s_lpn += spp->pgs_per_flashpg) {
 		ftl_idx = GET_FTL_IDX(s_lpn);
@@ -141,7 +137,7 @@ uint32_t buffer_allocate(struct nvmev_ns *ns, uint64_t start_lpn, uint64_t end_l
 		
 		if (required_pgs[ftl_idx] > buf->free_pgs_cnt) {
 			spin_unlock(&buf->lock);
-			return -1;
+			return false;
 		}
 
 		spin_unlock(&buf->lock);
@@ -160,7 +156,7 @@ uint32_t buffer_allocate(struct nvmev_ns *ns, uint64_t start_lpn, uint64_t end_l
 	buf = &conv_ftls[GET_FTL_IDX(start_lpn)].ssd->write_buffer;
 	__buffer_fill_page(buf, start_lpn, size, 0);
 
-	return 0;
+	return true;
 }
 
 bool buffer_release(struct buffer *buf, uint64_t complete_time)
@@ -305,7 +301,7 @@ void ssd_init_params(struct ssdparams *spp, uint64_t capacity, uint32_t nparts)
 	spp->ch_bandwidth = NAND_CHANNEL_BANDWIDTH;
 	spp->pcie_bandwidth = PCIE_BANDWIDTH;
 
-	spp->write_buffer_size = GLOBAL_WB_SIZE;
+	spp->write_buffer_size = GLOBAL_WB_SIZE / SSD_PARTITIONS;
 	spp->write_early_completion = WRITE_EARLY_COMPLETION;
 
 	/* calculated values */
@@ -508,7 +504,7 @@ void ssd_init(struct ssd *ssd, struct ssdparams *spp, uint32_t cpu_nr_dispatcher
 	ssd->pcie = kmalloc(sizeof(struct ssd_pcie), GFP_KERNEL);
 	ssd_init_pcie(ssd->pcie, spp);
 
-	buffer_init(&ssd->write_buffer, spp->write_buffer_size / SSD_PARTITIONS, spp);
+	buffer_init(&ssd->write_buffer, spp->write_buffer_size, spp);
 
 	return;
 }
