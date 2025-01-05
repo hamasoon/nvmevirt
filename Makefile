@@ -34,15 +34,14 @@ dis:
 load:
 	sudo insmod ./nvmev.ko \
 	memmap_start=48G \
-	memmap_size=8G \
+	memmap_size=16G \
 	cpus=10,11,12,13
 
 unload:
 	sudo rmmod nvmev
 
 fio_write:
-	sudo fio --name=randwrite --ioengine=libaio --iodepth=32 --rw=randwrite --bs=16k --size=8G --numjobs=4 \
+	sudo fio --name=test --ioengine=libaio --iodepth=32 --rw=write --bs=16k --size=1M --numjobs=4 \
 	--filename=/dev/nvme3n1 --direct=1 --group_reporting --norandommap
-
 # fio:
 # 	./fio.sh

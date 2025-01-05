@@ -359,7 +359,3 @@ bool  buffer_release(struct  buffer  *buf, uint64_t  complete_time)
 }
 ```
 전체 버퍼를 순회하면서 valid가 false로 되어있는 block을 free 상태로 되돌린다. valid의 경우에는 `conv_write`의 RMW과정에서 삭제 대상인 block에 대해서 false 로 표기한다. 
-
-## Improvment Point
-#### Structure
-시간이 부족하여 `ssd` struct가 전체 write buffer의 배열을 가지도록 구현하였으나 이는 올바르지 못한 구현이다. `conv_ftl`의 경우에는 개별 `conv_ftl`이 구별되는 `ssd` 변수를 가지고 있으므로 `ssd` struct는 한개의 write buffer만을 가지고 개별 ftl의 write buffer에 접근하고자 한다면 `conv ftl` struct를 통해서 접근하도록 변경해야 한다.

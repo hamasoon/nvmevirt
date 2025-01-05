@@ -122,7 +122,7 @@ if __name__ == '__main__':
     
     random = ['rand', 'seq']
     rw = ['read', 'write']
-    sync = ['async']
+    sync = ['async', 'sync']
     
     for r in random:
         for rw_type in rw:

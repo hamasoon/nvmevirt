@@ -5,6 +5,8 @@
 #include "nvmev.h"
 #include "ssd.h"
 
+#define DEBUG 1
+
 static inline uint64_t __get_ioclock(struct ssd *ssd)
 {
 	return cpu_clock(ssd->cpu_nr_dispatcher);
@@ -41,7 +43,7 @@ void buffer_init(struct buffer *buf, size_t size, struct ssdparams *spp)
 /* get block from buffer that match with lpn return NULL if not found */
 static struct buffer_ppg* __buffer_get_ppg(struct buffer *buf, size_t ftl_idx)
 {
-	struct buffer_ppg *ppg;
+	struct buffer_ppg *ppg = NULL;
 	list_for_each_entry(ppg, &buf->used_ppgs, list) {
 		if (ppg->valid && ppg->pg_idx < buf->pg_per_ppg) {
 			return ppg;
@@ -113,8 +115,6 @@ bool buffer_allocate(struct nvmev_ns *ns, uint64_t start_lpn, uint64_t end_lpn, 
 	size_t required_pgs[SSD_PARTITIONS] = {0, };
 	size_t ftl_idx;
 
-	NVMEV_INFO("buffer allocate start_lpn: %llu, end_lpn: %llu, start_offset: %llu, size: %llu", start_lpn, end_lpn, start_offset, size);
-
 	for (size_t i = 0; (i < nr_parts) || (s_lpn <= e_lpn); i++, s_lpn += spp->pgs_per_flashpg) {
 		ftl_idx = GET_FTL_IDX(s_lpn);
 		conv_ftl = &conv_ftls[ftl_idx];
@@ -143,6 +143,9 @@ bool buffer_allocate(struct nvmev_ns *ns, uint64_t start_lpn, uint64_t end_lpn, 
 		spin_unlock(&buf->lock);
 	}
 
+	if (DEBUG == 1) 
+	 	NVMEV_INFO("buffer allocate start_lpn: %llu, end_lpn: %llu, start_offset: %llu, size: %llu", start_lpn, end_lpn, start_offset, size);
+
 	/* handle first page */
 	buf = &conv_ftls[GET_FTL_IDX(start_lpn)].ssd->write_buffer;
 	__buffer_fill_page(buf, start_lpn++, start_size, start_offset);
@@ -156,6 +159,14 @@ bool buffer_allocate(struct nvmev_ns *ns, uint64_t start_lpn, uint64_t end_lpn, 
 	buf = &conv_ftls[GET_FTL_IDX(start_lpn)].ssd->write_buffer;
 	__buffer_fill_page(buf, start_lpn, size, 0);
 
+	// if (DEBUG == 1) {
+	// 	for (size_t i = 0; i < nr_parts; i++) {
+	// 		conv_ftl = &conv_ftls[i];
+	// 		buf = &conv_ftl->ssd->write_buffer;
+	// 		NVMEV_INFO("buffer status - ftl_idx: %d, free_pgs_cnt: %lu, used ppgs: %lu", buf->ftl_idx, buf->free_pgs_cnt, list_count_nodes(&buf->used_ppgs));
+	// 	}
+	// }
+
 	return true;
 }
 
@@ -164,7 +175,9 @@ bool buffer_release(struct buffer *buf, uint64_t complete_time)
 	while (!spin_trylock(&buf->lock))
 		;
 
-	NVMEV_INFO("buffer released ftl_idx: %d, complete_time: %llu", buf->ftl_idx, complete_time);
+	if (DEBUG == 1)
+	 	NVMEV_INFO("buffer released ftl_idx: %d, complete_time: %llu", buf->ftl_idx, complete_time);
+
 	struct buffer_ppg *block, *tmp;
 	/* move all marked used blocks to free blocks */
 	list_for_each_entry_safe(block, tmp, &buf->used_ppgs, list) {
