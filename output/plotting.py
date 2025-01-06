@@ -73,7 +73,7 @@ def plot_single(data, random='rand', rw_type='read', sync='sync', x_label='Block
     plt.title(f'{random}-{rw_type}-{sync}')
     plt.savefig(os.path.join(os.path.dirname(__file__), 'plot/' + random + '-' + rw_type + '-' + sync + '.png'))
 
-def plot_data(data1, data2, data3, random='rand', rw_type='read', sync='sync', x_label='Block Size(Byte)', y_label='BW (MB/s)', plot_type='line'):
+def plot_data(data1, data2, data3, data4, random='rand', rw_type='read', sync='sync', x_label='Block Size(Byte)', y_label='BW (MB/s)', plot_type='line'):
     size = ['4K', '8K', '16K', '32K', '64K', '128K', '256K']
     data_type = f'{random}-{rw_type}-{sync}'
 
@@ -83,19 +83,21 @@ def plot_data(data1, data2, data3, random='rand', rw_type='read', sync='sync', x
         plt.plot(size, data1[data_type], label='4K', marker='o')
         plt.plot(size, data2[data_type], label='16K', marker='x')
         plt.plot(size, data3[data_type], label='32K', marker='s')
+        plt.plot(size, data4[data_type], label='Origin', marker='d')
+        plt.ylim(0, max(data1[data_type].max(), data2[data_type].max(), data3[data_type].max(), data4[data_type].max()) + 100)
     elif plot_type == 'bar':
         w = 0.2
         x = range(len(size))
-        plt.bar([i - w for i in x], data1[data_type], width=w, label='4K', align='center')
-        plt.bar(x, data2[data_type], width=w, label='16K', align='center')
-        plt.bar([i + w for i in x], data3[data_type], width=w, label='32K', align='center')
+        plt.bar([i - 1.5 * w for i in x], data1[data_type], width=w, label='4K', align='center')
+        plt.bar([i - 0.5 * w for i in x], data2[data_type], width=w, label='16K', align='center')
+        plt.bar([i + 0.5 * w for i in x], data3[data_type], width=w, label='32K', align='center')
+        plt.bar([i + 1.5 * w for i in x], data4[data_type], width=w, label='Origin', align='center')
         plt.xticks(x, size)
     
     plt.xlabel(x_label)
     plt.ylabel(y_label)
-    #plt.ylim(0, 4000)
     plt.title(f'{random}-{rw_type}-{sync}')
-    plt.legend()
+    plt.legend(title='Mapping Size')
                 
     plt.savefig(os.path.join(os.path.dirname(__file__), 'plot/' + random + '-' + rw_type + '-' + sync + '.png'))
     
@@ -114,11 +116,10 @@ def plot_mix_data(data1, data2, data3, type):
         plt.savefig(os.path.join(os.path.dirname(__file__), 'plot/mix/' + sz + '.png'))
         
 if __name__ == '__main__':
-    data1 = read_data('4k', 'bw')
-    data2 = read_data('16k', 'bw')
-    data3 = read_data('32k', 'bw')
-    
-    print(data1)
+    data1 = read_data('4k', 'lat_ns')
+    data2 = read_data('16k', 'lat_ns')
+    data3 = read_data('32k', 'lat_ns')
+    data4 = read_data('origin', 'lat_ns')
     
     random = ['rand', 'seq']
     rw = ['read', 'write']
@@ -127,7 +128,7 @@ if __name__ == '__main__':
     for r in random:
         for rw_type in rw:
             for s in sync:
-                plot_data(data1, data2, data3, r, rw_type, s, 'Block Size(Byte)', 'BandWidth (MB/s)', 'line')
+                plot_data(data1, data2, data3, data4, r, rw_type, s, 'Block Size(Byte)', 'Latency(us)', 'line')
     
     # data = read_data('origin', 'bw')
     
