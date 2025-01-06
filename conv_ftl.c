@@ -1098,22 +1098,23 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 						} 
 						
 						if (xfer_size > 0) {
-							NVMEV_INFO("RMW Read buffer(%lu) - lpn: %llu, xfer_size: %d\n", i, lpn, xfer_size);
+							// NVMEV_INFO("RMW Read buffer(%lu) - lpn: %llu, ppa: %llx, xfer_size: %d\n", i, lpn, ppa2pgidx(conv_ftl, &ppa), xfer_size);
 							srd.xfer_size = xfer_size;
 							srd.ppa = &prev_ppa;
 							nsecs_completed = ssd_advance_nand(conv_ftl->ssd, &srd);
 							nsec_write_start = max(nsecs_completed, nsec_write_start);
 						}
+						
+						xfer_size = spp->pgsz;
 					}
-					
-					xfer_size = spp->pgsz;
+
 					prev_ppa = ppa;
 				}
 
-				if (xfer_size > 0 && mapped_ppa(&ppa) && valid_ppa(conv_ftl, &ppa)) {
-					NVMEV_INFO("RMW Read buffer(%lu) - lpn: %llu, xfer_size: %d\n", i, lpn, xfer_size);
+				if (xfer_size > 0 && mapped_ppa(&prev_ppa) && valid_ppa(conv_ftl, &prev_ppa)) {
+					// NVMEV_INFO("RMW Read buffer(%lu) - lpn: %llu, ppa: %llx, xfer_size: %d\n", i, lpn, ppa2pgidx(conv_ftl, &ppa), xfer_size);
 					srd.xfer_size = xfer_size;
-					srd.ppa = &ppa;
+					srd.ppa = &prev_ppa;
 					nsecs_completed = ssd_advance_nand(conv_ftl->ssd, &srd);
 					nsec_write_start = max(nsecs_completed, nsec_write_start);
 				}

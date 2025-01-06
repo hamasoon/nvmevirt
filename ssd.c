@@ -143,8 +143,8 @@ bool buffer_allocate(struct nvmev_ns *ns, uint64_t start_lpn, uint64_t end_lpn, 
 		spin_unlock(&buf->lock);
 	}
 
-	if (DEBUG == 1) 
-	 	NVMEV_INFO("buffer allocate start_lpn: %llu, end_lpn: %llu, start_offset: %llu, size: %llu", start_lpn, end_lpn, start_offset, size);
+	// if (DEBUG == 1) 
+	//  	NVMEV_INFO("buffer allocate start_lpn: %llu, end_lpn: %llu, start_offset: %llu, size: %llu", start_lpn, end_lpn, start_offset, size);
 
 	/* handle first page */
 	buf = &conv_ftls[GET_FTL_IDX(start_lpn)].ssd->write_buffer;
@@ -175,8 +175,8 @@ bool buffer_release(struct buffer *buf, uint64_t complete_time)
 	while (!spin_trylock(&buf->lock))
 		;
 
-	if (DEBUG == 1)
-	 	NVMEV_INFO("buffer released ftl_idx: %d, complete_time: %llu", buf->ftl_idx, complete_time);
+	// if (DEBUG == 1)
+	//  	NVMEV_INFO("buffer released ftl_idx: %d, complete_time: %llu", buf->ftl_idx, complete_time);
 
 	struct buffer_ppg *block, *tmp;
 	/* move all marked used blocks to free blocks */
