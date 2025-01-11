@@ -1061,15 +1061,15 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 			/* read phase of read-modify-write operation fill empty cell of write buffer */
 			NVMEV_INFO("Flush buffer(%d)\n", wbuf->ftl_idx);
 			struct buffer_ppg *ppg;
-			struct buffer_page *page;
-			struct ppa prev_ppa;
-			struct ppa ppa;
-			int32_t xfer_size = 0;
 			list_for_each_entry(ppg, &wbuf->used_ppgs, list) {
 				if(!ppg->valid || ppg->pg_idx != wbuf->pg_per_ppg) {
 					continue;
 				}
 
+				struct buffer_page *page;
+				struct ppa prev_ppa;
+				struct ppa ppa;
+				int32_t xfer_size = 0;
 				size_t ftl_idx = wbuf->ftl_idx;
 				prev_ppa = get_maptbl_ent(conv_ftl, LOCAL_LPN(ppg->pages[0].lpn));
 
@@ -1098,7 +1098,7 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 						} 
 						
 						if (xfer_size > 0) {
-							// NVMEV_INFO("RMW Read buffer(%lu) - lpn: %llu, ppa: %llx, xfer_size: %d\n", i, lpn, ppa2pgidx(conv_ftl, &ppa), xfer_size);
+							NVMEV_INFO("RMW Read buffer(%lu) - lpn: %llu, ppa: %llx, xfer_size: %d\n", i, lpn, ppa2pgidx(conv_ftl, &prev_ppa), xfer_size);
 							srd.xfer_size = xfer_size;
 							srd.ppa = &prev_ppa;
 							nsecs_completed = ssd_advance_nand(conv_ftl->ssd, &srd);
@@ -1112,7 +1112,7 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 				}
 
 				if (xfer_size > 0 && mapped_ppa(&prev_ppa) && valid_ppa(conv_ftl, &prev_ppa)) {
-					// NVMEV_INFO("RMW Read buffer(%lu) - lpn: %llu, ppa: %llx, xfer_size: %d\n", i, lpn, ppa2pgidx(conv_ftl, &ppa), xfer_size);
+					NVMEV_INFO("RMW Read buffer(%lu) - lpn: %llu, ppa: %llx, xfer_size: %d\n", i, lpn, ppa2pgidx(conv_ftl, &prev_ppa), xfer_size);
 					srd.xfer_size = xfer_size;
 					srd.ppa = &prev_ppa;
 					nsecs_completed = ssd_advance_nand(conv_ftl->ssd, &srd);
