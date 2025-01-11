@@ -33,9 +33,9 @@ dis:
 
 load:
 	sudo insmod ./nvmev.ko \
-	memmap_start=48G \
-	memmap_size=16G \
-	cpus=10,11,12,13
+	memmap_start=22G \
+	memmap_size=10G \
+	cpus=7,8,9,10
 
 unload:
 	sudo rmmod nvmev
