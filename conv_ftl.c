@@ -7,22 +7,20 @@
 #define ROUND_DOWN(x, y) ((x) & ~((y)-1))
 #define ROUND_UP(x, y) ((((x) + (y) - 1) / (y)) * (y))
 
-static inline uint64_t get_aligned_size(struct ssdparams *spp, uint64_t start_lba, uint64_t size)
-{
-	uint64_t aligned_start = ROUND_DOWN(start_lba, spp->secs_per_pg);
-	uint64_t aligned_end = ROUND_UP(start_lba + size, spp->secs_per_pg);
-
-	return aligned_end - aligned_start;
-}
-
-static inline bool first_sector_in_page(struct ssdparams *spp, uint64_t lpn)
-{
-	return (lpn % spp->pgs_per_flashpg) == 0;
-}
-
 // check number of free blocks in buffer less than threshold
 // currently, threshold is half of the total blocks
 static inline bool check_flush_buffer(struct buffer *buf)
+{
+	size_t cnt = 0;
+	struct buffer_ppg *block;
+	list_for_each_entry(block, &buf->used_ppgs, list) {
+		if (block->valid && block->pg_idx >= buf->pg_per_ppg) cnt++;
+	}
+
+	return cnt >= buf->flush_threshold && list_count_nodes(&buf->used_ppgs) > buf->flush_threshold;
+}
+
+static inline bool check_flush_buffer_allocate_fail(struct buffer *buf)
 {
 	size_t cnt = 0;
 	struct buffer_ppg *block;
@@ -996,129 +994,122 @@ static uint64_t conv_rmw(struct conv_ftl *conv_ftl, struct nvmev_request *req, u
 		.xfer_size = spp->pgsz,
 	};
 
-	while (!spin_trylock(&wbuf->lock))
-		;
+	/* read phase of read-modify-write operation fill empty cell of write buffer */
+	NVMEV_INFO("Flush buffer(%d) free_ppgs: %lu, used_ppgs: %lu\n", wbuf->ftl_idx,
+		    list_count_nodes(&wbuf->free_ppgs), list_count_nodes(&wbuf->used_ppgs));
+	struct buffer_ppg *ppg;
+	struct buffer_page *page;
+	struct ppa prev_ppa;
+	struct ppa ppa;
+	int32_t xfer_size = 0;
+	list_for_each_entry(ppg, &wbuf->used_ppgs, list) {
+		if(!ppg->valid || ppg->pg_idx != wbuf->pg_per_ppg) {
+			continue;
+		}
+		
+		size_t ftl_idx = wbuf->ftl_idx;
+		uint64_t lpn = INVALID_LPN;
+		uint64_t local_lpn = INVALID_LPN;
+		prev_ppa = get_maptbl_ent(conv_ftl, LOCAL_LPN(ppg->pages[0].lpn));
 
-	if (check_flush_buffer(wbuf)) {
-		/* read phase of read-modify-write operation fill empty cell of write buffer */
-		NVMEV_INFO("Flush buffer(%d) free_ppgs: %lu, used_ppgs: %lu\n", wbuf->ftl_idx,
-			    list_count_nodes(&wbuf->free_ppgs), list_count_nodes(&wbuf->used_ppgs));
-		struct buffer_ppg *ppg;
-		struct buffer_page *page;
-		struct ppa prev_ppa;
-		struct ppa ppa;
-		int32_t xfer_size = 0;
-		list_for_each_entry(ppg, &wbuf->used_ppgs, list) {
-			if(!ppg->valid || ppg->pg_idx != wbuf->pg_per_ppg) {
+		for (size_t j = 0; j < wbuf->pg_per_ppg; j++) {
+			page = &ppg->pages[j];
+			lpn = page->lpn;
+			local_lpn = LOCAL_LPN(lpn);
+			ppa = get_maptbl_ent(conv_ftl, local_lpn);
+
+			if (!mapped_ppa(&ppa) || !valid_ppa(conv_ftl, &ppa)) {
 				continue;
 			}
-			
-			size_t ftl_idx = wbuf->ftl_idx;
-			uint64_t lpn = INVALID_LPN;
-			uint64_t local_lpn = INVALID_LPN;
-			prev_ppa = get_maptbl_ent(conv_ftl, LOCAL_LPN(ppg->pages[0].lpn));
 
-			for (size_t j = 0; j < wbuf->pg_per_ppg; j++) {
-				page = &ppg->pages[j];
-				lpn = page->lpn;
-				local_lpn = LOCAL_LPN(lpn);
-				ppa = get_maptbl_ent(conv_ftl, local_lpn);
-
-				if (!mapped_ppa(&ppa) || !valid_ppa(conv_ftl, &ppa)) {
+			if (page->free_secs > 0) {
+				if (is_same_flash_page(conv_ftl, ppa, prev_ppa)) {
+					xfer_size += spp->pgsz;
 					continue;
+				} 
+					
+				if (xfer_size > 0) {
+					// NVMEV_INFO("RMW Read buffer(%lu) - lpn: %llu, xfer_size: %d, free_ppg: %lu, used_ppg: %lu\n", 
+					// 	ftl_idx, lpn, xfer_size, list_count_nodes(&wbuf->free_ppgs), list_count_nodes(&wbuf->used_ppgs));
+					srd.xfer_size = xfer_size;
+					srd.ppa = &prev_ppa;
+					nsecs_completed = ssd_advance_nand(conv_ftl->ssd, &srd);
+					nsecs_write_start = max(nsecs_completed, nsecs_write_start);
 				}
-
-				if (page->free_secs > 0) {
-					if (is_same_flash_page(conv_ftl, ppa, prev_ppa)) {
-						xfer_size += spp->pgsz;
-						continue;
-					} 
-						
-					if (xfer_size > 0) {
-						// NVMEV_INFO("RMW Read buffer(%lu) - lpn: %llu, xfer_size: %d, free_ppg: %lu, used_ppg: %lu\n", 
-						// 	ftl_idx, lpn, xfer_size, list_count_nodes(&wbuf->free_ppgs), list_count_nodes(&wbuf->used_ppgs));
-						srd.xfer_size = xfer_size;
-						srd.ppa = &prev_ppa;
-						nsecs_completed = ssd_advance_nand(conv_ftl->ssd, &srd);
-						nsecs_write_start = max(nsecs_completed, nsecs_write_start);
-					}
-						
-					xfer_size = spp->pgsz;
-				}
-
-				prev_ppa = ppa;
+					
+				xfer_size = spp->pgsz;
 			}
 
-			if (xfer_size > 0 && mapped_ppa(&prev_ppa) && valid_ppa(conv_ftl, &prev_ppa)) {
-				// NVMEV_INFO("RMW Read buffer(%lu) - lpn: %llu, xfer_size: %d, free_ppg: %lu, used_ppg: %lu\n", 
-				// 	ftl_idx, lpn, xfer_size, list_count_nodes(&wbuf->free_ppgs), list_count_nodes(&wbuf->used_ppgs));
-				srd.xfer_size = xfer_size;
-				srd.ppa = &prev_ppa;
-				nsecs_completed = ssd_advance_nand(conv_ftl->ssd, &srd);
-				nsecs_write_start = max(nsecs_completed, nsecs_write_start);
-			}
+			prev_ppa = ppa;
 		}
 
-		ppg = NULL;
-		swr.stime = nsecs_write_start;
-
-		/* write phase of read-modify-write operation */
-		list_for_each_entry(ppg, &wbuf->used_ppgs, list) {
-			if (!ppg->valid || ppg->pg_idx != wbuf->pg_per_ppg) {
-				continue;
-			}
-
-			ppg->valid = false;
-			struct ppa ppa;
-
-			/* Assumption: all pages in physical buffer page */
-			for (size_t j = 0; j < wbuf->pg_per_ppg; j++) {
-				struct buffer_page *page = &ppg->pages[j];
-				uint64_t lpn = ppg->pages[j].lpn;
-
-				/* check if the block is valid */
-				if (lpn == INVALID_LPN) {
-					continue;
-				}
-
-				uint64_t local_lpn = LOCAL_LPN(lpn);
-				ppa = get_maptbl_ent(conv_ftl, local_lpn);
-
-				if (mapped_ppa(&ppa)) {
-					mark_page_invalid(conv_ftl, &ppa);
-					set_rmap_ent(conv_ftl, INVALID_LPN, &ppa);
-				}
-
-				/* new write */
-				ppa = get_new_page(conv_ftl, USER_IO);
-				/* update maptbl */
-				set_maptbl_ent(conv_ftl, local_lpn, &ppa);
-				NVMEV_DEBUG("%s: got new ppa %lld, ", __func__, ppa2pgidx(conv_ftl, &ppa));
-				/* update rmap */
-				set_rmap_ent(conv_ftl, local_lpn, &ppa);
-
-				mark_page_valid(conv_ftl, &ppa);
-
-				/* need to advance the write pointer here */
-				advance_write_pointer(conv_ftl, USER_IO);
-					
-				consume_write_credit(conv_ftl);
-				check_and_refill_write_credit(conv_ftl);
-			}
-
-			swr.ppa = &ppa;
-			swr.xfer_size = wbuf->ppg_size;
-			nsecs_completed = ssd_advance_nand(conv_ftl->ssd, &swr);
-			nsecs_result = max(nsecs_completed, nsecs_result);
-			ppg->complete_time = nsecs_completed;
-
-			schedule_internal_operation(req->sq_id, nsecs_completed, wbuf);
-
-			nvmev_vdev->device_write += wbuf->ppg_size;
+		if (xfer_size > 0 && mapped_ppa(&prev_ppa) && valid_ppa(conv_ftl, &prev_ppa)) {
+			// NVMEV_INFO("RMW Read buffer(%lu) - lpn: %llu, xfer_size: %d, free_ppg: %lu, used_ppg: %lu\n", 
+			// 	ftl_idx, lpn, xfer_size, list_count_nodes(&wbuf->free_ppgs), list_count_nodes(&wbuf->used_ppgs));
+			srd.xfer_size = xfer_size;
+			srd.ppa = &prev_ppa;
+			nsecs_completed = ssd_advance_nand(conv_ftl->ssd, &srd);
+			nsecs_write_start = max(nsecs_completed, nsecs_write_start);
 		}
 	}
 
-	spin_unlock(&wbuf->lock);
+	ppg = NULL;
+	swr.stime = nsecs_write_start;
+
+	/* write phase of read-modify-write operation */
+	list_for_each_entry(ppg, &wbuf->used_ppgs, list) {
+		if (!ppg->valid || ppg->pg_idx != wbuf->pg_per_ppg) {
+			continue;
+		}
+
+		ppg->valid = false;
+		struct ppa ppa;
+
+		/* Assumption: all pages in physical buffer page */
+		for (size_t j = 0; j < wbuf->pg_per_ppg; j++) {
+			struct buffer_page *page = &ppg->pages[j];
+			uint64_t lpn = ppg->pages[j].lpn;
+
+			/* check if the block is valid */
+			if (lpn == INVALID_LPN) {
+				continue;
+			}
+
+			uint64_t local_lpn = LOCAL_LPN(lpn);
+			ppa = get_maptbl_ent(conv_ftl, local_lpn);
+
+			if (mapped_ppa(&ppa)) {
+				mark_page_invalid(conv_ftl, &ppa);
+				set_rmap_ent(conv_ftl, INVALID_LPN, &ppa);
+			}
+
+			/* new write */
+			ppa = get_new_page(conv_ftl, USER_IO);
+			/* update maptbl */
+			set_maptbl_ent(conv_ftl, local_lpn, &ppa);
+			NVMEV_DEBUG("%s: got new ppa %lld, ", __func__, ppa2pgidx(conv_ftl, &ppa));
+			/* update rmap */
+			set_rmap_ent(conv_ftl, local_lpn, &ppa);
+
+			mark_page_valid(conv_ftl, &ppa);
+
+			/* need to advance the write pointer here */
+			advance_write_pointer(conv_ftl, USER_IO);
+				
+			consume_write_credit(conv_ftl);
+			check_and_refill_write_credit(conv_ftl);
+		}
+
+		swr.ppa = &ppa;
+		swr.xfer_size = wbuf->ppg_size;
+		nsecs_completed = ssd_advance_nand(conv_ftl->ssd, &swr);
+		nsecs_result = max(nsecs_completed, nsecs_result);
+		ppg->complete_time = nsecs_completed;
+
+		schedule_internal_operation(req->sq_id, nsecs_completed, wbuf);
+
+		nvmev_vdev->device_write += wbuf->ppg_size;
+	}
 	
 	return nsecs_result;
 }
@@ -1186,6 +1177,17 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 	
 	if (!buffer_allocate(ns, start_lpn, end_lpn, start_offset, size)){
 		NVMEV_DEBUG("%s: buffer_allocate failed\n", __func__);
+		for (int i = 0; i < nr_parts; i++) {
+			conv_ftl = &conv_ftls[i];
+			wbuf = &conv_ftl->ssd->write_buffer;
+			while (!spin_trylock(&wbuf->lock))
+				;
+
+			if (check_flush_buffer_allocate_fail(wbuf)) conv_rmw(conv_ftl, req, nsecs_start);
+
+			spin_unlock(&wbuf->lock);
+		}
+
 		return false;
 	}
 
@@ -1199,7 +1201,13 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 
 	for (int i = 0; i < nr_parts; i++) {
 		conv_ftl = &conv_ftls[i];
-		nsecs_latest = max(conv_rmw(conv_ftl, req, nsecs_xfer_completed), nsecs_latest);
+		wbuf = &conv_ftl->ssd->write_buffer;
+		while (!spin_trylock(&wbuf->lock))
+			;
+
+		if (check_flush_buffer(wbuf)) nsecs_latest = max(conv_rmw(conv_ftl, req, nsecs_xfer_completed), nsecs_latest);
+
+		spin_unlock(&wbuf->lock);
 	}
 
 	if ((cmd->rw.control & NVME_RW_FUA) || (spp->write_early_completion == 0)) {
