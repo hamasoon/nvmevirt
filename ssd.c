@@ -34,6 +34,7 @@ void buffer_init(struct buffer *buf, size_t size, struct ssdparams *spp)
 		block->pages = (struct buffer_page*)kmalloc(sizeof(struct buffer_page) * buf->pg_per_ppg, GFP_KERNEL);
 		for (int j = 0; j < buf->pg_per_ppg; j++) {
 			block->pages[j].lpn = INVALID_LPN;
+			block->pages[j].free_secs = buf->sec_per_pg;
 			block->pages[j].sectors = kmalloc(sizeof(bool) * buf->sec_per_pg, GFP_KERNEL);
 		}
 		list_add_tail(&block->list, &buf->free_ppgs);
@@ -94,7 +95,11 @@ static void __buffer_fill_page(struct buffer *buf, uint64_t lpn, uint64_t size, 
 	page->lpn = lpn;
 
 	for (size_t i = 0; i < size / LBA_SIZE; i++) {
-		page->sectors[i + offset] = true;
+		size_t idx = i + offset;
+		if (!page->sectors[idx]) {
+			page->free_secs--;
+			page->sectors[idx] = true;
+		}
 	}
 
 	spin_unlock(&buf->lock);
@@ -144,7 +149,8 @@ bool buffer_allocate(struct nvmev_ns *ns, uint64_t start_lpn, uint64_t end_lpn, 
 	}
 
 	if (DEBUG == 1) 
-	 	NVMEV_INFO("buffer allocate start_lpn: %llu, end_lpn: %llu, start_offset: %llu, size: %llu", start_lpn, end_lpn, start_offset, size);
+	 	NVMEV_INFO("buffer allocate start_lpn: %llu, end_lpn: %llu, start_offset: %llu, size: %llu, free_pgs: %lu, used_pgs: %lu", 
+			start_lpn, end_lpn, start_offset, size, list_count_nodes(&buf->free_ppgs), list_count_nodes(&buf->used_ppgs));
 
 	/* handle first page */
 	buf = &conv_ftls[GET_FTL_IDX(start_lpn)].ssd->write_buffer;
@@ -187,6 +193,7 @@ bool buffer_release(struct buffer *buf, uint64_t complete_time)
 			block->valid = true;
 			for (size_t i = 0; i < block->pg_idx; i++) {
 				block->pages[i].lpn = INVALID_LPN;
+				block->pages[i].free_secs = buf->sec_per_pg;
 				for (size_t j = 0; j < buf->sec_per_pg; j++) {
 					block->pages[i].sectors[j] = false;
 				}
@@ -213,6 +220,7 @@ void buffer_refill(struct buffer *buf)
 		block->valid = true;
 		for (size_t i = 0; i < block->pg_idx; i++) {
 			block->pages[i].lpn = INVALID_LPN;
+			block->pages[i].free_secs = buf->sec_per_pg;
 			for (size_t j = 0; j < buf->sec_per_pg; j++) {
 				block->pages[i].sectors[j] = false;
 			}

@@ -1,0 +1,450 @@
+[ 4647.744398] NVMeVirt: buffer allocate start_lpn: 0, end_lpn: 7, start_offset: 0, size: 131072, free_pgs: 8, used_pgs: 0
+[ 4647.744479] NVMeVirt: buffer allocate start_lpn: 8, end_lpn: 15, start_offset: 0, size: 131072, free_pgs: 7, used_pgs: 1
+[ 4647.744549] NVMeVirt: buffer allocate start_lpn: 16, end_lpn: 23, start_offset: 0, size: 131072, free_pgs: 6, used_pgs: 2
+[ 4647.744620] NVMeVirt: buffer allocate start_lpn: 24, end_lpn: 31, start_offset: 0, size: 131072, free_pgs: 5, used_pgs: 3
+[ 4647.744623] NVMeVirt: Flush buffer(0) free_ppgs: 4, used_ppgs: 4
+[ 4647.744629] NVMeVirt: Flush buffer(1) free_ppgs: 4, used_ppgs: 4
+[ 4647.744634] NVMeVirt: Flush buffer(2) free_ppgs: 4, used_ppgs: 4
+[ 4647.744639] NVMeVirt: Flush buffer(3) free_ppgs: 4, used_ppgs: 4
+[ 4647.744689] NVMeVirt: buffer allocate start_lpn: 32, end_lpn: 39, start_offset: 0, size: 131072, free_pgs: 4, used_pgs: 4
+[ 4647.744760] NVMeVirt: buffer allocate start_lpn: 40, end_lpn: 47, start_offset: 0, size: 131072, free_pgs: 3, used_pgs: 5
+[ 4647.744831] NVMeVirt: buffer allocate start_lpn: 48, end_lpn: 55, start_offset: 0, size: 131072, free_pgs: 2, used_pgs: 6
+[ 4647.744902] NVMeVirt: buffer allocate start_lpn: 56, end_lpn: 63, start_offset: 0, size: 131072, free_pgs: 3, used_pgs: 5
+[ 4647.744904] NVMeVirt: Flush buffer(0) free_ppgs: 2, used_ppgs: 6 -> 904 - 623
+[ 4647.744907] NVMeVirt: Flush buffer(1) free_ppgs: 2, used_ppgs: 6
+[ 4647.744909] NVMeVirt: Flush buffer(2) free_ppgs: 2, used_ppgs: 6
+[ 4647.744913] NVMeVirt: Flush buffer(3) free_ppgs: 2, used_ppgs: 6
+[ 4647.744971] NVMeVirt: buffer allocate start_lpn: 64, end_lpn: 71, start_offset: 0, size: 131072, free_pgs: 4, used_pgs: 4
+[ 4647.745042] NVMeVirt: buffer allocate start_lpn: 72, end_lpn: 79, start_offset: 0, size: 131072, free_pgs: 3, used_pgs: 5
+[ 4647.745112] NVMeVirt: buffer allocate start_lpn: 80, end_lpn: 87, start_offset: 0, size: 131072, free_pgs: 2, used_pgs: 6
+[ 4647.745187] NVMeVirt: buffer allocate start_lpn: 88, end_lpn: 95, start_offset: 0, size: 131072, free_pgs: 3, used_pgs: 5
+[ 4647.745189] NVMeVirt: Flush buffer(0) free_ppgs: 2, used_ppgs: 6
+[ 4647.745191] NVMeVirt: Flush buffer(1) free_ppgs: 2, used_ppgs: 6
+[ 4647.745194] NVMeVirt: Flush buffer(2) free_ppgs: 2, used_ppgs: 6
+[ 4647.745196] NVMeVirt: Flush buffer(3) free_ppgs: 2, used_ppgs: 6
+[ 4647.745257] NVMeVirt: buffer allocate start_lpn: 96, end_lpn: 103, start_offset: 0, size: 131072, free_pgs: 4, used_pgs: 4
+[ 4647.745328] NVMeVirt: buffer allocate start_lpn: 104, end_lpn: 111, start_offset: 0, size: 131072, free_pgs: 3, used_pgs: 5
+[ 4647.745398] NVMeVirt: buffer allocate start_lpn: 112, end_lpn: 119, start_offset: 0, size: 131072, free_pgs: 2, used_pgs: 6
+[ 4647.745468] NVMeVirt: buffer allocate start_lpn: 120, end_lpn: 127, start_offset: 0, size: 131072, free_pgs: 3, used_pgs: 5
+[ 4647.745470] NVMeVirt: Flush buffer(0) free_ppgs: 2, used_ppgs: 6
+[ 4647.745473] NVMeVirt: Flush buffer(1) free_ppgs: 2, used_ppgs: 6
+[ 4647.745475] NVMeVirt: Flush buffer(2) free_ppgs: 2, used_ppgs: 6
+[ 4647.745478] NVMeVirt: Flush buffer(3) free_ppgs: 2, used_ppgs: 6
+[ 4647.745538] NVMeVirt: buffer allocate start_lpn: 128, end_lpn: 135, start_offset: 0, size: 131072, free_pgs: 4, used_pgs: 4
+[ 4647.745608] NVMeVirt: buffer allocate start_lpn: 136, end_lpn: 143, start_offset: 0, size: 131072, free_pgs: 3, used_pgs: 5
+[ 4647.745678] NVMeVirt: buffer allocate start_lpn: 144, end_lpn: 151, start_offset: 0, size: 131072, free_pgs: 2, used_pgs: 6
+[ 4647.745751] NVMeVirt: buffer allocate start_lpn: 152, end_lpn: 159, start_offset: 0, size: 131072, free_pgs: 3, used_pgs: 5
+[ 4647.745754] NVMeVirt: Flush buffer(0) free_ppgs: 2, used_ppgs: 6
+[ 4647.745756] NVMeVirt: Flush buffer(1) free_ppgs: 2, used_ppgs: 6
+[ 4647.745759] NVMeVirt: Flush buffer(2) free_ppgs: 2, used_ppgs: 6
+[ 4647.745762] NVMeVirt: Flush buffer(3) free_ppgs: 2, used_ppgs: 6
+[ 4647.745822] NVMeVirt: buffer allocate start_lpn: 160, end_lpn: 167, start_offset: 0, size: 131072, free_pgs: 4, used_pgs: 4
+[ 4647.745891] NVMeVirt: buffer allocate start_lpn: 168, end_lpn: 175, start_offset: 0, size: 131072, free_pgs: 3, used_pgs: 5
+[ 4647.745961] NVMeVirt: buffer allocate start_lpn: 176, end_lpn: 183, start_offset: 0, size: 131072, free_pgs: 2, used_pgs: 6
+[ 4647.746031] NVMeVirt: buffer allocate start_lpn: 184, end_lpn: 191, start_offset: 0, size: 131072, free_pgs: 1, used_pgs: 7
+[ 4647.746033] NVMeVirt: Flush buffer(0) free_ppgs: 2, used_ppgs: 6
+[ 4647.746035] NVMeVirt: Flush buffer(1) free_ppgs: 2, used_ppgs: 6
+[ 4647.746037] NVMeVirt: Flush buffer(2) free_ppgs: 2, used_ppgs: 6
+[ 4647.746040] NVMeVirt: Flush buffer(3) free_ppgs: 2, used_ppgs: 6
+[ 4647.746099] NVMeVirt: buffer allocate start_lpn: 192, end_lpn: 199, start_offset: 0, size: 131072, free_pgs: 4, used_pgs: 4
+[ 4647.746169] NVMeVirt: buffer allocate start_lpn: 200, end_lpn: 207, start_offset: 0, size: 131072, free_pgs: 3, used_pgs: 5
+[ 4647.746237] NVMeVirt: buffer allocate start_lpn: 208, end_lpn: 215, start_offset: 0, size: 131072, free_pgs: 2, used_pgs: 6
+[ 4647.746307] NVMeVirt: buffer allocate start_lpn: 216, end_lpn: 223, start_offset: 0, size: 131072, free_pgs: 1, used_pgs: 7
+[ 4647.746309] NVMeVirt: Flush buffer(0) free_ppgs: 0, used_ppgs: 8
+[ 4647.746312] NVMeVirt: Flush buffer(1) free_ppgs: 0, used_ppgs: 8
+[ 4647.746314] NVMeVirt: Flush buffer(2) free_ppgs: 2, used_ppgs: 6
+[ 4647.746316] NVMeVirt: Flush buffer(3) free_ppgs: 2, used_ppgs: 6
+[ 4647.746378] NVMeVirt: buffer allocate start_lpn: 224, end_lpn: 231, start_offset: 0, size: 131072, free_pgs: 4, used_pgs: 4
+[ 4647.746447] NVMeVirt: buffer allocate start_lpn: 232, end_lpn: 239, start_offset: 0, size: 131072, free_pgs: 3, used_pgs: 5
+[ 4647.746517] NVMeVirt: buffer allocate start_lpn: 240, end_lpn: 247, start_offset: 0, size: 131072, free_pgs: 2, used_pgs: 6
+[ 4647.746586] NVMeVirt: buffer allocate start_lpn: 248, end_lpn: 255, start_offset: 0, size: 131072, free_pgs: 1, used_pgs: 7
+[ 4647.746588] NVMeVirt: Flush buffer(0) free_ppgs: 2, used_ppgs: 6
+[ 4647.746591] NVMeVirt: Flush buffer(1) free_ppgs: 2, used_ppgs: 6
+[ 4647.746593] NVMeVirt: Flush buffer(2) free_ppgs: 2, used_ppgs: 6
+[ 4647.746596] NVMeVirt: Flush buffer(3) free_ppgs: 2, used_ppgs: 6
+[ 4647.746656] NVMeVirt: buffer allocate start_lpn: 256, end_lpn: 263, start_offset: 0, size: 131072, free_pgs: 4, used_pgs: 4
+[ 4647.746726] NVMeVirt: buffer allocate start_lpn: 264, end_lpn: 271, start_offset: 0, size: 131072, free_pgs: 3, used_pgs: 5
+[ 4647.746796] NVMeVirt: buffer allocate start_lpn: 272, end_lpn: 279, start_offset: 0, size: 131072, free_pgs: 2, used_pgs: 6
+[ 4647.746867] NVMeVirt: buffer allocate start_lpn: 280, end_lpn: 287, start_offset: 0, size: 131072, free_pgs: 1, used_pgs: 7
+[ 4647.746870] NVMeVirt: Flush buffer(0) free_ppgs: 2, used_ppgs: 6
+[ 4647.746872] NVMeVirt: Flush buffer(1) free_ppgs: 2, used_ppgs: 6
+[ 4647.746875] NVMeVirt: Flush buffer(2) free_ppgs: 2, used_ppgs: 6
+[ 4647.746878] NVMeVirt: Flush buffer(3) free_ppgs: 2, used_ppgs: 6
+[ 4647.746936] NVMeVirt: buffer allocate start_lpn: 288, end_lpn: 295, start_offset: 0, size: 131072, free_pgs: 4, used_pgs: 4
+[ 4647.747005] NVMeVirt: buffer allocate start_lpn: 296, end_lpn: 303, start_offset: 0, size: 131072, free_pgs: 3, used_pgs: 5
+[ 4647.747075] NVMeVirt: buffer allocate start_lpn: 304, end_lpn: 311, start_offset: 0, size: 131072, free_pgs: 2, used_pgs: 6
+[ 4647.747145] NVMeVirt: buffer allocate start_lpn: 312, end_lpn: 319, start_offset: 0, size: 131072, free_pgs: 1, used_pgs: 7
+[ 4647.747147] NVMeVirt: Flush buffer(0) free_ppgs: 2, used_ppgs: 6
+[ 4647.747149] NVMeVirt: Flush buffer(1) free_ppgs: 2, used_ppgs: 6
+[ 4647.747151] NVMeVirt: Flush buffer(2) free_ppgs: 2, used_ppgs: 6
+[ 4647.747154] NVMeVirt: Flush buffer(3) free_ppgs: 2, used_ppgs: 6
+[ 4647.747214] NVMeVirt: buffer allocate start_lpn: 320, end_lpn: 327, start_offset: 0, size: 131072, free_pgs: 4, used_pgs: 4
+[ 4647.747283] NVMeVirt: buffer allocate start_lpn: 328, end_lpn: 335, start_offset: 0, size: 131072, free_pgs: 3, used_pgs: 5
+[ 4647.747352] NVMeVirt: buffer allocate start_lpn: 336, end_lpn: 343, start_offset: 0, size: 131072, free_pgs: 2, used_pgs: 6
+[ 4647.747421] NVMeVirt: buffer allocate start_lpn: 344, end_lpn: 351, start_offset: 0, size: 131072, free_pgs: 1, used_pgs: 7
+[ 4647.747423] NVMeVirt: Flush buffer(0) free_ppgs: 0, used_ppgs: 8
+[ 4647.747426] NVMeVirt: Flush buffer(1) free_ppgs: 0, used_ppgs: 8
+[ 4647.747428] NVMeVirt: Flush buffer(2) free_ppgs: 0, used_ppgs: 8
+[ 4647.747430] NVMeVirt: Flush buffer(3) free_ppgs: 2, used_ppgs: 6
+[ 4647.747491] NVMeVirt: buffer allocate start_lpn: 352, end_lpn: 359, start_offset: 0, size: 131072, free_pgs: 4, used_pgs: 4
+[ 4647.747560] NVMeVirt: buffer allocate start_lpn: 360, end_lpn: 367, start_offset: 0, size: 131072, free_pgs: 3, used_pgs: 5
+[ 4647.747629] NVMeVirt: buffer allocate start_lpn: 368, end_lpn: 375, start_offset: 0, size: 131072, free_pgs: 2, used_pgs: 6
+[ 4647.747698] NVMeVirt: buffer allocate start_lpn: 376, end_lpn: 383, start_offset: 0, size: 131072, free_pgs: 1, used_pgs: 7
+[ 4647.747700] NVMeVirt: Flush buffer(0) free_ppgs: 0, used_ppgs: 8
+[ 4647.747702] NVMeVirt: Flush buffer(1) free_ppgs: 0, used_ppgs: 8
+[ 4647.747705] NVMeVirt: Flush buffer(2) free_ppgs: 2, used_ppgs: 6
+[ 4647.747707] NVMeVirt: Flush buffer(3) free_ppgs: 2, used_ppgs: 6
+[ 4647.747768] NVMeVirt: buffer allocate start_lpn: 384, end_lpn: 391, start_offset: 0, size: 131072, free_pgs: 4, used_pgs: 4
+[ 4647.747838] NVMeVirt: buffer allocate start_lpn: 392, end_lpn: 399, start_offset: 0, size: 131072, free_pgs: 3, used_pgs: 5
+[ 4647.747907] NVMeVirt: buffer allocate start_lpn: 400, end_lpn: 407, start_offset: 0, size: 131072, free_pgs: 2, used_pgs: 6
+[ 4647.747976] NVMeVirt: buffer allocate start_lpn: 408, end_lpn: 415, start_offset: 0, size: 131072, free_pgs: 1, used_pgs: 7
+[ 4647.747979] NVMeVirt: Flush buffer(0) free_ppgs: 2, used_ppgs: 6
+[ 4647.747982] NVMeVirt: Flush buffer(1) free_ppgs: 2, used_ppgs: 6
+[ 4647.747985] NVMeVirt: Flush buffer(2) free_ppgs: 2, used_ppgs: 6
+[ 4647.747987] NVMeVirt: Flush buffer(3) free_ppgs: 2, used_ppgs: 6
+[ 4647.748046] NVMeVirt: buffer allocate start_lpn: 416, end_lpn: 423, start_offset: 0, size: 131072, free_pgs: 4, used_pgs: 4
+[ 4647.748115] NVMeVirt: buffer allocate start_lpn: 424, end_lpn: 431, start_offset: 0, size: 131072, free_pgs: 3, used_pgs: 5
+[ 4647.748183] NVMeVirt: buffer allocate start_lpn: 432, end_lpn: 439, start_offset: 0, size: 131072, free_pgs: 2, used_pgs: 6
+[ 4647.748251] NVMeVirt: buffer allocate start_lpn: 440, end_lpn: 447, start_offset: 0, size: 131072, free_pgs: 1, used_pgs: 7
+[ 4647.748253] NVMeVirt: Flush buffer(0) free_ppgs: 0, used_ppgs: 8
+[ 4647.748255] NVMeVirt: Flush buffer(1) free_ppgs: 0, used_ppgs: 8
+[ 4647.748257] NVMeVirt: Flush buffer(2) free_ppgs: 0, used_ppgs: 8
+[ 4647.748259] NVMeVirt: Flush buffer(3) free_ppgs: 0, used_ppgs: 8
+[ 4647.748320] NVMeVirt: buffer allocate start_lpn: 448, end_lpn: 455, start_offset: 0, size: 131072, free_pgs: 4, used_pgs: 4
+[ 4647.748389] NVMeVirt: buffer allocate start_lpn: 456, end_lpn: 463, start_offset: 0, size: 131072, free_pgs: 3, used_pgs: 5
+[ 4647.748457] NVMeVirt: buffer allocate start_lpn: 464, end_lpn: 471, start_offset: 0, size: 131072, free_pgs: 2, used_pgs: 6
+[ 4647.748525] NVMeVirt: buffer allocate start_lpn: 472, end_lpn: 479, start_offset: 0, size: 131072, free_pgs: 1, used_pgs: 7
+[ 4647.748526] NVMeVirt: Flush buffer(0) free_ppgs: 0, used_ppgs: 8
+[ 4647.748529] NVMeVirt: Flush buffer(1) free_ppgs: 0, used_ppgs: 8
+[ 4647.748531] NVMeVirt: Flush buffer(2) free_ppgs: 0, used_ppgs: 8
+[ 4647.748533] NVMeVirt: Flush buffer(3) free_ppgs: 2, used_ppgs: 6
+[ 4647.748593] NVMeVirt: buffer allocate start_lpn: 480, end_lpn: 487, start_offset: 0, size: 131072, free_pgs: 4, used_pgs: 4
+[ 4647.748662] NVMeVirt: buffer allocate start_lpn: 488, end_lpn: 495, start_offset: 0, size: 131072, free_pgs: 3, used_pgs: 5
+[ 4647.748730] NVMeVirt: buffer allocate start_lpn: 496, end_lpn: 503, start_offset: 0, size: 131072, free_pgs: 2, used_pgs: 6
+[ 4647.748798] NVMeVirt: buffer allocate start_lpn: 504, end_lpn: 511, start_offset: 0, size: 131072, free_pgs: 1, used_pgs: 7
+[ 4647.748801] NVMeVirt: Flush buffer(0) free_ppgs: 0, used_ppgs: 8
+[ 4647.748803] NVMeVirt: Flush buffer(1) free_ppgs: 0, used_ppgs: 8
+[ 4647.748805] NVMeVirt: Flush buffer(2) free_ppgs: 0, used_ppgs: 8
+[ 4647.748808] NVMeVirt: Flush buffer(3) free_ppgs: 0, used_ppgs: 8
+[ 4647.748867] NVMeVirt: buffer allocate start_lpn: 512, end_lpn: 519, start_offset: 0, size: 131072, free_pgs: 4, used_pgs: 4
+[ 4647.748936] NVMeVirt: buffer allocate start_lpn: 520, end_lpn: 527, start_offset: 0, size: 131072, free_pgs: 3, used_pgs: 5
+[ 4647.749004] NVMeVirt: buffer allocate start_lpn: 528, end_lpn: 535, start_offset: 0, size: 131072, free_pgs: 2, used_pgs: 6
+[ 4647.749073] NVMeVirt: buffer allocate start_lpn: 536, end_lpn: 543, start_offset: 0, size: 131072, free_pgs: 1, used_pgs: 7
+[ 4647.749074] NVMeVirt: Flush buffer(0) free_ppgs: 0, used_ppgs: 8
+[ 4647.749077] NVMeVirt: Flush buffer(1) free_ppgs: 0, used_ppgs: 8
+[ 4647.749080] NVMeVirt: Flush buffer(2) free_ppgs: 0, used_ppgs: 8
+[ 4647.749082] NVMeVirt: Flush buffer(3) free_ppgs: 0, used_ppgs: 8
+[ 4647.749141] NVMeVirt: buffer allocate start_lpn: 544, end_lpn: 551, start_offset: 0, size: 131072, free_pgs: 4, used_pgs: 4
+[ 4647.749210] NVMeVirt: buffer allocate start_lpn: 552, end_lpn: 559, start_offset: 0, size: 131072, free_pgs: 3, used_pgs: 5
+[ 4647.749279] NVMeVirt: buffer allocate start_lpn: 560, end_lpn: 567, start_offset: 0, size: 131072, free_pgs: 2, used_pgs: 6
+[ 4647.749348] NVMeVirt: buffer allocate start_lpn: 568, end_lpn: 575, start_offset: 0, size: 131072, free_pgs: 1, used_pgs: 7
+[ 4647.749350] NVMeVirt: Flush buffer(0) free_ppgs: 0, used_ppgs: 8
+[ 4647.749352] NVMeVirt: Flush buffer(1) free_ppgs: 0, used_ppgs: 8
+[ 4647.749354] NVMeVirt: Flush buffer(2) free_ppgs: 0, used_ppgs: 8
+[ 4647.749356] NVMeVirt: Flush buffer(3) free_ppgs: 0, used_ppgs: 8
+[ 4647.749417] NVMeVirt: buffer allocate start_lpn: 576, end_lpn: 583, start_offset: 0, size: 131072, free_pgs: 4, used_pgs: 4
+[ 4647.749484] NVMeVirt: buffer allocate start_lpn: 584, end_lpn: 591, start_offset: 0, size: 131072, free_pgs: 3, used_pgs: 5
+[ 4647.749552] NVMeVirt: buffer allocate start_lpn: 592, end_lpn: 599, start_offset: 0, size: 131072, free_pgs: 2, used_pgs: 6
+[ 4647.749621] NVMeVirt: buffer allocate start_lpn: 600, end_lpn: 607, start_offset: 0, size: 131072, free_pgs: 1, used_pgs: 7
+[ 4647.749622] NVMeVirt: Flush buffer(0) free_ppgs: 0, used_ppgs: 8
+[ 4647.749625] NVMeVirt: Flush buffer(1) free_ppgs: 0, used_ppgs: 8
+[ 4647.749627] NVMeVirt: Flush buffer(2) free_ppgs: 0, used_ppgs: 8
+[ 4647.749630] NVMeVirt: Flush buffer(3) free_ppgs: 2, used_ppgs: 6
+[ 4647.749690] NVMeVirt: buffer allocate start_lpn: 608, end_lpn: 615, start_offset: 0, size: 131072, free_pgs: 4, used_pgs: 4
+[ 4647.749759] NVMeVirt: buffer allocate start_lpn: 616, end_lpn: 623, start_offset: 0, size: 131072, free_pgs: 3, used_pgs: 5
+[ 4647.749828] NVMeVirt: buffer allocate start_lpn: 624, end_lpn: 631, start_offset: 0, size: 131072, free_pgs: 2, used_pgs: 6
+[ 4647.749895] NVMeVirt: buffer allocate start_lpn: 632, end_lpn: 639, start_offset: 0, size: 131072, free_pgs: 1, used_pgs: 7
+[ 4647.749897] NVMeVirt: Flush buffer(0) free_ppgs: 0, used_ppgs: 8
+[ 4647.749899] NVMeVirt: Flush buffer(1) free_ppgs: 0, used_ppgs: 8
+[ 4647.749902] NVMeVirt: Flush buffer(2) free_ppgs: 0, used_ppgs: 8
+[ 4647.749904] NVMeVirt: Flush buffer(3) free_ppgs: 0, used_ppgs: 8
+[ 4647.749964] NVMeVirt: buffer allocate start_lpn: 640, end_lpn: 647, start_offset: 0, size: 131072, free_pgs: 4, used_pgs: 4
+[ 4647.750033] NVMeVirt: buffer allocate start_lpn: 648, end_lpn: 655, start_offset: 0, size: 131072, free_pgs: 3, used_pgs: 5
+[ 4647.750102] NVMeVirt: buffer allocate start_lpn: 656, end_lpn: 663, start_offset: 0, size: 131072, free_pgs: 2, used_pgs: 6
+[ 4647.750171] NVMeVirt: buffer allocate start_lpn: 664, end_lpn: 671, start_offset: 0, size: 131072, free_pgs: 1, used_pgs: 7
+[ 4647.750173] NVMeVirt: Flush buffer(0) free_ppgs: 0, used_ppgs: 8
+[ 4647.750175] NVMeVirt: Flush buffer(1) free_ppgs: 0, used_ppgs: 8
+[ 4647.750178] NVMeVirt: Flush buffer(2) free_ppgs: 0, used_ppgs: 8
+[ 4647.750180] NVMeVirt: Flush buffer(3) free_ppgs: 0, used_ppgs: 8
+[ 4647.750240] NVMeVirt: buffer allocate start_lpn: 672, end_lpn: 679, start_offset: 0, size: 131072, free_pgs: 4, used_pgs: 4
+[ 4647.750308] NVMeVirt: buffer allocate start_lpn: 680, end_lpn: 687, start_offset: 0, size: 131072, free_pgs: 3, used_pgs: 5
+[ 4647.750376] NVMeVirt: buffer allocate start_lpn: 688, end_lpn: 695, start_offset: 0, size: 131072, free_pgs: 2, used_pgs: 6
+[ 4647.750443] NVMeVirt: buffer allocate start_lpn: 696, end_lpn: 703, start_offset: 0, size: 131072, free_pgs: 1, used_pgs: 7
+[ 4647.750445] NVMeVirt: Flush buffer(0) free_ppgs: 0, used_ppgs: 8
+[ 4647.750447] NVMeVirt: Flush buffer(1) free_ppgs: 0, used_ppgs: 8
+[ 4647.750449] NVMeVirt: Flush buffer(2) free_ppgs: 0, used_ppgs: 8
+[ 4647.750451] NVMeVirt: Flush buffer(3) free_ppgs: 0, used_ppgs: 8
+[ 4647.750512] NVMeVirt: buffer allocate start_lpn: 704, end_lpn: 711, start_offset: 0, size: 131072, free_pgs: 4, used_pgs: 4
+[ 4647.750580] NVMeVirt: buffer allocate start_lpn: 712, end_lpn: 719, start_offset: 0, size: 131072, free_pgs: 3, used_pgs: 5
+[ 4647.750649] NVMeVirt: buffer allocate start_lpn: 720, end_lpn: 727, start_offset: 0, size: 131072, free_pgs: 2, used_pgs: 6
+[ 4647.750717] NVMeVirt: buffer allocate start_lpn: 728, end_lpn: 735, start_offset: 0, size: 131072, free_pgs: 1, used_pgs: 7
+[ 4647.750719] NVMeVirt: Flush buffer(0) free_ppgs: 0, used_ppgs: 8
+[ 4647.750721] NVMeVirt: Flush buffer(1) free_ppgs: 0, used_ppgs: 8
+[ 4647.750724] NVMeVirt: Flush buffer(2) free_ppgs: 0, used_ppgs: 8
+[ 4647.750726] NVMeVirt: Flush buffer(3) free_ppgs: 0, used_ppgs: 8
+[ 4647.750785] NVMeVirt: buffer allocate start_lpn: 736, end_lpn: 743, start_offset: 0, size: 131072, free_pgs: 4, used_pgs: 4
+[ 4647.750854] NVMeVirt: buffer allocate start_lpn: 744, end_lpn: 751, start_offset: 0, size: 131072, free_pgs: 3, used_pgs: 5
+[ 4647.750922] NVMeVirt: buffer allocate start_lpn: 752, end_lpn: 759, start_offset: 0, size: 131072, free_pgs: 2, used_pgs: 6
+[ 4647.750991] NVMeVirt: buffer allocate start_lpn: 760, end_lpn: 767, start_offset: 0, size: 131072, free_pgs: 1, used_pgs: 7
+[ 4647.750993] NVMeVirt: Flush buffer(0) free_ppgs: 0, used_ppgs: 8
+[ 4647.750995] NVMeVirt: Flush buffer(1) free_ppgs: 0, used_ppgs: 8
+[ 4647.750997] NVMeVirt: Flush buffer(2) free_ppgs: 0, used_ppgs: 8
+[ 4647.751000] NVMeVirt: Flush buffer(3) free_ppgs: 0, used_ppgs: 8
+[ 4647.751060] NVMeVirt: buffer allocate start_lpn: 768, end_lpn: 775, start_offset: 0, size: 131072, free_pgs: 4, used_pgs: 4
+[ 4647.751128] NVMeVirt: buffer allocate start_lpn: 776, end_lpn: 783, start_offset: 0, size: 131072, free_pgs: 3, used_pgs: 5
+[ 4647.751198] NVMeVirt: buffer allocate start_lpn: 784, end_lpn: 791, start_offset: 0, size: 131072, free_pgs: 2, used_pgs: 6
+[ 4647.751267] NVMeVirt: buffer allocate start_lpn: 792, end_lpn: 799, start_offset: 0, size: 131072, free_pgs: 1, used_pgs: 7
+[ 4647.751269] NVMeVirt: Flush buffer(0) free_ppgs: 0, used_ppgs: 8
+[ 4647.751271] NVMeVirt: Flush buffer(1) free_ppgs: 0, used_ppgs: 8
+[ 4647.751274] NVMeVirt: Flush buffer(2) free_ppgs: 0, used_ppgs: 8
+[ 4647.751276] NVMeVirt: Flush buffer(3) free_ppgs: 0, used_ppgs: 8
+[ 4647.751336] NVMeVirt: buffer allocate start_lpn: 800, end_lpn: 807, start_offset: 0, size: 131072, free_pgs: 4, used_pgs: 4
+[ 4647.751404] NVMeVirt: buffer allocate start_lpn: 808, end_lpn: 815, start_offset: 0, size: 131072, free_pgs: 3, used_pgs: 5
+[ 4647.751473] NVMeVirt: buffer allocate start_lpn: 816, end_lpn: 823, start_offset: 0, size: 131072, free_pgs: 2, used_pgs: 6
+[ 4647.751541] NVMeVirt: buffer allocate start_lpn: 824, end_lpn: 831, start_offset: 0, size: 131072, free_pgs: 1, used_pgs: 7
+[ 4647.751543] NVMeVirt: Flush buffer(0) free_ppgs: 0, used_ppgs: 8
+[ 4647.751545] NVMeVirt: Flush buffer(1) free_ppgs: 0, used_ppgs: 8
+[ 4647.751547] NVMeVirt: Flush buffer(2) free_ppgs: 0, used_ppgs: 8
+[ 4647.751549] NVMeVirt: Flush buffer(3) free_ppgs: 0, used_ppgs: 8
+[ 4647.751611] NVMeVirt: buffer allocate start_lpn: 832, end_lpn: 839, start_offset: 0, size: 131072, free_pgs: 4, used_pgs: 4
+[ 4647.751679] NVMeVirt: buffer allocate start_lpn: 840, end_lpn: 847, start_offset: 0, size: 131072, free_pgs: 3, used_pgs: 5
+[ 4647.751750] NVMeVirt: buffer allocate start_lpn: 848, end_lpn: 855, start_offset: 0, size: 131072, free_pgs: 2, used_pgs: 6
+[ 4647.751819] NVMeVirt: buffer allocate start_lpn: 856, end_lpn: 863, start_offset: 0, size: 131072, free_pgs: 1, used_pgs: 7
+[ 4647.751821] NVMeVirt: Flush buffer(0) free_ppgs: 0, used_ppgs: 8
+[ 4647.751823] NVMeVirt: Flush buffer(1) free_ppgs: 0, used_ppgs: 8
+[ 4647.751826] NVMeVirt: Flush buffer(2) free_ppgs: 0, used_ppgs: 8
+[ 4647.751828] NVMeVirt: Flush buffer(3) free_ppgs: 0, used_ppgs: 8
+[ 4647.751888] NVMeVirt: buffer allocate start_lpn: 864, end_lpn: 871, start_offset: 0, size: 131072, free_pgs: 4, used_pgs: 4
+[ 4647.751957] NVMeVirt: buffer allocate start_lpn: 872, end_lpn: 879, start_offset: 0, size: 131072, free_pgs: 3, used_pgs: 5
+[ 4647.752026] NVMeVirt: buffer allocate start_lpn: 880, end_lpn: 887, start_offset: 0, size: 131072, free_pgs: 2, used_pgs: 6
+[ 4647.752095] NVMeVirt: buffer allocate start_lpn: 888, end_lpn: 895, start_offset: 0, size: 131072, free_pgs: 1, used_pgs: 7
+[ 4647.752097] NVMeVirt: Flush buffer(0) free_ppgs: 0, used_ppgs: 8
+[ 4647.752099] NVMeVirt: Flush buffer(1) free_ppgs: 0, used_ppgs: 8
+[ 4647.752101] NVMeVirt: Flush buffer(2) free_ppgs: 0, used_ppgs: 8
+[ 4647.752103] NVMeVirt: Flush buffer(3) free_ppgs: 2, used_ppgs: 6
+[ 4647.752167] NVMeVirt: buffer allocate start_lpn: 896, end_lpn: 903, start_offset: 0, size: 131072, free_pgs: 4, used_pgs: 4
+[ 4647.752237] NVMeVirt: buffer allocate start_lpn: 904, end_lpn: 911, start_offset: 0, size: 131072, free_pgs: 3, used_pgs: 5
+[ 4647.752307] NVMeVirt: buffer allocate start_lpn: 912, end_lpn: 919, start_offset: 0, size: 131072, free_pgs: 2, used_pgs: 6
+[ 4647.752377] NVMeVirt: buffer allocate start_lpn: 920, end_lpn: 927, start_offset: 0, size: 131072, free_pgs: 3, used_pgs: 5
+[ 4647.752379] NVMeVirt: Flush buffer(0) free_ppgs: 2, used_ppgs: 6
+[ 4647.752382] NVMeVirt: Flush buffer(1) free_ppgs: 2, used_ppgs: 6
+[ 4647.752384] NVMeVirt: Flush buffer(2) free_ppgs: 2, used_ppgs: 6
+[ 4647.752387] NVMeVirt: Flush buffer(3) free_ppgs: 2, used_ppgs: 6
+[ 4647.752446] NVMeVirt: buffer allocate start_lpn: 928, end_lpn: 935, start_offset: 0, size: 131072, free_pgs: 4, used_pgs: 4
+[ 4647.752516] NVMeVirt: buffer allocate start_lpn: 936, end_lpn: 943, start_offset: 0, size: 131072, free_pgs: 3, used_pgs: 5
+[ 4647.752586] NVMeVirt: buffer allocate start_lpn: 944, end_lpn: 951, start_offset: 0, size: 131072, free_pgs: 2, used_pgs: 6
+[ 4647.752655] NVMeVirt: buffer allocate start_lpn: 952, end_lpn: 959, start_offset: 0, size: 131072, free_pgs: 1, used_pgs: 7
+[ 4647.752658] NVMeVirt: Flush buffer(0) free_ppgs: 2, used_ppgs: 6
+[ 4647.752660] NVMeVirt: Flush buffer(1) free_ppgs: 2, used_ppgs: 6
+[ 4647.752662] NVMeVirt: Flush buffer(2) free_ppgs: 2, used_ppgs: 6
+[ 4647.752664] NVMeVirt: Flush buffer(3) free_ppgs: 2, used_ppgs: 6
+[ 4647.752725] NVMeVirt: buffer allocate start_lpn: 960, end_lpn: 967, start_offset: 0, size: 131072, free_pgs: 4, used_pgs: 4
+[ 4647.752795] NVMeVirt: buffer allocate start_lpn: 968, end_lpn: 975, start_offset: 0, size: 131072, free_pgs: 3, used_pgs: 5
+[ 4647.752865] NVMeVirt: buffer allocate start_lpn: 976, end_lpn: 983, start_offset: 0, size: 131072, free_pgs: 2, used_pgs: 6
+[ 4647.752935] NVMeVirt: buffer allocate start_lpn: 984, end_lpn: 991, start_offset: 0, size: 131072, free_pgs: 1, used_pgs: 7
+[ 4647.752937] NVMeVirt: Flush buffer(0) free_ppgs: 2, used_ppgs: 6
+[ 4647.752940] NVMeVirt: Flush buffer(1) free_ppgs: 2, used_ppgs: 6
+[ 4647.752942] NVMeVirt: Flush buffer(2) free_ppgs: 2, used_ppgs: 6
+[ 4647.752944] NVMeVirt: Flush buffer(3) free_ppgs: 2, used_ppgs: 6
+[ 4647.753004] NVMeVirt: buffer allocate start_lpn: 992, end_lpn: 999, start_offset: 0, size: 131072, free_pgs: 4, used_pgs: 4
+[ 4647.753074] NVMeVirt: buffer allocate start_lpn: 1000, end_lpn: 1007, start_offset: 0, size: 131072, free_pgs: 3, used_pgs: 5
+[ 4647.753143] NVMeVirt: buffer allocate start_lpn: 1008, end_lpn: 1015, start_offset: 0, size: 131072, free_pgs: 2, used_pgs: 6
+[ 4647.753213] NVMeVirt: buffer allocate start_lpn: 1016, end_lpn: 1023, start_offset: 0, size: 131072, free_pgs: 1, used_pgs: 7
+[ 4647.753216] NVMeVirt: Flush buffer(0) free_ppgs: 2, used_ppgs: 6 -> 3216 - 2937 = 279
+[ 4647.753218] NVMeVirt: Flush buffer(1) free_ppgs: 2, used_ppgs: 6
+[ 4647.753220] NVMeVirt: Flush buffer(2) free_ppgs: 2, used_ppgs: 6
+[ 4647.753223] NVMeVirt: Flush buffer(3) free_ppgs: 2, used_ppgs: 6
+
+
+[ 4661.440968] NVMeVirt: buffer allocate start_lpn: 0, end_lpn: 15, start_offset: 0, size: 262144, free_pgs: 8, used_pgs: 0
+[ 4661.441138] NVMeVirt: buffer allocate start_lpn: 16, end_lpn: 31, start_offset: 0, size: 262144, free_pgs: 6, used_pgs: 2
+[ 4661.441143] NVMeVirt: Flush buffer(0) free_ppgs: 4, used_ppgs: 4
+[ 4661.441149] NVMeVirt: Flush buffer(1) free_ppgs: 4, used_ppgs: 4
+[ 4661.441154] NVMeVirt: Flush buffer(2) free_ppgs: 4, used_ppgs: 4
+[ 4661.441159] NVMeVirt: Flush buffer(3) free_ppgs: 4, used_ppgs: 4
+[ 4661.441294] NVMeVirt: buffer allocate start_lpn: 32, end_lpn: 47, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.441472] NVMeVirt: buffer allocate start_lpn: 48, end_lpn: 63, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.441475] NVMeVirt: Flush buffer(0) free_ppgs: 2, used_ppgs: 6
+[ 4661.441477] NVMeVirt: Flush buffer(1) free_ppgs: 2, used_ppgs: 6
+[ 4661.441480] NVMeVirt: Flush buffer(2) free_ppgs: 2, used_ppgs: 6
+[ 4661.441482] NVMeVirt: Flush buffer(3) free_ppgs: 2, used_ppgs: 6
+[ 4661.441603] NVMeVirt: buffer allocate start_lpn: 64, end_lpn: 79, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.441804] NVMeVirt: buffer allocate start_lpn: 80, end_lpn: 95, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.441807] NVMeVirt: Flush buffer(0) free_ppgs: 2, used_ppgs: 6
+[ 4661.441809] NVMeVirt: Flush buffer(1) free_ppgs: 2, used_ppgs: 6
+[ 4661.441811] NVMeVirt: Flush buffer(2) free_ppgs: 2, used_ppgs: 6
+[ 4661.441813] NVMeVirt: Flush buffer(3) free_ppgs: 2, used_ppgs: 6
+[ 4661.441931] NVMeVirt: buffer allocate start_lpn: 96, end_lpn: 111, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.442137] NVMeVirt: buffer allocate start_lpn: 112, end_lpn: 127, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.442140] NVMeVirt: Flush buffer(0) free_ppgs: 2, used_ppgs: 6
+[ 4661.442142] NVMeVirt: Flush buffer(1) free_ppgs: 2, used_ppgs: 6
+[ 4661.442144] NVMeVirt: Flush buffer(2) free_ppgs: 2, used_ppgs: 6
+[ 4661.442146] NVMeVirt: Flush buffer(3) free_ppgs: 2, used_ppgs: 6
+[ 4661.442264] NVMeVirt: buffer allocate start_lpn: 128, end_lpn: 143, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.442469] NVMeVirt: buffer allocate start_lpn: 144, end_lpn: 159, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.442472] NVMeVirt: Flush buffer(0) free_ppgs: 2, used_ppgs: 6
+[ 4661.442474] NVMeVirt: Flush buffer(1) free_ppgs: 2, used_ppgs: 6
+[ 4661.442476] NVMeVirt: Flush buffer(2) free_ppgs: 2, used_ppgs: 6
+[ 4661.442479] NVMeVirt: Flush buffer(3) free_ppgs: 2, used_ppgs: 6
+[ 4661.442592] NVMeVirt: buffer allocate start_lpn: 160, end_lpn: 175, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.442801] NVMeVirt: buffer allocate start_lpn: 176, end_lpn: 191, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.442804] NVMeVirt: Flush buffer(0) free_ppgs: 2, used_ppgs: 6
+[ 4661.442806] NVMeVirt: Flush buffer(1) free_ppgs: 2, used_ppgs: 6
+[ 4661.442808] NVMeVirt: Flush buffer(2) free_ppgs: 2, used_ppgs: 6
+[ 4661.442810] NVMeVirt: Flush buffer(3) free_ppgs: 2, used_ppgs: 6
+[ 4661.442927] NVMeVirt: buffer allocate start_lpn: 192, end_lpn: 207, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.443135] NVMeVirt: buffer allocate start_lpn: 208, end_lpn: 223, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.443138] NVMeVirt: Flush buffer(0) free_ppgs: 2, used_ppgs: 6
+[ 4661.443140] NVMeVirt: Flush buffer(1) free_ppgs: 2, used_ppgs: 6
+[ 4661.443142] NVMeVirt: Flush buffer(2) free_ppgs: 2, used_ppgs: 6
+[ 4661.443144] NVMeVirt: Flush buffer(3) free_ppgs: 2, used_ppgs: 6
+[ 4661.443261] NVMeVirt: buffer allocate start_lpn: 224, end_lpn: 239, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.443468] NVMeVirt: buffer allocate start_lpn: 240, end_lpn: 255, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.443470] NVMeVirt: Flush buffer(0) free_ppgs: 2, used_ppgs: 6
+[ 4661.443473] NVMeVirt: Flush buffer(1) free_ppgs: 2, used_ppgs: 6
+[ 4661.443475] NVMeVirt: Flush buffer(2) free_ppgs: 2, used_ppgs: 6
+[ 4661.443477] NVMeVirt: Flush buffer(3) free_ppgs: 2, used_ppgs: 6
+[ 4661.443594] NVMeVirt: buffer allocate start_lpn: 256, end_lpn: 271, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.443801] NVMeVirt: buffer allocate start_lpn: 272, end_lpn: 287, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.443803] NVMeVirt: Flush buffer(0) free_ppgs: 2, used_ppgs: 6
+[ 4661.443805] NVMeVirt: Flush buffer(1) free_ppgs: 2, used_ppgs: 6
+[ 4661.443808] NVMeVirt: Flush buffer(2) free_ppgs: 2, used_ppgs: 6
+[ 4661.443810] NVMeVirt: Flush buffer(3) free_ppgs: 2, used_ppgs: 6
+[ 4661.443924] NVMeVirt: buffer allocate start_lpn: 288, end_lpn: 303, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.444134] NVMeVirt: buffer allocate start_lpn: 304, end_lpn: 319, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.444137] NVMeVirt: Flush buffer(0) free_ppgs: 2, used_ppgs: 6
+[ 4661.444139] NVMeVirt: Flush buffer(1) free_ppgs: 2, used_ppgs: 6
+[ 4661.444141] NVMeVirt: Flush buffer(2) free_ppgs: 2, used_ppgs: 6
+[ 4661.444143] NVMeVirt: Flush buffer(3) free_ppgs: 2, used_ppgs: 6
+[ 4661.444256] NVMeVirt: buffer allocate start_lpn: 320, end_lpn: 335, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.444464] NVMeVirt: buffer allocate start_lpn: 336, end_lpn: 351, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.444466] NVMeVirt: Flush buffer(0) free_ppgs: 2, used_ppgs: 6
+[ 4661.444469] NVMeVirt: Flush buffer(1) free_ppgs: 2, used_ppgs: 6
+[ 4661.444471] NVMeVirt: Flush buffer(2) free_ppgs: 2, used_ppgs: 6
+[ 4661.444473] NVMeVirt: Flush buffer(3) free_ppgs: 2, used_ppgs: 6
+[ 4661.444589] NVMeVirt: buffer allocate start_lpn: 352, end_lpn: 367, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.444796] NVMeVirt: buffer allocate start_lpn: 368, end_lpn: 383, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.444799] NVMeVirt: Flush buffer(0) free_ppgs: 2, used_ppgs: 6
+[ 4661.444801] NVMeVirt: Flush buffer(1) free_ppgs: 2, used_ppgs: 6
+[ 4661.444803] NVMeVirt: Flush buffer(2) free_ppgs: 2, used_ppgs: 6
+[ 4661.444805] NVMeVirt: Flush buffer(3) free_ppgs: 2, used_ppgs: 6
+[ 4661.444922] NVMeVirt: buffer allocate start_lpn: 384, end_lpn: 399, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.445129] NVMeVirt: buffer allocate start_lpn: 400, end_lpn: 415, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.445134] NVMeVirt: Flush buffer(0) free_ppgs: 2, used_ppgs: 6
+[ 4661.445137] NVMeVirt: Flush buffer(1) free_ppgs: 2, used_ppgs: 6
+[ 4661.445139] NVMeVirt: Flush buffer(2) free_ppgs: 2, used_ppgs: 6
+[ 4661.445142] NVMeVirt: Flush buffer(3) free_ppgs: 2, used_ppgs: 6
+[ 4661.445255] NVMeVirt: buffer allocate start_lpn: 416, end_lpn: 431, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.445461] NVMeVirt: buffer allocate start_lpn: 432, end_lpn: 447, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.445464] NVMeVirt: Flush buffer(0) free_ppgs: 2, used_ppgs: 6
+[ 4661.445466] NVMeVirt: Flush buffer(1) free_ppgs: 2, used_ppgs: 6
+[ 4661.445468] NVMeVirt: Flush buffer(2) free_ppgs: 2, used_ppgs: 6
+[ 4661.445470] NVMeVirt: Flush buffer(3) free_ppgs: 2, used_ppgs: 6
+[ 4661.445587] NVMeVirt: buffer allocate start_lpn: 448, end_lpn: 463, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.445793] NVMeVirt: buffer allocate start_lpn: 464, end_lpn: 479, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.445796] NVMeVirt: Flush buffer(0) free_ppgs: 2, used_ppgs: 6
+[ 4661.445798] NVMeVirt: Flush buffer(1) free_ppgs: 2, used_ppgs: 6
+[ 4661.445800] NVMeVirt: Flush buffer(2) free_ppgs: 2, used_ppgs: 6
+[ 4661.445802] NVMeVirt: Flush buffer(3) free_ppgs: 2, used_ppgs: 6
+[ 4661.445921] NVMeVirt: buffer allocate start_lpn: 480, end_lpn: 495, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.446126] NVMeVirt: buffer allocate start_lpn: 496, end_lpn: 511, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.446128] NVMeVirt: Flush buffer(0) free_ppgs: 2, used_ppgs: 6
+[ 4661.446130] NVMeVirt: Flush buffer(1) free_ppgs: 2, used_ppgs: 6
+[ 4661.446135] NVMeVirt: Flush buffer(2) free_ppgs: 2, used_ppgs: 6
+[ 4661.446137] NVMeVirt: Flush buffer(3) free_ppgs: 2, used_ppgs: 6
+[ 4661.446254] NVMeVirt: buffer allocate start_lpn: 512, end_lpn: 527, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.446459] NVMeVirt: buffer allocate start_lpn: 528, end_lpn: 543, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.446461] NVMeVirt: Flush buffer(0) free_ppgs: 2, used_ppgs: 6
+[ 4661.446463] NVMeVirt: Flush buffer(1) free_ppgs: 2, used_ppgs: 6
+[ 4661.446466] NVMeVirt: Flush buffer(2) free_ppgs: 2, used_ppgs: 6
+[ 4661.446468] NVMeVirt: Flush buffer(3) free_ppgs: 2, used_ppgs: 6
+[ 4661.446586] NVMeVirt: buffer allocate start_lpn: 544, end_lpn: 559, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.446791] NVMeVirt: buffer allocate start_lpn: 560, end_lpn: 575, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.446794] NVMeVirt: Flush buffer(0) free_ppgs: 2, used_ppgs: 6
+[ 4661.446796] NVMeVirt: Flush buffer(1) free_ppgs: 2, used_ppgs: 6
+[ 4661.446798] NVMeVirt: Flush buffer(2) free_ppgs: 2, used_ppgs: 6
+[ 4661.446800] NVMeVirt: Flush buffer(3) free_ppgs: 2, used_ppgs: 6
+[ 4661.446918] NVMeVirt: buffer allocate start_lpn: 576, end_lpn: 591, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.447124] NVMeVirt: buffer allocate start_lpn: 592, end_lpn: 607, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.447126] NVMeVirt: Flush buffer(0) free_ppgs: 2, used_ppgs: 6
+[ 4661.447128] NVMeVirt: Flush buffer(1) free_ppgs: 2, used_ppgs: 6
+[ 4661.447130] NVMeVirt: Flush buffer(2) free_ppgs: 2, used_ppgs: 6
+[ 4661.447135] NVMeVirt: Flush buffer(3) free_ppgs: 2, used_ppgs: 6
+[ 4661.447250] NVMeVirt: buffer allocate start_lpn: 608, end_lpn: 623, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.447456] NVMeVirt: buffer allocate start_lpn: 624, end_lpn: 639, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.447459] NVMeVirt: Flush buffer(0) free_ppgs: 2, used_ppgs: 6
+[ 4661.447461] NVMeVirt: Flush buffer(1) free_ppgs: 2, used_ppgs: 6
+[ 4661.447463] NVMeVirt: Flush buffer(2) free_ppgs: 2, used_ppgs: 6
+[ 4661.447465] NVMeVirt: Flush buffer(3) free_ppgs: 2, used_ppgs: 6
+[ 4661.447583] NVMeVirt: buffer allocate start_lpn: 640, end_lpn: 655, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.447788] NVMeVirt: buffer allocate start_lpn: 656, end_lpn: 671, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.447791] NVMeVirt: Flush buffer(0) free_ppgs: 2, used_ppgs: 6
+[ 4661.447793] NVMeVirt: Flush buffer(1) free_ppgs: 2, used_ppgs: 6
+[ 4661.447795] NVMeVirt: Flush buffer(2) free_ppgs: 2, used_ppgs: 6
+[ 4661.447797] NVMeVirt: Flush buffer(3) free_ppgs: 2, used_ppgs: 6
+[ 4661.447915] NVMeVirt: buffer allocate start_lpn: 672, end_lpn: 687, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.448120] NVMeVirt: buffer allocate start_lpn: 688, end_lpn: 703, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.448126] NVMeVirt: Flush buffer(0) free_ppgs: 2, used_ppgs: 6
+[ 4661.448128] NVMeVirt: Flush buffer(1) free_ppgs: 2, used_ppgs: 6
+[ 4661.448130] NVMeVirt: Flush buffer(2) free_ppgs: 2, used_ppgs: 6
+[ 4661.448132] NVMeVirt: Flush buffer(3) free_ppgs: 2, used_ppgs: 6
+[ 4661.448265] NVMeVirt: buffer allocate start_lpn: 704, end_lpn: 719, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.448453] NVMeVirt: buffer allocate start_lpn: 720, end_lpn: 735, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.448456] NVMeVirt: Flush buffer(0) free_ppgs: 2, used_ppgs: 6
+[ 4661.448458] NVMeVirt: Flush buffer(1) free_ppgs: 2, used_ppgs: 6
+[ 4661.448460] NVMeVirt: Flush buffer(2) free_ppgs: 2, used_ppgs: 6
+[ 4661.448462] NVMeVirt: Flush buffer(3) free_ppgs: 2, used_ppgs: 6
+[ 4661.448594] NVMeVirt: buffer allocate start_lpn: 736, end_lpn: 751, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.448786] NVMeVirt: buffer allocate start_lpn: 752, end_lpn: 767, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.448788] NVMeVirt: Flush buffer(0) free_ppgs: 2, used_ppgs: 6
+[ 4661.448790] NVMeVirt: Flush buffer(1) free_ppgs: 2, used_ppgs: 6
+[ 4661.448792] NVMeVirt: Flush buffer(2) free_ppgs: 2, used_ppgs: 6
+[ 4661.448794] NVMeVirt: Flush buffer(3) free_ppgs: 2, used_ppgs: 6
+[ 4661.448915] NVMeVirt: buffer allocate start_lpn: 768, end_lpn: 783, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.449118] NVMeVirt: buffer allocate start_lpn: 784, end_lpn: 799, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.449120] NVMeVirt: Flush buffer(0) free_ppgs: 2, used_ppgs: 6
+[ 4661.449124] NVMeVirt: Flush buffer(1) free_ppgs: 2, used_ppgs: 6
+[ 4661.449126] NVMeVirt: Flush buffer(2) free_ppgs: 2, used_ppgs: 6
+[ 4661.449128] NVMeVirt: Flush buffer(3) free_ppgs: 2, used_ppgs: 6
+[ 4661.449267] NVMeVirt: buffer allocate start_lpn: 800, end_lpn: 815, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.449451] NVMeVirt: buffer allocate start_lpn: 816, end_lpn: 831, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.449453] NVMeVirt: Flush buffer(0) free_ppgs: 2, used_ppgs: 6
+[ 4661.449455] NVMeVirt: Flush buffer(1) free_ppgs: 2, used_ppgs: 6
+[ 4661.449457] NVMeVirt: Flush buffer(2) free_ppgs: 2, used_ppgs: 6
+[ 4661.449459] NVMeVirt: Flush buffer(3) free_ppgs: 2, used_ppgs: 6
+[ 4661.449579] NVMeVirt: buffer allocate start_lpn: 832, end_lpn: 847, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.449783] NVMeVirt: buffer allocate start_lpn: 848, end_lpn: 863, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.449785] NVMeVirt: Flush buffer(0) free_ppgs: 2, used_ppgs: 6
+[ 4661.449787] NVMeVirt: Flush buffer(1) free_ppgs: 2, used_ppgs: 6
+[ 4661.449790] NVMeVirt: Flush buffer(2) free_ppgs: 2, used_ppgs: 6
+[ 4661.449791] NVMeVirt: Flush buffer(3) free_ppgs: 2, used_ppgs: 6
+[ 4661.449911] NVMeVirt: buffer allocate start_lpn: 864, end_lpn: 879, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.450116] NVMeVirt: buffer allocate start_lpn: 880, end_lpn: 895, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.450118] NVMeVirt: Flush buffer(0) free_ppgs: 2, used_ppgs: 6
+[ 4661.450120] NVMeVirt: Flush buffer(1) free_ppgs: 2, used_ppgs: 6
+[ 4661.450122] NVMeVirt: Flush buffer(2) free_ppgs: 2, used_ppgs: 6
+[ 4661.450125] NVMeVirt: Flush buffer(3) free_ppgs: 2, used_ppgs: 6
+[ 4661.450262] NVMeVirt: buffer allocate start_lpn: 896, end_lpn: 911, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.450448] NVMeVirt: buffer allocate start_lpn: 912, end_lpn: 927, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.450451] NVMeVirt: Flush buffer(0) free_ppgs: 2, used_ppgs: 6
+[ 4661.450453] NVMeVirt: Flush buffer(1) free_ppgs: 2, used_ppgs: 6
+[ 4661.450456] NVMeVirt: Flush buffer(2) free_ppgs: 2, used_ppgs: 6
+[ 4661.450458] NVMeVirt: Flush buffer(3) free_ppgs: 2, used_ppgs: 6
+[ 4661.450577] NVMeVirt: buffer allocate start_lpn: 928, end_lpn: 943, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.450781] NVMeVirt: buffer allocate start_lpn: 944, end_lpn: 959, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.450783] NVMeVirt: Flush buffer(0) free_ppgs: 2, used_ppgs: 6
+[ 4661.450785] NVMeVirt: Flush buffer(1) free_ppgs: 2, used_ppgs: 6
+[ 4661.450787] NVMeVirt: Flush buffer(2) free_ppgs: 2, used_ppgs: 6
+[ 4661.450789] NVMeVirt: Flush buffer(3) free_ppgs: 2, used_ppgs: 6
+[ 4661.450909] NVMeVirt: buffer allocate start_lpn: 960, end_lpn: 975, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.451113] NVMeVirt: buffer allocate start_lpn: 976, end_lpn: 991, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.451116] NVMeVirt: Flush buffer(0) free_ppgs: 2, used_ppgs: 6 -> 1116 - 0783 = 333
+[ 4661.451118] NVMeVirt: Flush buffer(1) free_ppgs: 2, used_ppgs: 6
+[ 4661.451120] NVMeVirt: Flush buffer(2) free_ppgs: 2, used_ppgs: 6
+[ 4661.451121] NVMeVirt: Flush buffer(3) free_ppgs: 2, used_ppgs: 6
+[ 4661.451256] NVMeVirt: buffer allocate start_lpn: 992, end_lpn: 1007, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.451445] NVMeVirt: buffer allocate start_lpn: 1008, end_lpn: 1023, start_offset: 0, size: 262144, free_pgs: 4, used_pgs: 4
+[ 4661.451448] NVMeVirt: Flush buffer(0) free_ppgs: 2, used_ppgs: 6 -> 1448 - 1116 = 332
+[ 4661.451450] NVMeVirt: Flush buffer(1) free_ppgs: 2, used_ppgs: 6
+[ 4661.451452] NVMeVirt: Flush buffer(2) free_ppgs: 2, used_ppgs: 6
+[ 4661.451454] NVMeVirt: Flush buffer(3) free_ppgs: 2, used_ppgs: 6

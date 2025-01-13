@@ -175,6 +175,7 @@ struct buffer_ppg {
 
 struct buffer_page {
 	uint64_t lpn;
+	size_t free_secs;
 	bool *sectors;
 };
 
