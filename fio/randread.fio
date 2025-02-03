@@ -2,4 +2,6 @@
 include global.fio
 
 [randread]
+time_based=1
+runtime=60
 rw=randread

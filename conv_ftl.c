@@ -7,6 +7,8 @@
 #define ROUND_DOWN(x, y) ((x) & ~((y)-1))
 #define ROUND_UP(x, y) ((((x) + (y) - 1) / (y)) * (y))
 
+static uint64_t time = 0;
+
 // check number of free blocks in buffer less than threshold
 // currently, threshold is half of the total blocks
 static inline bool check_flush_buffer(struct buffer *buf)
@@ -890,12 +892,6 @@ static bool conv_read(struct nvmev_ns *ns, struct nvmev_request *req, struct nvm
 		return false;
 	}
 
-	if (LBA_TO_BYTE(nr_lba) <= (KB(4) * nr_parts)) {
-		srd.stime += spp->fw_4kb_rd_lat;
-	} else {
-		srd.stime += spp->fw_rd_lat;
-	}
-
 	// interleaving read requests over all parts
 	for (i = 0; (i < nr_parts) && (start_lpn <= end_lpn); i++, start_lpn += pgs_per_flashpg) {
 		xfer_size = 0;
@@ -939,11 +935,15 @@ static bool conv_read(struct nvmev_ns *ns, struct nvmev_request *req, struct nvm
 				if (xfer_size > 0) {
 					srd.xfer_size = xfer_size;
 					srd.ppa = &prev_ppa;
+					if (xfer_size <= KB(4)) {
+						srd.stime = spp->fw_4kb_rd_lat + nsecs_start;
+					} else {
+						srd.stime = spp->fw_rd_lat + nsecs_start;
+					}
+					// NVMEV_INFO("FW Read Latency: %llu\n", srd.stime - nsecs_start);
+					// NVMEV_INFO("Read Occur: %d, %d, %d, %d, %d - xfer size: %u", prev_ppa.g.ch, prev_ppa.g.lun, prev_ppa.g.blk, prev_ppa.g.pl, prev_ppa.g.pg, xfer_size);
 					nsecs_completed = ssd_advance_nand(conv_ftl->ssd, &srd);
 					nsecs_latest = max(nsecs_completed, nsecs_latest);
-
-					// NVMEV_INFO("Read count: %llu, Xfer size: %d i %d", ++read_cnt, xfer_size, i);
-					ssd_read_cnt++;
 				}
 
 				if (spp->pgsz > LBA_TO_BYTE(nr_lba)) {
@@ -954,19 +954,28 @@ static bool conv_read(struct nvmev_ns *ns, struct nvmev_request *req, struct nvm
 				}
 				prev_ppa = cur_ppa;
 			}
-		}
 
-		if (xfer_size > 0) {
-			srd.xfer_size = xfer_size;
-			srd.ppa = &prev_ppa;
-			nsecs_completed = ssd_advance_nand(conv_ftl->ssd, &srd);
-			nsecs_latest = max(nsecs_completed, nsecs_latest);
-			ssd_read_cnt++;
+			if (xfer_size > 0) {
+				srd.xfer_size = xfer_size;
+				srd.ppa = &prev_ppa;
+				if (xfer_size <= KB(4)) {
+					srd.stime = spp->fw_4kb_rd_lat + nsecs_start;
+				} else {
+					srd.stime = spp->fw_rd_lat + nsecs_start;
+				}
+				// NVMEV_INFO("FW Read Latency: %llu\n", srd.stime - nsecs_start);
+				// NVMEV_INFO("Read Occur: %d, %d, %d, %d, %d - xfer size: %u", prev_ppa.g.ch, prev_ppa.g.lun, prev_ppa.g.blk, prev_ppa.g.pl, prev_ppa.g.pg, xfer_size);
+				nsecs_completed = ssd_advance_nand(conv_ftl->ssd, &srd);
+				nsecs_latest = max(nsecs_completed, nsecs_latest);
+			}
 		}
 	}
-
+	
 	ret->nsecs_target = nsecs_latest;
 	ret->status = NVME_SC_SUCCESS;
+
+	// NVMEV_INFO("Total Read Latency: %llu\n", nsecs_latest - nsecs_start);
+
 	return true;
 }
 
@@ -995,8 +1004,8 @@ static uint64_t conv_rmw(struct conv_ftl *conv_ftl, struct nvmev_request *req, u
 	};
 
 	/* read phase of read-modify-write operation fill empty cell of write buffer */
-	NVMEV_INFO("Flush buffer(%d) free_ppgs: %lu, used_ppgs: %lu\n", wbuf->ftl_idx,
-		    list_count_nodes(&wbuf->free_ppgs), list_count_nodes(&wbuf->used_ppgs));
+	// NVMEV_INFO("Flush buffer(%d) free_ppgs: %lu, used_ppgs: %lu\n", wbuf->ftl_idx,
+	// 	    list_count_nodes(&wbuf->free_ppgs), list_count_nodes(&wbuf->used_ppgs));
 	struct buffer_ppg *ppg;
 	struct buffer_page *page;
 	struct ppa prev_ppa;
@@ -1191,10 +1200,15 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 		return false;
 	}
 
+	NVMEV_INFO("start_lpn=%lld, len=%lld, end_lpn=%lld, delay=%lld", start_lpn, nr_lba, end_lpn, local_clock() - time);
+	time = local_clock();
+
 	nvmev_vdev->user_write += size;
 
 	nsecs_write_buffer =
 		ssd_advance_write_buffer(ssd, nsecs_latest, LBA_TO_BYTE(nr_lba));
+
+	NVMEV_INFO("Write Buffer Latency: %llu\n", nsecs_write_buffer - nsecs_start);
 
 	nsecs_latest = max(nsecs_write_buffer, nsecs_latest);
 	nsecs_xfer_completed = nsecs_latest;
@@ -1218,6 +1232,9 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 		ret->nsecs_target = nsecs_xfer_completed;
 	}
 	ret->status = NVME_SC_SUCCESS;
+
+	NVMEV_INFO("NAND Write Latency: %llu\n", nsecs_latest - nsecs_xfer_completed);
+	NVMEV_INFO("Total Write Latency: %llu\n", ret->nsecs_target - nsecs_start);
 
 	return true;
 } 

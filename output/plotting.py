@@ -128,7 +128,7 @@ if __name__ == '__main__':
     for r in random:
         for rw_type in rw:
             for s in sync:
-                plot_data(data1, data2, data3, data4, r, rw_type, s, 'Block Size(Byte)', 'Latency(us)', 'line')
+                plot_data(data1, data2, data3, data4, r, rw_type, s, 'Block Size(Byte)', 'Latency (us)', 'line')
     
     # data = read_data('origin', 'bw')
     

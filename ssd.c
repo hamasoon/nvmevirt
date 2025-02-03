@@ -148,9 +148,9 @@ bool buffer_allocate(struct nvmev_ns *ns, uint64_t start_lpn, uint64_t end_lpn, 
 		spin_unlock(&buf->lock);
 	}
 
-	if (DEBUG == 1) 
-	 	NVMEV_INFO("buffer allocate start_lpn: %llu, end_lpn: %llu, start_offset: %llu, size: %llu, free_pgs: %lu, used_pgs: %lu", 
-			start_lpn, end_lpn, start_offset, size, list_count_nodes(&buf->free_ppgs), list_count_nodes(&buf->used_ppgs));
+	// if (DEBUG == 1) 
+	//  	NVMEV_INFO("buffer allocate start_lpn: %llu, end_lpn: %llu, start_offset: %llu, size: %llu, free_pgs: %lu, used_pgs: %lu", 
+	// 		start_lpn, end_lpn, start_offset, size, list_count_nodes(&buf->free_ppgs), list_count_nodes(&buf->used_ppgs));
 
 	/* handle first page */
 	buf = &conv_ftls[GET_FTL_IDX(start_lpn)].ssd->write_buffer;
@@ -614,6 +614,7 @@ uint64_t ssd_advance_nand(struct ssd *ssd, struct nand_cmd *ncmd)
 
 		/* read: then data transfer through channel */
 		chnl_stime = nand_etime;
+		// NVMEV_INFO("NAND Latency: %lld\n", nand_etime - nand_stime);
 
 		while (remaining) {
 			xfer_size = min(remaining, (uint64_t)spp->max_ch_xfer_size);
@@ -628,6 +629,8 @@ uint64_t ssd_advance_nand(struct ssd *ssd, struct nand_cmd *ncmd)
 			remaining -= xfer_size;
 			chnl_stime = chnl_etime;
 		}
+
+		// NVMEV_INFO("Channel Latency: %lld\n", completed_time - nand_etime);
 
 		lun->next_lun_avail_time = chnl_etime;
 		break;

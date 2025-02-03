@@ -67,7 +67,7 @@ uint64_t chmodel_request(struct channel_model *ch, uint64_t request_time, uint64
 		return request_time; // return minimum delay
 	}
 
-	//Search request time index
+	// Search request time index
 	request_time_offs = (request_time / UNIT_TIME_INTERVAL) - (cur_time / UNIT_TIME_INTERVAL);
 
 	if (request_time_offs >= NR_CREDIT_ENTRIES) {
