@@ -1,15 +1,23 @@
 CC = gcc
 CFLAGS = -Wall -O2 -I/usr/include
 LDFLAGS = -L/usr/lib/x86_64-linux-gnu
-LIBS = -laio -lpthread
+LIBS = -laio -luring -lpthread
+TARGET_LIBAIO = test_libaio
+TARGET_URING = test_uring
+DEV = nvme2n1
 
-all: test
+all: $(TARGET_LIBAIO) $(TARGET_URING)
 
-test: test.c
+$(TARGET_LIBAIO): test_libaio.c
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS) $(LIBS)
+	
+$(TARGET_URING): test_uring.c
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS) $(LIBS)
 
-run:
-	sudo ./test --threads 4 --iodepth 16 --bs 4k --size 4G --file /dev/nvme2n1
-
 clean:
-	rm -f test
+	rm -f test_libaio test_uring
+
+nonmerge:
+	sudo echo 2 > /sys/block/$(DEV)/queue/nomerges
+
+.PHONY: all clean

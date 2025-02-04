@@ -1,11 +1,11 @@
 /*
  * ssd_write_bw.c
  *
- * libaio를 사용하여 SSD write bandwidth를 측정하는 프로그램이다.
+ * io_uring을 사용하여 SSD write bandwidth를 측정하는 프로그램이다.
  * 각 작업(job)은 지정된 block size 단위의 쓰기를 비동기 I/O로 수행하며,
  * numjobs, queue depth, block size, total size를 커맨드라인 인자로 설정할 수 있다.
  *
- * 컴파일 예: gcc -O2 -o ssd_write_bw ssd_write_bw.c -laio -lpthread
+ * 컴파일 예: gcc -O2 -o ssd_write_bw ssd_write_bw.c -luring -lpthread
  */
 
 #define _GNU_SOURCE
@@ -17,9 +17,9 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <libaio.h>
 #include <pthread.h>
 #include <time.h>
+#include <liburing.h>
 
 /* 크기 문자열(예:"4k", "4m", "4g")를 size_t 바이트 값으로 변환하는 함수이다. */
 size_t parse_size(const char *str) {
@@ -77,15 +77,13 @@ typedef struct {
 } thread_context_t;
 
 /* 각 스레드가 수행할 작업 함수이다.
- * 각 스레드는 지정된 범위 내에서 block_size 단위의 비동기 쓰기를 queue_depth 만큼
- * 제출하여 완료될 때까지 기다린다.
+ * 각 스레드는 지정된 범위 내에서 block_size 단위의 비동기 쓰기를 io_uring을 이용하여 제출하고,
+ * 완료 이벤트를 기다린다.
  */
 void *thread_worker(void *arg) {
     thread_context_t *ctx = (thread_context_t *)arg;
 
-    /* O_DIRECT 플래그를 사용하여 페이지 캐시의 영향을 배제한다.
-     * O_DIRECT 사용 시 버퍼는 4096바이트 정렬이 필요하다.
-     */
+    /* O_DIRECT 플래그를 사용하여 페이지 캐시의 영향을 배제한다. */
     int fd = open(ctx->filename, O_WRONLY | O_DIRECT, 0644);
     if (fd < 0) {
         perror("open");
@@ -103,85 +101,64 @@ void *thread_worker(void *arg) {
     /* 버퍼를 임의의 패턴(0x55)으로 채운다. */
     memset(buffer, 0x55, ctx->block_size);
 
-    /* libaio의 I/O 컨텍스트를 초기화한다. */
-    io_context_t io_ctx = 0;
-    ret = io_setup(ctx->queue_depth, &io_ctx);
+    /* io_uring의 I/O 컨텍스트를 초기화한다. */
+    struct io_uring ring;
+    ret = io_uring_queue_init(ctx->queue_depth, &ring, 0);
     if (ret < 0) {
-        fprintf(stderr, "io_setup 오류: %s\n", strerror(-ret));
+        fprintf(stderr, "io_uring_queue_init 오류: %s\n", strerror(-ret));
         free(buffer);
         close(fd);
         pthread_exit((void *)1);
     }
 
     int total_ios = ctx->total_bytes / ctx->block_size;
-    int pending = 0;    /* 현재 미완료된 IO 요청 수 */
-    int submitted = 0;  /* 제출된 IO 요청 수 */
-
-    /* io_getevents에서 사용할 이벤트 배열을 queue_depth 크기로 할당한다. */
-    struct io_event *events = malloc(sizeof(struct io_event) * ctx->queue_depth);
-    if (!events) {
-        perror("malloc events");
-        io_destroy(io_ctx);
-        free(buffer);
-        close(fd);
-        pthread_exit((void *)1);
-    }
+    int submitted = 0;  /* 제출한 I/O 요청 수 */
+    int pending = 0;    /* 미완료 I/O 요청 수 */
 
     /*
      * 제출과 완료를 슬라이딩 윈도우 방식으로 수행한다.
-     * pending이 queue_depth 미만이면 한 블록 단위의 IO를 제출하고,
-     * pending이 queue_depth에 도달하면 최소 1개의 완료 이벤트를 기다린다.
+     * 제출 가능한 경우 SQ에 요청을 추가하고, 큐가 가득 찼거나 제출이 완료된 경우
+     * 최소 1개의 완료 이벤트를 기다린다.
      */
-    while (submitted < total_ios) {
-        if (pending < ctx->queue_depth) {
+    while (submitted < total_ios || pending > 0) {
+        /* 제출 가능한 경우 I/O 요청을 제출한다. */
+        while (submitted < total_ios && pending < ctx->queue_depth) {
+            struct io_uring_sqe *sqe = io_uring_get_sqe(&ring);
+            if (!sqe) {
+                /* SQ가 가득 찼다면 루프를 빠져나간다. */
+                break;
+            }
             off_t io_offset = ctx->offset + submitted * ctx->block_size;
-            /* 각 IO 요청을 위한 iocb를 동적으로 할당한다. */
-            struct iocb *iocb_ptr = malloc(sizeof(struct iocb));
-            if (!iocb_ptr) {
-                perror("malloc iocb");
-                break;
-            }
-            io_prep_pwrite(iocb_ptr, fd, buffer, ctx->block_size, io_offset);
-            /* 완료 시 해당 iocb를 회수할 수 있도록 data 필드에 자기자신의 포인터를 저장한다. */
-            iocb_ptr->data = iocb_ptr;
-            ret = io_submit(io_ctx, 1, &iocb_ptr);
-            if (ret != 1) {
-                fprintf(stderr, "io_submit 오류: %s\n", strerror(-ret));
-                free(iocb_ptr);
-                break;
-            }
+            io_uring_prep_write(sqe, fd, buffer, ctx->block_size, io_offset);
+            /* 필요에 따라 user_data를 설정한다. 여기서는 제출 번호를 저장한다. */
+            sqe->user_data = submitted;
             submitted++;
             pending++;
-        } else {
-            /* pending이 queue_depth와 같으므로 최소 1개 이벤트를 기다린다. */
-            int got = io_getevents(io_ctx, 1, pending, events, NULL);
-            if (got < 0) {
-                fprintf(stderr, "io_getevents 오류: %s\n", strerror(-got));
-                break;
-            }
-            /* 완료된 각 IO 요청에 대해 동적으로 할당했던 iocb를 free한다. */
-            for (int i = 0; i < got; i++) {
-                free((void *)events[i].obj);
-            }
-            pending -= got;
         }
-    }
-
-    /* 제출 후 남은 미완료 IO 요청을 모두 완료시킬 때까지 기다린다. */
-    while (pending > 0) {
-        int got = io_getevents(io_ctx, 1, pending, events, NULL);
-        if (got < 0) {
-            fprintf(stderr, "io_getevents 오류: %s\n", strerror(-got));
+        /* 제출한 I/O 요청을 커널에 전달한다. */
+        ret = io_uring_submit(&ring);
+        if (ret < 0) {
+            fprintf(stderr, "io_uring_submit 오류: %s\n", strerror(-ret));
             break;
         }
-        for (int i = 0; i < got; i++) {
-            free((void *)events[i].obj);
+        /* 미완료 I/O 요청 중 최소 1개의 완료 이벤트를 기다린다. */
+        struct io_uring_cqe *cqe;
+        ret = io_uring_wait_cqe(&ring, &cqe);
+        if (ret < 0) {
+            fprintf(stderr, "io_uring_wait_cqe 오류: %s\n", strerror(-ret));
+            break;
         }
-        pending -= got;
+        if (cqe->res < 0) {
+            fprintf(stderr, "I/O 오류: %s\n", strerror(-cqe->res));
+            io_uring_cqe_seen(&ring, cqe);
+            break;
+        }
+        /* 완료된 I/O 요청을 회수한다. */
+        io_uring_cqe_seen(&ring, cqe);
+        pending--;
     }
 
-    io_destroy(io_ctx);
-    free(events);
+    io_uring_queue_exit(&ring);
     free(buffer);
     close(fd);
     pthread_exit(NULL);
@@ -192,7 +169,7 @@ int main(int argc, char *argv[]) {
     int numjobs = 4;
     int queue_depth = 16;
     size_t block_size = parse_size("4k");    /* 기본 블록 크기는 4k이다. */
-    size_t total_size = parse_size("4g");      /* 기본 총 쓰기 크기는 1g이다. */
+    size_t total_size = parse_size("4g");      /* 기본 총 쓰기 크기는 4g이다. */
 
     int opt;
     while ((opt = getopt(argc, argv, "f:j:q:b:t:h")) != -1) {
@@ -229,7 +206,8 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    /* 각 스레드가 처리할 바이트 수를 계산한다.
+    /*
+     * 각 스레드가 처리할 바이트 수를 계산한다.
      * 전체 total_size는 block_size의 배수이다.
      * 각 스레드에는 전체 블록 수(nblocks)를 numjobs로 나눈 몫에 해당하는 바이트 수를 할당하고,
      * 마지막 스레드는 나머지를 포함한다.
