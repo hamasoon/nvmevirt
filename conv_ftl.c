@@ -1200,15 +1200,15 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 		return false;
 	}
 
-	NVMEV_INFO("start_lpn=%lld, len=%lld, end_lpn=%lld, delay=%lld", start_lpn, nr_lba, end_lpn, local_clock() - time);
-	time = local_clock();
+	// NVMEV_INFO("start_lpn=%lld, len=%lld, end_lpn=%lld, delay=%lld", start_lpn, nr_lba, end_lpn, local_clock() - time);
+	// time = local_clock();
 
 	nvmev_vdev->user_write += size;
 
 	nsecs_write_buffer =
 		ssd_advance_write_buffer(ssd, nsecs_latest, LBA_TO_BYTE(nr_lba));
 
-	NVMEV_INFO("Write Buffer Latency: %llu\n", nsecs_write_buffer - nsecs_start);
+	// NVMEV_INFO("Write Buffer Latency: %llu\n", nsecs_write_buffer - nsecs_start);
 
 	nsecs_latest = max(nsecs_write_buffer, nsecs_latest);
 	nsecs_xfer_completed = nsecs_latest;
@@ -1233,8 +1233,8 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 	}
 	ret->status = NVME_SC_SUCCESS;
 
-	NVMEV_INFO("NAND Write Latency: %llu\n", nsecs_latest - nsecs_xfer_completed);
-	NVMEV_INFO("Total Write Latency: %llu\n", ret->nsecs_target - nsecs_start);
+	// NVMEV_INFO("NAND Write Latency: %llu\n", nsecs_latest - nsecs_xfer_completed);
+	// NVMEV_INFO("Total Write Latency: %llu\n", ret->nsecs_target - nsecs_start);
 
 	return true;
 } 

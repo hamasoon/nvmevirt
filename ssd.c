@@ -7,6 +7,9 @@
 
 #define DEBUG 1
 
+#define ROUNDDOWN(x, y) ((x) - ((x) % (y)))
+#define ROUNDUP(x, y) (((x) + (y) - 1) / (y) * (y))
+
 static inline uint64_t __get_ioclock(struct ssd *ssd)
 {
 	return cpu_clock(ssd->cpu_nr_dispatcher);
@@ -83,7 +86,7 @@ static void __buffer_fill_page(struct buffer *buf, uint64_t lpn, uint64_t size, 
 
 	if (page == NULL) {
 		ppg = __buffer_get_ppg(buf, lpn);
-		if (ppg == NULL) {
+		if (ppg == NULL) { 
 			ppg = list_first_entry(&buf->free_ppgs, struct buffer_ppg, list);
 			list_move_tail(&ppg->list, &buf->used_ppgs);
 		}
@@ -128,9 +131,9 @@ bool buffer_allocate(struct nvmev_ns *ns, uint64_t start_lpn, uint64_t end_lpn, 
 			;
 			
 		uint64_t local_start_lpn = s_lpn;
-		
-		for(;local_start_lpn <= e_lpn; local_start_lpn += spp->pgs_per_flashpg * nr_parts) {
-			uint64_t local_end_lpn = min(end_lpn, local_start_lpn + spp->pgs_per_flashpg - 1);
+		while(local_start_lpn <= e_lpn) {
+			uint64_t local_end_lpn = 
+				min(end_lpn, ROUNDDOWN(local_start_lpn + spp->pgs_per_flashpg, spp->pgs_per_flashpg) - 1);
 			for (uint64_t lpn = local_start_lpn; lpn <= local_end_lpn; lpn++) {
 				page = __buffer_get_page(buf, lpn);
 
@@ -138,6 +141,8 @@ bool buffer_allocate(struct nvmev_ns *ns, uint64_t start_lpn, uint64_t end_lpn, 
 					required_pgs[ftl_idx]++;
 				}
 			}
+
+			local_start_lpn = ROUNDDOWN(local_start_lpn + spp->pgs_per_flashpg * nr_parts, spp->pgs_per_flashpg);
 		}
 		
 		if (required_pgs[ftl_idx] > buf->free_pgs_cnt) {
@@ -145,12 +150,12 @@ bool buffer_allocate(struct nvmev_ns *ns, uint64_t start_lpn, uint64_t end_lpn, 
 			return false;
 		}
 
+		s_lpn = ROUNDDOWN(s_lpn, spp->pgs_per_flashpg);
 		spin_unlock(&buf->lock);
 	}
 
-	// if (DEBUG == 1) 
-	//  	NVMEV_INFO("buffer allocate start_lpn: %llu, end_lpn: %llu, start_offset: %llu, size: %llu, free_pgs: %lu, used_pgs: %lu", 
-	// 		start_lpn, end_lpn, start_offset, size, list_count_nodes(&buf->free_ppgs), list_count_nodes(&buf->used_ppgs));
+	if (DEBUG == 1) 
+	 	NVMEV_INFO("buffer allocate start_lpn: %llu, end_lpn: %llu, start_offset: %llu, size: %llu", start_lpn, end_lpn, start_offset, size);
 
 	/* handle first page */
 	buf = &conv_ftls[GET_FTL_IDX(start_lpn)].ssd->write_buffer;
