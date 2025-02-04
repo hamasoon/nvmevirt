@@ -2,8 +2,6 @@ KERNELDIR := /lib/modules/$(shell uname -r)/build
 PWD       := $(shell pwd)
 INSTALL_MOD_PATH :=
 
-include Makefile.local
-
 default:
 		$(MAKE) -C $(KERNELDIR) M=$(PWD) modules
 
@@ -30,3 +28,6 @@ format:
 .PHONY: dis
 dis:
 	objdump -d -S nvmev.ko > nvmev.S
+
+
+include Makefile.local

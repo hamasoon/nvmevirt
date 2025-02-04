@@ -299,7 +299,7 @@ void *thread_worker(void *arg) {
 }
 
 int main(int argc, char *argv[]) {
-    const char *filename = "/dev/nvme2n1";
+    const char *filename = '\0';
     int numjobs = 4;
     int queue_depth = 16;
     size_t block_size = parse_size("4k");    /* 기본 블록 크기는 4k이다. */
@@ -346,6 +346,11 @@ int main(int argc, char *argv[]) {
                 usage(argv[0]);
                 exit(EXIT_FAILURE);
         }
+    }
+
+    if (filename[0] == '\0') {
+        fprintf(stderr, "타겟 파일 이름을 지정해야 한다.\n");
+        exit(EXIT_FAILURE);
     }
 
     /* 총 쓰기 크기는 반드시 블록 크기의 배수여야 한다. */

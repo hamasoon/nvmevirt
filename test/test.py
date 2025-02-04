@@ -3,6 +3,10 @@ import os
 
 FTL_INSTANCES = 4
 PAGE_SIZE = 32768
+FILENAME = '/dev/nvme3n1'
+IO_ENGINE = 'libaio'
+NUMJOBS = 4
+IO_DEPTH = 16
 SIZE = '4G'
 BS = '4K'
 
@@ -69,3 +73,15 @@ if __name__ == '__main__':
     cnt = size_parser(SIZE) // size_parser(BS) // FTL_INSTANCES
     testset = linear(cnt)
     save_testset(testset)
+    
+    # check ./test program exist
+    print('Compile test.c')
+    test_filename = os.path.join(os.path.dirname(__file__), 'test')
+    test_c_filename = os.path.join(os.path.dirname(__file__), 'test.c')
+    os.system(f'gcc -Wall -O2 -I/usr/include -o {test_filename} {test_c_filename} -L/usr/lib/x86_64-linux-gnu -laio -luring -lpthread')
+    
+    # run test
+    print('Run test')
+    print(f'Arguments: filename={FILENAME}, io_engine={IO_ENGINE}, numjobs={NUMJOBS}, io_depth={IO_DEPTH}, size={SIZE}, bs={BS}')
+    os.system(f'sudo {test_filename} -f {FILENAME} -m {IO_ENGINE} -j {NUMJOBS} -q {IO_DEPTH} -t {SIZE} -b {BS}')
+    
