@@ -30,22 +30,3 @@ format:
 .PHONY: dis
 dis:
 	objdump -d -S nvmev.ko > nvmev.S
-
-load:
-	sudo insmod ./nvmev.ko \
-	memmap_start=22G \
-	memmap_size=10G \
-	cpus=7,8,9,10
-
-unload:
-	sudo rmmod nvmev
-
-fio_read:
-	sudo fio --name=test --ioengine=sync --rw=read --bs=64k --size=1m \
-	--filename=/dev/nvme2n1 --direct=1 --group_reporting --norandommap
-
-fio_write:
-	sudo fio --name=test --ioengine=libaio --iodepth=32 --rw=randwrite --bs=8k --size=8G --numjobs=4 \
-	--filename=/dev/nvme2n1 --direct=1 --group_reporting --norandommap
-# fio:
-# 	./fio.sh

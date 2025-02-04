@@ -1,0 +1,160 @@
+[ 5216.966255] NVMeVirt: FW Read Latency: 30490
+[ 5216.966259] NVMeVirt: Read Occur: 0, 0, 0, 0, 0 - xfer size: 32768
+[ 5216.966261] NVMeVirt: NAND Latency: 30013
+[ 5216.966263] NVMeVirt: Channel Latency: 43520
+[ 5216.966264] NVMeVirt: Total Read Latency: 104023
+[ 5216.968296] NVMeVirt: FW Read Latency: 30490
+[ 5216.968297] NVMeVirt: Read Occur: 0, 0, 0, 0, 0 - xfer size: 32768
+[ 5216.968298] NVMeVirt: NAND Latency: 30013
+[ 5216.968300] NVMeVirt: Channel Latency: 43520
+[ 5216.968301] NVMeVirt: Total Read Latency: 104023
+[ 5216.968434] NVMeVirt: FW Read Latency: 30490
+[ 5216.968435] NVMeVirt: Read Occur: 0, 0, 0, 0, 0 - xfer size: 32768
+[ 5216.968436] NVMeVirt: NAND Latency: 30013
+[ 5216.968437] NVMeVirt: Channel Latency: 43520
+[ 5216.968438] NVMeVirt: Total Read Latency: 104023
+[ 5216.968567] NVMeVirt: FW Read Latency: 30490
+[ 5216.968568] NVMeVirt: Read Occur: 0, 0, 0, 0, 0 - xfer size: 32768
+[ 5216.968569] NVMeVirt: NAND Latency: 30013
+[ 5216.968570] NVMeVirt: Channel Latency: 43520
+[ 5216.968571] NVMeVirt: Total Read Latency: 104023
+[ 5216.968701] NVMeVirt: FW Read Latency: 30490
+[ 5216.968701] NVMeVirt: Read Occur: 1, 0, 0, 0, 0 - xfer size: 32768
+[ 5216.968702] NVMeVirt: NAND Latency: 30013
+[ 5216.968704] NVMeVirt: Channel Latency: 43520
+[ 5216.968704] NVMeVirt: Total Read Latency: 104023
+[ 5216.968815] NVMeVirt: FW Read Latency: 30490
+[ 5216.968816] NVMeVirt: Read Occur: 1, 0, 0, 0, 0 - xfer size: 32768
+[ 5216.968817] NVMeVirt: NAND Latency: 30013
+[ 5216.968818] NVMeVirt: Channel Latency: 43520
+[ 5216.968819] NVMeVirt: Total Read Latency: 104023
+[ 5216.968928] NVMeVirt: FW Read Latency: 30490
+[ 5216.968929] NVMeVirt: Read Occur: 1, 0, 0, 0, 0 - xfer size: 32768
+[ 5216.968930] NVMeVirt: NAND Latency: 30013
+[ 5216.968931] NVMeVirt: Channel Latency: 47520
+[ 5216.968932] NVMeVirt: Total Read Latency: 108023
+[ 5216.969044] NVMeVirt: FW Read Latency: 30490
+[ 5216.969045] NVMeVirt: Read Occur: 1, 0, 0, 0, 0 - xfer size: 32768
+[ 5216.969046] NVMeVirt: NAND Latency: 30013
+[ 5216.969048] NVMeVirt: Channel Latency: 43520
+[ 5216.969048] NVMeVirt: Total Read Latency: 104023
+[ 5216.969157] NVMeVirt: FW Read Latency: 30490
+[ 5216.969158] NVMeVirt: Read Occur: 0, 1, 0, 0, 0 - xfer size: 32768
+[ 5216.969159] NVMeVirt: NAND Latency: 30013
+[ 5216.969160] NVMeVirt: Channel Latency: 43520
+[ 5216.969161] NVMeVirt: Total Read Latency: 104023
+[ 5216.969270] NVMeVirt: FW Read Latency: 30490
+[ 5216.969271] NVMeVirt: Read Occur: 0, 1, 0, 0, 0 - xfer size: 32768
+[ 5216.969272] NVMeVirt: NAND Latency: 30013
+[ 5216.969273] NVMeVirt: Channel Latency: 43520
+[ 5216.969274] NVMeVirt: Total Read Latency: 104023
+[ 5216.969383] NVMeVirt: FW Read Latency: 30490
+[ 5216.969384] NVMeVirt: Read Occur: 0, 1, 0, 0, 0 - xfer size: 32768
+[ 5216.969385] NVMeVirt: NAND Latency: 30013
+[ 5216.969386] NVMeVirt: Channel Latency: 43520
+[ 5216.969387] NVMeVirt: Total Read Latency: 104023
+[ 5216.969496] NVMeVirt: FW Read Latency: 30490
+[ 5216.969497] NVMeVirt: Read Occur: 0, 1, 0, 0, 0 - xfer size: 32768
+[ 5216.969498] NVMeVirt: NAND Latency: 30013
+[ 5216.969499] NVMeVirt: Channel Latency: 43520
+[ 5216.969500] NVMeVirt: Total Read Latency: 104023
+[ 5216.969608] NVMeVirt: FW Read Latency: 30490
+[ 5216.969609] NVMeVirt: Read Occur: 1, 1, 0, 0, 0 - xfer size: 32768
+[ 5216.969610] NVMeVirt: NAND Latency: 30013
+[ 5216.969611] NVMeVirt: Channel Latency: 43520
+[ 5216.969612] NVMeVirt: Total Read Latency: 104023
+[ 5216.969720] NVMeVirt: FW Read Latency: 30490
+[ 5216.969721] NVMeVirt: Read Occur: 1, 1, 0, 0, 0 - xfer size: 32768
+[ 5216.969722] NVMeVirt: NAND Latency: 30013
+[ 5216.969723] NVMeVirt: Channel Latency: 43520
+[ 5216.969724] NVMeVirt: Total Read Latency: 104023
+[ 5216.969832] NVMeVirt: FW Read Latency: 30490
+[ 5216.969833] NVMeVirt: Read Occur: 1, 1, 0, 0, 0 - xfer size: 32768
+[ 5216.969834] NVMeVirt: NAND Latency: 30013
+[ 5216.969835] NVMeVirt: Channel Latency: 43520
+[ 5216.969836] NVMeVirt: Total Read Latency: 104023
+[ 5216.969945] NVMeVirt: FW Read Latency: 30490
+[ 5216.969945] NVMeVirt: Read Occur: 1, 1, 0, 0, 0 - xfer size: 32768
+[ 5216.969946] NVMeVirt: NAND Latency: 30013
+[ 5216.969947] NVMeVirt: Channel Latency: 43520
+[ 5216.969948] NVMeVirt: Total Read Latency: 104023
+[ 5216.970056] NVMeVirt: FW Read Latency: 30490
+[ 5216.970057] NVMeVirt: Read Occur: 0, 0, 0, 0, 8 - xfer size: 32768
+[ 5216.970058] NVMeVirt: NAND Latency: 42013
+[ 5216.970059] NVMeVirt: Channel Latency: 43520
+[ 5216.970060] NVMeVirt: Total Read Latency: 116023
+[ 5216.970180] NVMeVirt: FW Read Latency: 30490
+[ 5216.970181] NVMeVirt: Read Occur: 0, 0, 0, 0, 8 - xfer size: 32768
+[ 5216.970182] NVMeVirt: NAND Latency: 42013
+[ 5216.970183] NVMeVirt: Channel Latency: 43520
+[ 5216.970184] NVMeVirt: Total Read Latency: 116023
+[ 5216.970305] NVMeVirt: FW Read Latency: 30490
+[ 5216.970306] NVMeVirt: Read Occur: 0, 0, 0, 0, 8 - xfer size: 32768
+[ 5216.970307] NVMeVirt: NAND Latency: 42013
+[ 5216.970308] NVMeVirt: Channel Latency: 43520
+[ 5216.970309] NVMeVirt: Total Read Latency: 116023
+[ 5216.970429] NVMeVirt: FW Read Latency: 30490
+[ 5216.970430] NVMeVirt: Read Occur: 0, 0, 0, 0, 8 - xfer size: 32768
+[ 5216.970431] NVMeVirt: NAND Latency: 42013
+[ 5216.970432] NVMeVirt: Channel Latency: 43520
+[ 5216.970433] NVMeVirt: Total Read Latency: 116023
+[ 5216.970553] NVMeVirt: FW Read Latency: 30490
+[ 5216.970554] NVMeVirt: Read Occur: 1, 0, 0, 0, 8 - xfer size: 32768
+[ 5216.970555] NVMeVirt: NAND Latency: 42013
+[ 5216.970556] NVMeVirt: Channel Latency: 43520
+[ 5216.970557] NVMeVirt: Total Read Latency: 116023
+[ 5216.970677] NVMeVirt: FW Read Latency: 30490
+[ 5216.970678] NVMeVirt: Read Occur: 1, 0, 0, 0, 8 - xfer size: 32768
+[ 5216.970679] NVMeVirt: NAND Latency: 42013
+[ 5216.970680] NVMeVirt: Channel Latency: 43520
+[ 5216.970681] NVMeVirt: Total Read Latency: 116023
+[ 5216.970801] NVMeVirt: FW Read Latency: 30490
+[ 5216.970802] NVMeVirt: Read Occur: 1, 0, 0, 0, 8 - xfer size: 32768
+[ 5216.970803] NVMeVirt: NAND Latency: 42013
+[ 5216.970804] NVMeVirt: Channel Latency: 43520
+[ 5216.970805] NVMeVirt: Total Read Latency: 116023
+[ 5216.970925] NVMeVirt: FW Read Latency: 30490
+[ 5216.970926] NVMeVirt: Read Occur: 1, 0, 0, 0, 8 - xfer size: 32768
+[ 5216.970927] NVMeVirt: NAND Latency: 42013
+[ 5216.970928] NVMeVirt: Channel Latency: 43520
+[ 5216.970929] NVMeVirt: Total Read Latency: 116023
+[ 5216.971049] NVMeVirt: FW Read Latency: 30490
+[ 5216.971050] NVMeVirt: Read Occur: 0, 1, 0, 0, 8 - xfer size: 32768
+[ 5216.971051] NVMeVirt: NAND Latency: 42013
+[ 5216.971052] NVMeVirt: Channel Latency: 43520
+[ 5216.971053] NVMeVirt: Total Read Latency: 116023
+[ 5216.971173] NVMeVirt: FW Read Latency: 30490
+[ 5216.971174] NVMeVirt: Read Occur: 0, 1, 0, 0, 8 - xfer size: 32768
+[ 5216.971175] NVMeVirt: NAND Latency: 42013
+[ 5216.971176] NVMeVirt: Channel Latency: 43520
+[ 5216.971177] NVMeVirt: Total Read Latency: 116023
+[ 5216.971299] NVMeVirt: FW Read Latency: 30490
+[ 5216.971300] NVMeVirt: Read Occur: 0, 1, 0, 0, 8 - xfer size: 32768
+[ 5216.971301] NVMeVirt: NAND Latency: 42013
+[ 5216.971302] NVMeVirt: Channel Latency: 47520
+[ 5216.971303] NVMeVirt: Total Read Latency: 120023
+[ 5216.971428] NVMeVirt: FW Read Latency: 30490
+[ 5216.971429] NVMeVirt: Read Occur: 0, 1, 0, 0, 8 - xfer size: 32768
+[ 5216.971430] NVMeVirt: NAND Latency: 42013
+[ 5216.971431] NVMeVirt: Channel Latency: 43520
+[ 5216.971432] NVMeVirt: Total Read Latency: 116023
+[ 5216.971553] NVMeVirt: FW Read Latency: 30490
+[ 5216.971553] NVMeVirt: Read Occur: 1, 1, 0, 0, 8 - xfer size: 32768
+[ 5216.971554] NVMeVirt: NAND Latency: 42013
+[ 5216.971555] NVMeVirt: Channel Latency: 43520
+[ 5216.971556] NVMeVirt: Total Read Latency: 116023
+[ 5216.971676] NVMeVirt: FW Read Latency: 30490
+[ 5216.971677] NVMeVirt: Read Occur: 1, 1, 0, 0, 8 - xfer size: 32768
+[ 5216.971678] NVMeVirt: NAND Latency: 42013
+[ 5216.971679] NVMeVirt: Channel Latency: 43520
+[ 5216.971680] NVMeVirt: Total Read Latency: 116023
+[ 5216.971800] NVMeVirt: FW Read Latency: 30490
+[ 5216.971801] NVMeVirt: Read Occur: 1, 1, 0, 0, 8 - xfer size: 32768
+[ 5216.971802] NVMeVirt: NAND Latency: 42013
+[ 5216.971803] NVMeVirt: Channel Latency: 43520
+[ 5216.971804] NVMeVirt: Total Read Latency: 116023
+[ 5216.971924] NVMeVirt: FW Read Latency: 30490
+[ 5216.971925] NVMeVirt: Read Occur: 1, 1, 0, 0, 8 - xfer size: 32768
+[ 5216.971926] NVMeVirt: NAND Latency: 42013
+[ 5216.971927] NVMeVirt: Channel Latency: 47520
+[ 5216.971927] NVMeVirt: Total Read Latency: 120023

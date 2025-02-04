@@ -171,8 +171,10 @@ sphinx_*/
 
 # Local makefile
 Makefile.local
+*.json
+*.log
+*.zip
 /fio/
-/output/
 /benchmark/
 /.vscode/
 /.venv/
