@@ -9,13 +9,13 @@ NAND_READ_LATENCY_CSB (0) //not used
 
 
 FW Read Latency: 21500
-Read Occur: 0, 0, 0, 0, 0 - xfer size: 8192
+Read Occur: 0, 0, 0, 0, 0 - xfer size: 4096
 NAND Latency: 29760
 Channel Latency: 6016
 Total Read Latency: 57276
 
 FW Read Latency: 21500
-Read Occur: 0, 0, 0, 0, 8 - xfer size: 8192
+Read Occur: 0, 0, 0, 0, 8 - xfer size: 4096
 NAND Latency: 41760
 Channel Latency: 6016
 Total Read Latency: 69276

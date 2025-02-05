@@ -2,50 +2,62 @@
 [ 8950.840255] NVMeVirt: Write Buffer Latency: 107168
 [ 8950.840257] NVMeVirt: NAND Write Latency: 0
 [ 8950.840258] NVMeVirt: Total Write Latency: 107168
+
 [ 8950.840416] NVMeVirt: start_lpn=64, len=512, end_lpn=127, delay=161581
 [ 8950.840417] NVMeVirt: Write Buffer Latency: 107168
 [ 8950.840419] NVMeVirt: NAND Write Latency: 0
 [ 8950.840419] NVMeVirt: Total Write Latency: 107168
+
 [ 8950.840569] NVMeVirt: start_lpn=128, len=512, end_lpn=191, delay=151431
 [ 8950.840570] NVMeVirt: Write Buffer Latency: 107168
 [ 8950.840594] NVMeVirt: NAND Write Latency: 447824
 [ 8950.840595] NVMeVirt: Total Write Latency: 107168
+
 [ 8950.840899] NVMeVirt: start_lpn=192, len=512, end_lpn=255, delay=329581
 [ 8950.840901] NVMeVirt: Write Buffer Latency: 107168
 [ 8950.840902] NVMeVirt: NAND Write Latency: 0
 [ 8950.840902] NVMeVirt: Total Write Latency: 107168
+
 [ 8950.841034] NVMeVirt: start_lpn=256, len=512, end_lpn=319, delay=133241
 [ 8950.841035] NVMeVirt: Write Buffer Latency: 107168
 [ 8950.841043] NVMeVirt: NAND Write Latency: 263912
 [ 8950.841044] NVMeVirt: Total Write Latency: 107168
+
 [ 8950.841162] NVMeVirt: start_lpn=320, len=512, end_lpn=383, delay=126881
 [ 8950.841163] NVMeVirt: Write Buffer Latency: 107168
 [ 8950.841164] NVMeVirt: NAND Write Latency: 0
 [ 8950.841164] NVMeVirt: Total Write Latency: 107168
+
 [ 8950.841365] NVMeVirt: start_lpn=384, len=512, end_lpn=447, delay=202530
 [ 8950.841366] NVMeVirt: Write Buffer Latency: 107168
 [ 8950.841374] NVMeVirt: NAND Write Latency: 263912
 [ 8950.841375] NVMeVirt: Total Write Latency: 107168
+
 [ 8950.841490] NVMeVirt: start_lpn=448, len=512, end_lpn=511, delay=123951
 [ 8950.841491] NVMeVirt: Write Buffer Latency: 107168
 [ 8950.841492] NVMeVirt: NAND Write Latency: 0
 [ 8950.841493] NVMeVirt: Total Write Latency: 107168
+
 [ 8950.841695] NVMeVirt: start_lpn=512, len=512, end_lpn=575, delay=204051
 [ 8950.841697] NVMeVirt: Write Buffer Latency: 107168
 [ 8950.841705] NVMeVirt: NAND Write Latency: 263912
 [ 8950.841706] NVMeVirt: Total Write Latency: 107168
+
 [ 8950.841822] NVMeVirt: start_lpn=576, len=512, end_lpn=639, delay=125451
 [ 8950.841823] NVMeVirt: Write Buffer Latency: 107168
 [ 8950.841824] NVMeVirt: NAND Write Latency: 0
 [ 8950.841825] NVMeVirt: Total Write Latency: 107168
+
 [ 8950.842028] NVMeVirt: start_lpn=640, len=512, end_lpn=703, delay=204730
 [ 8950.842029] NVMeVirt: Write Buffer Latency: 107168
 [ 8950.842037] NVMeVirt: NAND Write Latency: 263912
 [ 8950.842038] NVMeVirt: Total Write Latency: 107168
+
 [ 8950.842154] NVMeVirt: start_lpn=704, len=512, end_lpn=767, delay=125351
 [ 8950.842155] NVMeVirt: Write Buffer Latency: 107168
 [ 8950.842156] NVMeVirt: NAND Write Latency: 0
 [ 8950.842157] NVMeVirt: Total Write Latency: 107168
+
 [ 8950.842360] NVMeVirt: start_lpn=768, len=512, end_lpn=831, delay=205211
 [ 8950.842362] NVMeVirt: Write Buffer Latency: 107168
 [ 8950.842370] NVMeVirt: NAND Write Latency: 263912

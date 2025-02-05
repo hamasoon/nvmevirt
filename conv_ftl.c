@@ -982,6 +982,7 @@ static bool conv_read(struct nvmev_ns *ns, struct nvmev_request *req, struct nvm
 
 static uint64_t conv_rmw(struct conv_ftl *conv_ftl, struct nvmev_request *req, uint64_t nsecs_rmw_start)
 {
+	// NVMEV_INFO("RMW Start\n");
 	struct ssdparams *spp = &conv_ftl->ssd->sp;
 	struct buffer *wbuf = &conv_ftl->ssd->write_buffer;
 	uint64_t nsecs_result = nsecs_rmw_start;
@@ -1201,7 +1202,7 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 	}
 
 	// NVMEV_INFO("start_lpn=%lld, len=%lld, end_lpn=%lld, delay=%lld", start_lpn, nr_lba, end_lpn, local_clock() - time);
-	// time = local_clock();
+	time = local_clock();
 
 	nvmev_vdev->user_write += size;
 

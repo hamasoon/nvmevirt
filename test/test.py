@@ -3,12 +3,13 @@ import os
 
 FTL_INSTANCES = 4
 PAGE_SIZE = 32768
-FILENAME = '/dev/nvme3n1'
+
+FILENAME = '/dev/nvme2n1'
 IO_ENGINE = 'libaio'
 NUMJOBS = 4
 IO_DEPTH = 16
 SIZE = '4G'
-BS = '4K'
+BS = '128K'
 
 def size_parser(size):
     if size[-1] == 'K' or size[-1] == 'k':
@@ -22,6 +23,11 @@ def size_parser(size):
 
 def linear(cnt):
     return [i for i in range(cnt * FTL_INSTANCES)]
+
+def random_access(cnt):
+    testset = [i for i in range(cnt * FTL_INSTANCES)]
+    random.shuffle(testset)
+    return testset
 
 def round_robin(cnt):
     result = []
@@ -44,24 +50,11 @@ def round_robin(cnt):
 def round_robin_per_pages(cnt):
     result = []
     testset = [[] for _ in range(FTL_INSTANCES)]
-    random.shuffle(page_num)
     bpp = PAGE_SIZE // size_parser(BS)
     gap = bpp * FTL_INSTANCES
     page_num = [i for i in range(cnt // bpp)]
     
-    for j in range(FTL_INSTANCES):
-        for i in page_num:
-            tmp = []
-            for i in range(bpp):
-                tmp.append(i % bpp + gap * (i // bpp) + j * bpp)
-            testset[j] += random.shuffle(tmp)
-    
-    for i in range(cnt // bpp):
-        for j in range(FTL_INSTANCES):
-            for k in range(bpp):
-                result.append(testset[j][i])
-    
-    return result
+    return page_num
 
 def save_testset(testset):
     filename = os.path.join(os.path.dirname(__file__), 'testset.txt')
@@ -69,12 +62,11 @@ def save_testset(testset):
         for t in testset:
             f.write(f'{t}\n')
 
-if __name__ == '__main__':
-    cnt = size_parser(SIZE) // size_parser(BS) // FTL_INSTANCES
-    testset = linear(cnt)
+def run_test(testtype, bs=BS):
+    cnt = size_parser(SIZE) // size_parser(bs) // FTL_INSTANCES
+    testset = testtype(cnt)
     save_testset(testset)
     
-    # check ./test program exist
     print('Compile test.c')
     test_filename = os.path.join(os.path.dirname(__file__), 'test')
     test_c_filename = os.path.join(os.path.dirname(__file__), 'test.c')
@@ -83,5 +75,12 @@ if __name__ == '__main__':
     # run test
     print('Run test')
     print(f'Arguments: filename={FILENAME}, io_engine={IO_ENGINE}, numjobs={NUMJOBS}, io_depth={IO_DEPTH}, size={SIZE}, bs={BS}')
-    os.system(f'sudo {test_filename} -f {FILENAME} -m {IO_ENGINE} -j {NUMJOBS} -q {IO_DEPTH} -t {SIZE} -b {BS}')
-    
+    os.system(f'sudo {test_filename} -f {FILENAME} -m {IO_ENGINE} -j {NUMJOBS} -q {IO_DEPTH} -t {SIZE} -b {bs}')
+
+if __name__ == '__main__':
+    run_test(linear, bs='4K')
+    run_test(linear, bs='8K')
+    run_test(linear, bs='16K')
+    run_test(linear, bs='32K')
+    run_test(linear, bs='64K')
+    run_test(linear, bs='128K') 
