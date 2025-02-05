@@ -22,6 +22,8 @@
 #include <time.h>
 #include <liburing.h>
 
+typedef long long int off;
+
 /* I/O 방식 열거형: 기본은 libaio, io_uring을 선택할 수 있다. */
 typedef enum {
     METHOD_LIBAIO,
@@ -33,7 +35,7 @@ typedef enum {
  */
 typedef struct {
     const char *filename;   /* 타겟 파일 이름 */
-    off_t offset;           /* 스레드가 시작할 파일 내 오프셋 */
+    off offset;           /* 스레드가 시작할 파일 내 오프셋 */
     size_t total_bytes;     /* 해당 스레드가 수행할 총 바이트 수 */
     size_t block_size;      /* 블록 크기 */
     int queue_depth;        /* I/O 큐 깊이 */
@@ -41,11 +43,13 @@ typedef struct {
 } thread_context_t;
 
 typedef struct {
-    int *data;
-    atomic_int top;  // 스택의 top 인덱스를 원자적으로 관리한다.
-} Stack;
+    off *data;
+    int capacity;
+    atomic_int head;  // 큐의 앞쪽 인덱스 (dequeue 위치)
+    atomic_int tail;  // 큐의 뒤쪽 인덱스 (enqueue 위치)
+} Queue;
 
-static Stack stack;  // 전역 스택 변수이다.
+static Queue queue;  // 전역 스택 변수이다.
 
 void init_stack() {
     FILE *fp = fopen("testset.txt", "r");
@@ -57,7 +61,7 @@ void init_stack() {
     // 초기 메모리 할당 크기를 10으로 설정하였다.
     int capacity = 256;
     int count = 0;
-    int *list = (int *)malloc(capacity * sizeof(int));
+    off *list = (off *)malloc(capacity * sizeof(off));
     if (list == NULL) {
         fprintf(stderr, "메모리 할당에 실패하였다.\n");
         fclose(fp);
@@ -65,12 +69,12 @@ void init_stack() {
     }
     
     // 파일에서 정수를 하나씩 읽어서 list에 저장한다.
-    while (fscanf(fp, "%d", &list[count]) == 1) {
+    while (fscanf(fp, "%lld", &list[count]) == 1) {
         count++;
         // 배열의 공간이 부족하면 메모리 크기를 두 배로 늘린다.
         if (count == capacity) {
             capacity *= 2;
-            int *temp = (int *)realloc(list, capacity * sizeof(int));
+            off *temp = (off *)realloc(list, capacity * sizeof(off));
             if (temp == NULL) {
                 fprintf(stderr, "메모리 재할당에 실패하였다.\n");
                 free(list);
@@ -83,22 +87,37 @@ void init_stack() {
     
     fclose(fp);
 
-    stack.data = list;
-    atomic_init(&stack.top, count);
+    queue.data = list;
+    queue.capacity = capacity;
+    atomic_init(&queue.head, 0);
+    atomic_init(&queue.tail, count);
 }
 
 // pop 함수는 스택에서 원자적으로 하나의 요소를 제거한다.
 // 요소가 남아있으면 *value에 값을 저장하고 1을 반환하며, 없으면 0을 반환한다.
-int pop() {
-    // atomic_fetch_sub는 현재 top 값을 반환한 후 1을 감소시킨다.
-    int old_top = atomic_fetch_sub(&stack.top, 1);
-    if (old_top <= 0) {
-        // 스택에 남은 요소가 없으므로, 감소한 값을 복구한다.
-        atomic_fetch_add(&stack.top, 1);
-        return -1;  // pop 실패
+off dequeue(Queue *queue) {
+    // head 값을 원자적으로 증가시켜 현재 요소의 인덱스를 확보한다.
+    int old_head = atomic_fetch_add(&queue->head, 1);
+    int tail_val = atomic_load(&queue->tail);
+    if (old_head >= tail_val) {
+        // 큐에 남은 요소가 없으므로, head 값을 복구한다.
+        atomic_fetch_sub(&queue->head, 1);
+        return 0;  // dequeue 실패
     }
+    return queue->data[old_head];
+}
 
-    return stack.data[old_top - 1];
+// enqueue 함수는 큐에 원자적으로 하나의 요소를 추가한다.
+// 큐에 여유 공간이 있으면 요소를 추가하고 1을 반환하며, 가득 찬 경우 0을 반환한다.
+off enqueue(Queue *queue, int value) {
+    int pos = atomic_fetch_add(&queue->tail, 1);
+    if (pos >= queue->capacity) {
+        // 큐가 가득 찼으므로, tail 값을 복구한다.
+        atomic_fetch_sub(&queue->tail, 1);
+        return 0;  // enqueue 실패
+    }
+    queue->data[pos] = value;
+    return 1;  // enqueue 성공
 }
 
 /* 크기 문자열(예: "4k", "4m", "4g")를 size_t 바이트 값으로 변환하는 함수이다. */
@@ -200,7 +219,7 @@ void *thread_worker(void *arg) {
         /* 제출과 완료를 슬라이딩 윈도우 방식으로 수행한다. */
         while (submitted < total_ios) {
             if (pending < ctx->queue_depth) {
-                off_t io_offset = pop() * ctx->block_size;
+                off io_offset = dequeue(&queue);
                 struct iocb *iocb_ptr = malloc(sizeof(struct iocb));
                 if (!iocb_ptr) {
                     perror("malloc iocb");
@@ -211,7 +230,7 @@ void *thread_worker(void *arg) {
                 iocb_ptr->data = iocb_ptr;
                 ret = io_submit(io_ctx, 1, &iocb_ptr);
                 if (ret != 1) {
-                    fprintf(stderr, "io_submit 오류: %s\n", strerror(-ret));
+                    fprintf(stderr, "io_submit 오류: %s - %lld\n", strerror(-ret), io_offset);
                     free(iocb_ptr);
                     break;
                 }
@@ -265,7 +284,7 @@ void *thread_worker(void *arg) {
                     /* SQ가 가득 찼다면 루프를 종료한다. */
                     break;
                 }
-                off_t io_offset = ctx->offset + submitted * ctx->block_size;
+                off io_offset = ctx->offset + submitted * ctx->block_size;
                 io_uring_prep_write(sqe, fd, buffer, ctx->block_size, io_offset);
                 sqe->user_data = submitted;
                 submitted++;

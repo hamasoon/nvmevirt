@@ -14,7 +14,7 @@ clean:
 	rm -f test
 
 nonmerge:
-	sudo bash -c 'echo 2 > /sys/block/$(DEV)/queue/nomerges'
+	sudo bash -c 'echo 2 > /sys/block/nvme3n1/queue/nomerges'
 	
 run:
 	sudo python3 test.py

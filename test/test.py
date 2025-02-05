@@ -4,12 +4,13 @@ import os
 FTL_INSTANCES = 4
 PAGE_SIZE = 32768
 
-FILENAME = '/dev/nvme2n1'
+FILENAME = '/dev/nvme3n1'
 IO_ENGINE = 'libaio'
 NUMJOBS = 4
 IO_DEPTH = 16
 SIZE = '4G'
 BS = '128K'
+UNIT = 4096
 
 def size_parser(size):
     if size[-1] == 'K' or size[-1] == 'k':
@@ -21,40 +22,57 @@ def size_parser(size):
     else:
         return int(size)
 
-def linear(cnt):
-    return [i for i in range(cnt * FTL_INSTANCES)]
+def linear(size, bs=BS):
+    result = []
+    remaining = 0
+    gap = size_parser(bs)
+    
+    while remaining < size:
+        result.append(remaining)
+        remaining += gap
+        
+    return result
 
-def random_access(cnt):
-    testset = [i for i in range(cnt * FTL_INSTANCES)]
+def random_access(size, bs=BS):
+    testset = linear(size, bs)
     random.shuffle(testset)
     return testset
 
-def round_robin(cnt):
+def round_robin(size, bs=BS):
     result = []
-    testset = [[] for _ in range(FTL_INSTANCES)]
-    bpp = PAGE_SIZE // size_parser(BS)
-    gap = bpp * FTL_INSTANCES
+    tmp = [[] for _ in range(FTL_INSTANCES)]
+    lin_data = linear(size, bs)
     
-    for j in range(FTL_INSTANCES):
-        for i in range(cnt):
-            testset[j].append(i % bpp + gap * (i // bpp) + j * bpp)
+    for d in lin_data:
+        tmp[(d // PAGE_SIZE) % FTL_INSTANCES].append(d)
         
-        random.shuffle(testset[j])
-    
-    for i in range(cnt):
-        for j in range(FTL_INSTANCES):
-            result.append(testset[j][i])
-    
+    for i in range(FTL_INSTANCES):
+        random.shuffle(tmp[i])
+        
+    for j in range(len(tmp[0])):
+        for i in range(FTL_INSTANCES):
+            if j < len(tmp[i]):
+                result.append(tmp[i][j])
+        
     return result
 
-def round_robin_per_pages(cnt):
+def round_robin_per_pages(size, bs=BS):
     result = []
-    testset = [[] for _ in range(FTL_INSTANCES)]
-    bpp = PAGE_SIZE // size_parser(BS)
-    gap = bpp * FTL_INSTANCES
-    page_num = [i for i in range(cnt // bpp)]
+    tmp = [[] for _ in range(FTL_INSTANCES)]
+    lin_data = linear(size, bs)
     
-    return page_num
+    for d in lin_data:
+        tmp[(d // PAGE_SIZE) % FTL_INSTANCES].append(d)
+        
+    for i in range(FTL_INSTANCES):
+        random.shuffle(tmp[i])
+        
+    for j in range(len(tmp[0])):
+        for i in range(FTL_INSTANCES):
+            if j < len(tmp[i]): 
+                result.append(tmp[i][j])
+    
+    return result
 
 def save_testset(testset):
     filename = os.path.join(os.path.dirname(__file__), 'testset.txt')
@@ -63,8 +81,8 @@ def save_testset(testset):
             f.write(f'{t}\n')
 
 def run_test(testtype, bs=BS):
-    cnt = size_parser(SIZE) // size_parser(bs) // FTL_INSTANCES
-    testset = testtype(cnt)
+    cnt = size_parser(SIZE)
+    testset = testtype(cnt, bs)
     save_testset(testset)
     
     print('Compile test.c')
@@ -74,13 +92,13 @@ def run_test(testtype, bs=BS):
     
     # run test
     print('Run test')
-    print(f'Arguments: filename={FILENAME}, io_engine={IO_ENGINE}, numjobs={NUMJOBS}, io_depth={IO_DEPTH}, size={SIZE}, bs={BS}')
+    print(f'Arguments: filename={FILENAME}, io_engine={IO_ENGINE}, numjobs={NUMJOBS}, io_depth={IO_DEPTH}, size={SIZE}, bs={bs}')
     os.system(f'sudo {test_filename} -f {FILENAME} -m {IO_ENGINE} -j {NUMJOBS} -q {IO_DEPTH} -t {SIZE} -b {bs}')
 
 if __name__ == '__main__':
     run_test(linear, bs='4K')
     run_test(linear, bs='8K')
     run_test(linear, bs='16K')
-    run_test(linear, bs='32K')
-    run_test(linear, bs='64K')
-    run_test(linear, bs='128K') 
+    # run_test(random_access, bs='32K')
+    # run_test(random_access, bs='64K')
+    # run_test(random_access, bs='128K')    

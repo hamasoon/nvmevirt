@@ -19,18 +19,26 @@ static inline bool check_flush_buffer(struct buffer *buf)
 		if (block->valid && block->pg_idx >= buf->pg_per_ppg) cnt++;
 	}
 
+	// full blocks in buffer should be greater or equal than threshold
+	// and also used blocks in buffer should be more than threshold --> using more than half of the buffer
 	return cnt >= buf->flush_threshold && list_count_nodes(&buf->used_ppgs) > buf->flush_threshold;
 }
 
 static inline bool check_flush_buffer_allocate_fail(struct buffer *buf)
 {
-	size_t cnt = 0;
+	size_t cnt_used_ppg = 0;
+	size_t cnt_full_ppg = 0;
 	struct buffer_ppg *block;
 	list_for_each_entry(block, &buf->used_ppgs, list) {
-		if (block->valid && block->pg_idx >= buf->pg_per_ppg) cnt++;
+		if (block->valid) {
+			cnt_used_ppg++;
+			if (block->pg_idx >= buf->pg_per_ppg) {
+				cnt_full_ppg++;
+			}
+		}
 	}
 
-	return cnt >= buf->flush_threshold;
+	return cnt_full_ppg >= buf->flush_threshold || (cnt_full_ppg == cnt_used_ppg && cnt_full_ppg > 0);
 }
 
 static inline bool last_pg_in_wordline(struct conv_ftl *conv_ftl, struct ppa *ppa)
@@ -1184,7 +1192,7 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 				__func__, start_lpn, spp->tt_pgs);
 		return false;
 	}
-	
+
 	if (!buffer_allocate(ns, start_lpn, end_lpn, start_offset, size)){
 		NVMEV_DEBUG("%s: buffer_allocate failed\n", __func__);
 		for (int i = 0; i < nr_parts; i++) {
@@ -1193,7 +1201,10 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 			while (!spin_trylock(&wbuf->lock))
 				;
 
-			if (check_flush_buffer_allocate_fail(wbuf)) conv_rmw(conv_ftl, req, nsecs_start);
+			if (check_flush_buffer_allocate_fail(wbuf)) {
+				// NVMEV_INFO("Back RMW Start(%d) - Free buf %ld\n", i, list_count_nodes(&wbuf->free_ppgs));
+				conv_rmw(conv_ftl, req, nsecs_start);
+			}
 
 			spin_unlock(&wbuf->lock);
 		}
@@ -1220,7 +1231,10 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 		while (!spin_trylock(&wbuf->lock))
 			;
 
-		if (check_flush_buffer(wbuf)) nsecs_latest = max(conv_rmw(conv_ftl, req, nsecs_xfer_completed), nsecs_latest);
+		if (check_flush_buffer(wbuf)) {
+			// NVMEV_INFO("Front RMW Start(%d)\n", i);
+			nsecs_latest = max(conv_rmw(conv_ftl, req, nsecs_xfer_completed), nsecs_latest);
+		}
 
 		spin_unlock(&wbuf->lock);
 	}
