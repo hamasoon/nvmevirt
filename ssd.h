@@ -52,6 +52,12 @@ enum {
 	PG_VALID = 2
 };
 
+enum {
+	VALID = 0,
+	RMW_TARGET = 1,
+	FLUSHING = 2,
+};
+
 /* Cell type */
 enum { CELL_TYPE_LSB, CELL_TYPE_MSB, CELL_TYPE_CSB, MAX_CELL_TYPES };
 
@@ -146,14 +152,12 @@ used_ppgs: list of used blocks
 */
 struct buffer {
 	spinlock_t lock;
-	int ftl_idx;
 	size_t size;
 	size_t ppg_per_buf;
 	size_t pg_per_ppg;
 	size_t sec_per_pg;
 	size_t ppg_size;
 	size_t pg_size;
-	size_t free_pgs_cnt;
 	size_t flush_threshold;
 	struct list_head free_ppgs;
 	struct list_head used_ppgs;
@@ -166,7 +170,8 @@ sectors: represent the sectors of the page
 list: list head for buffer
 */
 struct buffer_ppg {
-	bool valid;
+	int status;
+	int ftl_idx;
 	int pg_idx;
 	uint64_t complete_time;
 	struct buffer_page *pages;
@@ -256,7 +261,7 @@ struct ssd {
 	struct ssdparams sp;
 	struct ssd_channel *ch;
 	struct ssd_pcie *pcie;
-	struct buffer write_buffer;
+	struct buffer *write_buffer;
 	unsigned int cpu_nr_dispatcher;
 };
 
@@ -305,7 +310,7 @@ uint64_t ssd_advance_write_buffer(struct ssd *ssd, uint64_t request_time, uint64
 uint64_t ssd_next_idle_time(struct ssd *ssd);
 
 void buffer_init(struct buffer *buf, size_t size, struct ssdparams *spp);
-bool buffer_allocate(struct nvmev_ns *ns, uint64_t start_lpn, uint64_t end_lpn, uint64_t start_offset, uint64_t size);
+bool buffer_allocate(struct buffer *buf, uint64_t start_lpn, uint64_t end_lpn, uint64_t start_offset, uint64_t size);
 bool buffer_release(struct buffer *buf, uint64_t complete_time);
 void buffer_refill(struct buffer *buf);
 struct buffer_page *buffer_search(struct buffer *buf, uint64_t lpn);

@@ -13,15 +13,22 @@ static uint64_t time = 0;
 // currently, threshold is half of the total blocks
 static inline bool check_flush_buffer(struct buffer *buf)
 {
-	size_t cnt = 0;
+	size_t cnt_used_ppg = 0;
+	size_t cnt_full_ppg = 0;
 	struct buffer_ppg *block;
 	list_for_each_entry(block, &buf->used_ppgs, list) {
-		if (block->valid && block->pg_idx >= buf->pg_per_ppg) cnt++;
+		if (block->status == VALID) {
+			cnt_used_ppg++;
+			if (block->pg_idx >= buf->pg_per_ppg) {
+				cnt_full_ppg++;
+			}
+		}
 	}
 
 	// full blocks in buffer should be greater or equal than threshold
 	// and also used blocks in buffer should be more than threshold --> using more than half of the buffer
-	return cnt >= buf->flush_threshold && list_count_nodes(&buf->used_ppgs) > buf->flush_threshold;
+	// return cnt_full_ppg >= buf->flush_threshold && cnt_full_ppg > buf->flush_threshold;
+	return cnt_used_ppg > buf->flush_threshold && cnt_full_ppg >= buf->flush_threshold;
 }
 
 static inline bool check_flush_buffer_allocate_fail(struct buffer *buf)
@@ -30,7 +37,7 @@ static inline bool check_flush_buffer_allocate_fail(struct buffer *buf)
 	size_t cnt_full_ppg = 0;
 	struct buffer_ppg *block;
 	list_for_each_entry(block, &buf->used_ppgs, list) {
-		if (block->valid) {
+		if (block->status == VALID) {
 			cnt_used_ppg++;
 			if (block->pg_idx >= buf->pg_per_ppg) {
 				cnt_full_ppg++;
@@ -38,7 +45,7 @@ static inline bool check_flush_buffer_allocate_fail(struct buffer *buf)
 		}
 	}
 
-	return cnt_full_ppg >= buf->flush_threshold || (cnt_full_ppg == cnt_used_ppg && cnt_full_ppg > 0);
+	return cnt_full_ppg >= buf->flush_threshold && cnt_full_ppg == cnt_used_ppg && cnt_full_ppg > 0;
 }
 
 static inline bool last_pg_in_wordline(struct conv_ftl *conv_ftl, struct ppa *ppa)
@@ -150,7 +157,7 @@ static void init_lines(struct conv_ftl *conv_ftl)
 
 	lm->tt_lines = spp->blks_per_pl;
 	NVMEV_ASSERT(lm->tt_lines == spp->tt_lines);
-	lm->lines = vmalloc(sizeof(struct line) * lm->tt_lines);
+	lm->lines = kvmalloc(sizeof(struct line) * lm->tt_lines, GFP_KERNEL);
 
 	INIT_LIST_HEAD(&lm->free_line_list);
 	INIT_LIST_HEAD(&lm->full_line_list);
@@ -182,7 +189,7 @@ static void init_lines(struct conv_ftl *conv_ftl)
 static void remove_lines(struct conv_ftl *conv_ftl)
 {
 	pqueue_free(conv_ftl->lm.victim_line_pq);
-	vfree(conv_ftl->lm.lines);
+	kvfree(conv_ftl->lm.lines);
 }
 
 static void init_write_flow_control(struct conv_ftl *conv_ftl)
@@ -336,7 +343,7 @@ static void init_maptbl(struct conv_ftl *conv_ftl)
 	int i;
 	struct ssdparams *spp = &conv_ftl->ssd->sp;
 
-	conv_ftl->maptbl = vmalloc(sizeof(struct ppa) * spp->tt_pgs);
+	conv_ftl->maptbl = kvmalloc(sizeof(struct ppa) * spp->tt_pgs, GFP_KERNEL);
 	for (i = 0; i < spp->tt_pgs; i++) {
 		conv_ftl->maptbl[i].ppa = UNMAPPED_PPA;
 	}
@@ -344,7 +351,7 @@ static void init_maptbl(struct conv_ftl *conv_ftl)
 
 static void remove_maptbl(struct conv_ftl *conv_ftl)
 {
-	vfree(conv_ftl->maptbl);
+	kvfree(conv_ftl->maptbl);
 }
 
 static void init_rmap(struct conv_ftl *conv_ftl)
@@ -352,7 +359,7 @@ static void init_rmap(struct conv_ftl *conv_ftl)
 	int i;
 	struct ssdparams *spp = &conv_ftl->ssd->sp;
 
-	conv_ftl->rmap = vmalloc(sizeof(uint64_t) * spp->tt_pgs);
+	conv_ftl->rmap = kvmalloc(sizeof(uint64_t) * spp->tt_pgs, GFP_KERNEL);
 	for (i = 0; i < spp->tt_pgs; i++) {
 		conv_ftl->rmap[i] = INVALID_LPN;
 	}
@@ -360,7 +367,7 @@ static void init_rmap(struct conv_ftl *conv_ftl)
 
 static void remove_rmap(struct conv_ftl *conv_ftl)
 {
-	vfree(conv_ftl->rmap);
+	kvfree(conv_ftl->rmap);
 }
 
 static void conv_init_ftl(struct conv_ftl *conv_ftl, struct convparams *cpp, struct ssd *ssd)
@@ -425,9 +432,11 @@ void conv_init_namespace(struct nvmev_ns *ns, uint32_t id, uint64_t size, void *
 	for (i = 0; i < nr_parts; i++) {
 		ssd = kmalloc(sizeof(struct ssd), GFP_KERNEL);
 		ssd_init(ssd, &spp, cpu_nr_dispatcher);
-		ssd->write_buffer.ftl_idx = i;
 		conv_init_ftl(&conv_ftls[i], &cpp, ssd);
 	}
+
+	conv_ftls[0].ssd->write_buffer = kmalloc(sizeof(struct buffer), GFP_KERNEL);
+	buffer_init(conv_ftls[0].ssd->write_buffer, spp.write_buffer_size, &spp);
 
 	/* PCIe is shared by all instances. But write buffer is NOT.(bae)*/
 	for (i = 1; i < nr_parts; i++) {
@@ -435,6 +444,7 @@ void conv_init_namespace(struct nvmev_ns *ns, uint32_t id, uint64_t size, void *
 		kfree(conv_ftls[i].ssd->pcie);
 
 		conv_ftls[i].ssd->pcie = conv_ftls[0].ssd->pcie;
+		conv_ftls[i].ssd->write_buffer = conv_ftls[0].ssd->write_buffer;
 	}
 
 	ns->id = id;
@@ -464,6 +474,7 @@ void conv_remove_namespace(struct nvmev_ns *ns)
 		 * These were freed from conv_init_namespace() already.
 		 * Mark these NULL so that ssd_remove() skips it.
 		 */
+		conv_ftls[i].ssd->write_buffer = NULL;
 		conv_ftls[i].ssd->pcie = NULL;
 	}
 
@@ -867,8 +878,8 @@ static bool conv_read(struct nvmev_ns *ns, struct nvmev_request *req, struct nvm
 	struct conv_ftl *conv_ftls = (struct conv_ftl *)ns->ftls;
 	struct conv_ftl *conv_ftl = &conv_ftls[0];
 	struct ssd *ssd = conv_ftl->ssd;
-	struct buffer *wbuf = NULL;
-	/* spp are shared by all instances*/
+	/* wbuf and spp are shared by all instances*/
+	struct buffer *wbuf = ssd->write_buffer;
 	struct ssdparams *spp = &conv_ftl->ssd->sp;
 
 	struct nvme_command *cmd = req->cmd;
@@ -905,7 +916,6 @@ static bool conv_read(struct nvmev_ns *ns, struct nvmev_request *req, struct nvm
 		xfer_size = 0;
 		int ftl_idx = GET_FTL_IDX(start_lpn);
 		conv_ftl = &conv_ftls[ftl_idx];
-		wbuf = &conv_ftl->ssd->write_buffer;
 		prev_ppa = get_maptbl_ent(conv_ftl, LOCAL_LPN(start_lpn));
 
 		uint64_t local_start_lpn = start_lpn;
@@ -988,11 +998,15 @@ static bool conv_read(struct nvmev_ns *ns, struct nvmev_request *req, struct nvm
 }
 
 
-static uint64_t conv_rmw(struct conv_ftl *conv_ftl, struct nvmev_request *req, uint64_t nsecs_rmw_start)
+static uint64_t conv_rmw(struct nvmev_ns *ns, struct nvmev_request *req, uint64_t nsecs_rmw_start)
 {
 	// NVMEV_INFO("RMW Start\n");
+	struct conv_ftl *conv_ftls = (struct conv_ftl *)ns->ftls;
+	struct conv_ftl *conv_ftl = &conv_ftls[0];
+	struct ssd *ssd = conv_ftl->ssd;
+	/* wbuf and spp are shared by all instances*/
+	struct buffer *wbuf = ssd->write_buffer;
 	struct ssdparams *spp = &conv_ftl->ssd->sp;
-	struct buffer *wbuf = &conv_ftl->ssd->write_buffer;
 	uint64_t nsecs_result = nsecs_rmw_start;
 	uint64_t nsecs_completed = nsecs_rmw_start;
 	uint64_t nsecs_write_start = nsecs_rmw_start;
@@ -1002,6 +1016,7 @@ static uint64_t conv_rmw(struct conv_ftl *conv_ftl, struct nvmev_request *req, u
 		.cmd = NAND_WRITE,
 		.interleave_pci_dma = false,
 		.xfer_size = spp->pgsz,
+		.stime = nsecs_rmw_start
 	};
 
 	struct nand_cmd srd = {
@@ -1021,11 +1036,10 @@ static uint64_t conv_rmw(struct conv_ftl *conv_ftl, struct nvmev_request *req, u
 	struct ppa ppa;
 	int32_t xfer_size = 0;
 	list_for_each_entry(ppg, &wbuf->used_ppgs, list) {
-		if(!ppg->valid || ppg->pg_idx != wbuf->pg_per_ppg) {
+		if(ppg->status != VALID || ppg->pg_idx != wbuf->pg_per_ppg) {
 			continue;
 		}
 		
-		size_t ftl_idx = wbuf->ftl_idx;
 		uint64_t lpn = INVALID_LPN;
 		uint64_t local_lpn = INVALID_LPN;
 		prev_ppa = get_maptbl_ent(conv_ftl, LOCAL_LPN(ppg->pages[0].lpn));
@@ -1076,11 +1090,11 @@ static uint64_t conv_rmw(struct conv_ftl *conv_ftl, struct nvmev_request *req, u
 
 	/* write phase of read-modify-write operation */
 	list_for_each_entry(ppg, &wbuf->used_ppgs, list) {
-		if (!ppg->valid || ppg->pg_idx != wbuf->pg_per_ppg) {
+		if (ppg->status != VALID|| ppg->pg_idx != wbuf->pg_per_ppg) {
 			continue;
 		}
 
-		ppg->valid = false;
+		ppg->status = FLUSHING;
 		struct ppa ppa;
 
 		/* Assumption: all pages in physical buffer page */
@@ -1140,7 +1154,7 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 	/* wbuf and spp are shared by all instances */
 	struct ssdparams *spp = &conv_ftl->ssd->sp;
 	struct ssd *ssd = conv_ftl->ssd;
-	struct buffer *wbuf;
+	struct buffer *wbuf = ssd->write_buffer;
 
 	struct nvme_command *cmd = req->cmd;
 	uint64_t lba = cmd->rw.slba;
@@ -1165,27 +1179,6 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 	uint64_t buffer_lat = 0;
 	uint64_t write_lat = 0;
 
-	struct nand_cmd swr = {
-		.type = USER_IO,
-		.cmd = NAND_WRITE,
-		.interleave_pci_dma = false,
-		.xfer_size = spp->pgsz,
-	};
-
-	struct nand_cmd srd = {
-		.type = USER_IO,
-		.cmd = NAND_READ,
-		.interleave_pci_dma = false,
-		.stime = nsecs_start,
-		.xfer_size = spp->pgsz,
-	};
-
-	if (LBA_TO_BYTE(nr_lba) <= (KB(4) * nr_parts)) {
-		srd.stime += spp->fw_4kb_rd_lat;
-	} else {
-		srd.stime += spp->fw_rd_lat;
-	}
-
 	NVMEV_DEBUG_VERBOSE("%s: start_lpn=%lld, len=%lld, end_lpn=%lld", __func__, start_lpn, nr_lba, end_lpn);
 	if ((end_lpn / nr_parts) >= spp->tt_pgs) {
 		NVMEV_ERROR("%s: lpn passed FTL range (start_lpn=%lld > tt_pgs=%ld)\n",
@@ -1193,21 +1186,19 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 		return false;
 	}
 
-	if (!buffer_allocate(ns, start_lpn, end_lpn, start_offset, size)){
+	if (!buffer_allocate(wbuf, start_lpn, end_lpn, start_offset, size)){
 		NVMEV_DEBUG("%s: buffer_allocate failed\n", __func__);
-		for (int i = 0; i < nr_parts; i++) {
-			conv_ftl = &conv_ftls[i];
-			wbuf = &conv_ftl->ssd->write_buffer;
-			while (!spin_trylock(&wbuf->lock))
+		while (!spin_trylock(&wbuf->lock))
 				;
 
-			if (check_flush_buffer_allocate_fail(wbuf)) {
-				// NVMEV_INFO("Back RMW Start(%d) - Free buf %ld\n", i, list_count_nodes(&wbuf->free_ppgs));
-				conv_rmw(conv_ftl, req, nsecs_start);
-			}
-
-			spin_unlock(&wbuf->lock);
+		if (check_flush_buffer_allocate_fail(wbuf)) {
+			NVMEV_INFO("Back RMW Start - Free buf %ld\n", list_count_nodes(&wbuf->free_ppgs));
+			conv_rmw(ns, req, nsecs_start);
 		}
+
+		spin_unlock(&wbuf->lock);
+
+		// do back rmw
 
 		return false;
 	}
@@ -1225,19 +1216,15 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 	nsecs_latest = max(nsecs_write_buffer, nsecs_latest);
 	nsecs_xfer_completed = nsecs_latest;
 
-	for (int i = 0; i < nr_parts; i++) {
-		conv_ftl = &conv_ftls[i];
-		wbuf = &conv_ftl->ssd->write_buffer;
-		while (!spin_trylock(&wbuf->lock))
+	while (!spin_trylock(&wbuf->lock))
 			;
 
-		if (check_flush_buffer(wbuf)) {
-			// NVMEV_INFO("Front RMW Start(%d)\n", i);
-			nsecs_latest = max(conv_rmw(conv_ftl, req, nsecs_xfer_completed), nsecs_latest);
-		}
-
-		spin_unlock(&wbuf->lock);
+	if (check_flush_buffer(wbuf)) {
+		NVMEV_INFO("Front RMW Start - Free buf %ld\n", list_count_nodes(&wbuf->free_ppgs));
+		nsecs_latest = max(conv_rmw(ns, req, nsecs_xfer_completed), nsecs_latest);
 	}
+
+	spin_unlock(&wbuf->lock);
 
 	if ((cmd->rw.control & NVME_RW_FUA) || (spp->write_early_completion == 0)) {
 		/* Wait all flash operations */
