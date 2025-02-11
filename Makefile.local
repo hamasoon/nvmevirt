@@ -3,9 +3,9 @@
 
 load:
 	sudo insmod ./nvmev.ko \
-	memmap_start=22G \
-	memmap_size=10G \
-	cpus=7,8,9,10
+	memmap_start=48G \
+	memmap_size=16G \
+	cpus=10,11,12,13
 
 load_origin:
 	sudo insmod ./nvmev_origin.ko \
@@ -21,8 +21,8 @@ set_nomerge:
 
 fio_read:
 	sudo fio --name=test --ioengine=sync --rw=read --bs=64k --size=1m \
-	--filename=/dev/nvme2n1 --direct=1 --group_reporting --norandommap
+	--filename=/dev/nvme3n1 --direct=1 --group_reporting --norandommap
 
 fio_write:
-	sudo fio --name=test --ioengine=sync --iodepth=1 --rw=write --bs=32K --size=4G --numjobs=1 \
-	--filename=/dev/nvme2n1 --direct=1 --group_reporting --norandommap
+	sudo fio --name=test --ioengine=sync --iodepth=1 --rw=write --bs=256K --size=4G --numjobs=1 \
+	--filename=/dev/nvme3n1 --direct=1 --group_reporting --norandommap

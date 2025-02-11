@@ -158,6 +158,7 @@ struct buffer {
 	size_t sec_per_pg;
 	size_t ppg_size;
 	size_t pg_size;
+	// size_t free_pgs_cnt;
 	size_t flush_threshold;
 	struct list_head free_ppgs;
 	struct list_head used_ppgs;
@@ -171,7 +172,7 @@ list: list head for buffer
 */
 struct buffer_ppg {
 	int status;
-	int ftl_idx;
+	int ftl_idx;	
 	int pg_idx;
 	uint64_t complete_time;
 	struct buffer_page *pages;

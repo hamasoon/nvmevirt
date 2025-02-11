@@ -474,7 +474,6 @@ void conv_remove_namespace(struct nvmev_ns *ns)
 		 * These were freed from conv_init_namespace() already.
 		 * Mark these NULL so that ssd_remove() skips it.
 		 */
-		conv_ftls[i].ssd->write_buffer = NULL;
 		conv_ftls[i].ssd->pcie = NULL;
 	}
 
@@ -1217,11 +1216,11 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 	nsecs_xfer_completed = nsecs_latest;
 
 	while (!spin_trylock(&wbuf->lock))
-			;
+		;
 
 	if (check_flush_buffer(wbuf)) {
-		NVMEV_INFO("Front RMW Start - Free buf %ld\n", list_count_nodes(&wbuf->free_ppgs));
-		nsecs_latest = max(conv_rmw(ns, req, nsecs_xfer_completed), nsecs_latest);
+	NVMEV_INFO("Front RMW Start - Free buf %ld\n", list_count_nodes(&wbuf->free_ppgs));
+	nsecs_latest = max(conv_rmw(ns, req, nsecs_xfer_completed), nsecs_latest);
 	}
 
 	spin_unlock(&wbuf->lock);

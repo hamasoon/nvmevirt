@@ -29,7 +29,7 @@ void buffer_init(struct buffer *buf, size_t size, struct ssdparams *spp)
 
 	NVMEV_INFO("[buffer_init] buffer size: %ld, ppg size: %ld, ppg per buf: %ld, pg per ppg: %ld, sec per pg: %ld, flush threshold: %ld",
 		buf->size, buf->ppg_size, buf->ppg_per_buf, buf->pg_per_ppg, buf->sec_per_pg, buf->flush_threshold);
-
+	
 	INIT_LIST_HEAD(&buf->free_ppgs);
 	INIT_LIST_HEAD(&buf->used_ppgs);
 	
