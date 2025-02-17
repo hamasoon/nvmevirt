@@ -46,6 +46,10 @@ static inline bool check_flush_buffer_allocate_fail(struct buffer *buf)
 		}
 	}
 
+	// Discussionable Point: What is the minimum threshold to flush?
+	// if Flush occur previously, then some of the buffer still remain but less than threshold
+	// in this case, buffer utilization is decreased because of waiting for release and allocation
+	// SUGGEST: temporarily set the minimum threshold to flush buffer even if it is not much as the normal threshold
 	return cnt_full_ppg >= buf->flush_threshold && cnt_full_ppg == cnt_used_ppg;
 }
 
@@ -1232,7 +1236,7 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 		}
 
 
-		NVMEV_INFO("Front RMW Start - Buffer Status: Free %ld, Flushing %d, Used %d\n", list_count_nodes(&wbuf->free_ppgs), flushing_ppgs, used_ppgs);
+		// NVMEV_INFO("Front RMW Start - Buffer Status: Free %ld, Flushing %d, Used %d\n", list_count_nodes(&wbuf->free_ppgs), flushing_ppgs, used_ppgs);
 		nsecs_latest = max(conv_rmw(ns, req, nsecs_xfer_completed), nsecs_latest);
 	}
 
