@@ -28,6 +28,7 @@ static inline bool check_flush_buffer(struct buffer *buf)
 	// full blocks in buffer should be greater or equal than threshold
 	// and also used blocks in buffer should be more than threshold --> using more than half of the buffer
 	// return cnt_full_ppg >= buf->flush_threshold && cnt_full_ppg > buf->flush_threshold;
+	// Discussionable Point: do we have to flush hardly???
 	return cnt_used_ppg > buf->flush_threshold && cnt_full_ppg >= buf->flush_threshold;
 }
 
@@ -45,7 +46,7 @@ static inline bool check_flush_buffer_allocate_fail(struct buffer *buf)
 		}
 	}
 
-	return cnt_full_ppg >= buf->flush_threshold && cnt_full_ppg == cnt_used_ppg && cnt_full_ppg > 0;
+	return cnt_full_ppg >= buf->flush_threshold && cnt_full_ppg == cnt_used_ppg;
 }
 
 static inline bool last_pg_in_wordline(struct conv_ftl *conv_ftl, struct ppa *ppa)
@@ -475,6 +476,8 @@ void conv_remove_namespace(struct nvmev_ns *ns)
 		 * Mark these NULL so that ssd_remove() skips it.
 		 */
 		conv_ftls[i].ssd->pcie = NULL;
+		conv_ftls[i].ssd->write_buffer = NULL;
+		conv_ftls[i].ssd->write_buffer = NULL;
 	}
 
 	for (i = 0; i < nr_parts; i++) {
@@ -1007,8 +1010,6 @@ static uint64_t conv_rmw(struct nvmev_ns *ns, struct nvmev_request *req, uint64_
 	struct buffer *wbuf = ssd->write_buffer;
 	struct ssdparams *spp = &conv_ftl->ssd->sp;
 	uint64_t nsecs_result = nsecs_rmw_start;
-	uint64_t nsecs_completed = nsecs_rmw_start;
-	uint64_t nsecs_write_start = nsecs_rmw_start;
 
 	struct nand_cmd swr = {
 		.type = USER_IO,
@@ -1039,8 +1040,11 @@ static uint64_t conv_rmw(struct nvmev_ns *ns, struct nvmev_request *req, uint64_
 			continue;
 		}
 		
+		uint64_t nsecs_completed = nsecs_rmw_start;
+		uint64_t nsecs_write_start = nsecs_rmw_start;
 		uint64_t lpn = INVALID_LPN;
 		uint64_t local_lpn = INVALID_LPN;
+		conv_ftl = &conv_ftls[ppg->ftl_idx];
 		prev_ppa = get_maptbl_ent(conv_ftl, LOCAL_LPN(ppg->pages[0].lpn));
 
 		for (size_t j = 0; j < wbuf->pg_per_ppg; j++) {
@@ -1074,27 +1078,8 @@ static uint64_t conv_rmw(struct nvmev_ns *ns, struct nvmev_request *req, uint64_
 			prev_ppa = ppa;
 		}
 
-		if (xfer_size > 0 && mapped_ppa(&prev_ppa) && valid_ppa(conv_ftl, &prev_ppa)) {
-			// NVMEV_INFO("RMW Read buffer(%lu) - lpn: %llu, xfer_size: %d, free_ppg: %lu, used_ppg: %lu\n", 
-			// 	ftl_idx, lpn, xfer_size, list_count_nodes(&wbuf->free_ppgs), list_count_nodes(&wbuf->used_ppgs));
-			srd.xfer_size = xfer_size;
-			srd.ppa = &prev_ppa;
-			nsecs_completed = ssd_advance_nand(conv_ftl->ssd, &srd);
-			nsecs_write_start = max(nsecs_completed, nsecs_write_start);
-		}
-	}
-
-	ppg = NULL;
-	swr.stime = nsecs_write_start;
-
-	/* write phase of read-modify-write operation */
-	list_for_each_entry(ppg, &wbuf->used_ppgs, list) {
-		if (ppg->status != VALID|| ppg->pg_idx != wbuf->pg_per_ppg) {
-			continue;
-		}
-
 		ppg->status = FLUSHING;
-		struct ppa ppa;
+		swr.stime = nsecs_write_start;
 
 		/* Assumption: all pages in physical buffer page */
 		for (size_t j = 0; j < wbuf->pg_per_ppg; j++) {
@@ -1141,7 +1126,7 @@ static uint64_t conv_rmw(struct nvmev_ns *ns, struct nvmev_request *req, uint64_
 
 		nvmev_vdev->device_write += wbuf->ppg_size;
 	}
-	
+
 	return nsecs_result;
 }
 
@@ -1188,10 +1173,23 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 	if (!buffer_allocate(wbuf, start_lpn, end_lpn, start_offset, size)){
 		NVMEV_DEBUG("%s: buffer_allocate failed\n", __func__);
 		while (!spin_trylock(&wbuf->lock))
-				;
+			;
 
 		if (check_flush_buffer_allocate_fail(wbuf)) {
-			NVMEV_INFO("Back RMW Start - Free buf %ld\n", list_count_nodes(&wbuf->free_ppgs));
+			// int flushing_ppgs  = 0;
+			// int used_ppgs = 0;
+		
+			// struct buffer_ppg *ppg;
+			// list_for_each_entry(ppg, &wbuf->used_ppgs, list) {
+			// 	if (ppg->status == FLUSHING) {
+			// 		flushing_ppgs++;
+			// 	}
+		
+			// 	if (ppg->status == VALID) {
+			// 		used_ppgs++;
+			// 	}
+			// }
+			// NVMEV_INFO("Back RMW Start - Buffer Status: Free %ld, Flushing %d, Used %d\n", list_count_nodes(&wbuf->free_ppgs), flushing_ppgs, used_ppgs);
 			conv_rmw(ns, req, nsecs_start);
 		}
 
@@ -1219,8 +1217,23 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 		;
 
 	if (check_flush_buffer(wbuf)) {
-	NVMEV_INFO("Front RMW Start - Free buf %ld\n", list_count_nodes(&wbuf->free_ppgs));
-	nsecs_latest = max(conv_rmw(ns, req, nsecs_xfer_completed), nsecs_latest);
+		int flushing_ppgs  = 0;
+		int used_ppgs = 0;
+
+		struct buffer_ppg *ppg;
+		list_for_each_entry(ppg, &wbuf->used_ppgs, list) {
+			if (ppg->status == FLUSHING) {
+				flushing_ppgs++;
+			}
+
+			if (ppg->status == VALID) {
+				used_ppgs++;
+			}
+		}
+
+
+		NVMEV_INFO("Front RMW Start - Buffer Status: Free %ld, Flushing %d, Used %d\n", list_count_nodes(&wbuf->free_ppgs), flushing_ppgs, used_ppgs);
+		nsecs_latest = max(conv_rmw(ns, req, nsecs_xfer_completed), nsecs_latest);
 	}
 
 	spin_unlock(&wbuf->lock);

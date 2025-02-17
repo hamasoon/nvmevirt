@@ -150,6 +150,7 @@ bool buffer_allocate(struct buffer *buf, uint64_t start_lpn, uint64_t end_lpn, u
 		for (int j = 0; j < required_pgs[i]; j++) {
 			if (left_pgs_per_buf[i] == 0) {
 				if (left_ppgs == 0) {
+					// NVMEV_INFO("buffer allocate - failed, not enough free pages %ld - %ld", list_count_nodes(&buf->free_ppgs), list_count_nodes(&buf->used_ppgs));
 					return false;
 				}
 				left_ppgs--;
@@ -159,7 +160,20 @@ bool buffer_allocate(struct buffer *buf, uint64_t start_lpn, uint64_t end_lpn, u
 		}
 	}
 
-	NVMEV_INFO("buffer allocate - start_lpn: %lld, end_lpn: %lld, start_offset: %lld, size: %lld", start_lpn, end_lpn, start_offset, size);
+	// NVMEV_INFO("buffer allocate - start_lpn: %lld, end_lpn: %lld, start_offset: %lld, size: %lld, used pgs: %ld, free pgs: %ld", 
+	// 	start_lpn, end_lpn, start_offset, size, list_count_nodes(&buf->used_ppgs), list_count_nodes(&buf->free_ppgs));
+
+	// while (!spin_trylock(&buf->lock))
+	// 	;
+
+	// NVMEV_INFO("buffer allocate - free buf: %ld, used buf: %ld", list_count_nodes(&buf->free_ppgs), list_count_nodes(&buf->used_ppgs));
+
+	// list_for_each_entry(ppg, &buf->used_ppgs, list) {
+	// 	NVMEV_INFO("buffer status - ftl_idx: %d, pg_idx: %d", ppg->ftl_idx, ppg->pg_idx);
+	// }
+
+	// spin_unlock(&buf->lock);
+
 
 	/* handle first page */
 	__buffer_fill_page(buf, start_lpn++, start_size, start_offset);
