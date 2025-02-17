@@ -175,7 +175,6 @@ Makefile.local
 *.log
 *.zip
 /fio/
-/benchmark/
 /.vscode/
 /.venv/
 fio.sh
