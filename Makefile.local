@@ -24,5 +24,5 @@ fio_read:
 	--filename=/dev/nvme3n1 --direct=1 --group_reporting --norandommap
 
 fio_write:
-	sudo fio --name=test --ioengine=io_uring --iodepth=16 --rw=randwrite --bs=16K --size=3G --numjobs=4 \
+	sudo fio --name=test --ioengine=io_uring --iodepth=16 --rw=randwrite --bs=4K --size=3G --numjobs=4 \
 	--filename=/dev/nvme3n1 --direct=1 --group_reporting

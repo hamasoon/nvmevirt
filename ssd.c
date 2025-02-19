@@ -125,10 +125,19 @@ bool buffer_allocatable_check(struct buffer *buf, uint64_t start_lpn, uint64_t e
 
 	while (!spin_trylock(&buf->lock))
 		;
+	
+	// int free_secs = 0;
+	// int total_secs = buf->size / LBA_SIZE;
 
 	list_for_each_entry(ppg, &buf->used_ppgs, list) {
 		left_pgs_per_buf[ppg->ftl_idx] += buf->pg_per_ppg - ppg->pg_idx;
+
+		// for (int i = 0; i < buf->pg_per_ppg; i++) {
+		// 	free_secs += ppg->pages[i].free_secs;
+		// }
 	}
+
+	// int utilized_ratio = ((total_secs - free_secs) * 100) / total_secs;
 
 	left_ppgs = list_count_nodes(&buf->free_ppgs);
 
@@ -146,6 +155,8 @@ bool buffer_allocatable_check(struct buffer *buf, uint64_t start_lpn, uint64_t e
 		for (int j = 0; j < required_pgs[i]; j++) {
 			if (left_pgs_per_buf[i] == 0) {
 				if (left_ppgs == 0) {
+					// NVMEV_INFO("Allocate Failed - free secs: %d, total secs: %d, utilized ratio: %d", 
+					// 	free_secs, total_secs, utilized_ratio);
 					return false;
 				}
 				left_ppgs--;
