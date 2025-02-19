@@ -25,6 +25,7 @@ void buffer_init(struct buffer *buf, size_t size, struct ssdparams *spp)
 	buf->pg_per_ppg = spp->pgs_per_flashpg;
 	buf->sec_per_pg = spp->secs_per_pg;
 	// buf->free_pgs_cnt = buf->ppg_per_buf * buf->pg_per_ppg;
+	buf->min_flush_threshold = buf->ppg_per_buf / 2;
 	buf->flush_threshold = buf->ppg_per_buf / 2;
 
 	NVMEV_INFO("[buffer_init] buffer size: %ld, ppg size: %ld, ppg per buf: %ld, pg per ppg: %ld, sec per pg: %ld, flush threshold: %ld",
@@ -83,9 +84,6 @@ static void __buffer_fill_page(struct buffer *buf, uint64_t lpn, uint64_t size, 
 {
 	if (size == 0) return;
 
-	while (!spin_trylock(&buf->lock))
-		;
-
 	struct buffer_ppg* ppg;
 	struct buffer_page *page = __buffer_get_page(buf, lpn);
 
@@ -110,11 +108,9 @@ static void __buffer_fill_page(struct buffer *buf, uint64_t lpn, uint64_t size, 
 			page->sectors[idx] = true;
 		}
 	}
-
-	spin_unlock(&buf->lock);
 }
 
-bool buffer_allocate(struct buffer *buf, uint64_t start_lpn, uint64_t end_lpn, uint64_t start_offset, uint64_t size)
+bool buffer_allocatable_check(struct buffer *buf, uint64_t start_lpn, uint64_t end_lpn, uint64_t start_offset, uint64_t size)
 {
 	struct buffer_ppg *ppg = NULL;
 	struct buffer_page *page = NULL;
@@ -150,7 +146,6 @@ bool buffer_allocate(struct buffer *buf, uint64_t start_lpn, uint64_t end_lpn, u
 		for (int j = 0; j < required_pgs[i]; j++) {
 			if (left_pgs_per_buf[i] == 0) {
 				if (left_ppgs == 0) {
-					// NVMEV_INFO("buffer allocate - failed, not enough free pages %ld - %ld", list_count_nodes(&buf->free_ppgs), list_count_nodes(&buf->used_ppgs));
 					return false;
 				}
 				left_ppgs--;
@@ -159,6 +154,8 @@ bool buffer_allocate(struct buffer *buf, uint64_t start_lpn, uint64_t end_lpn, u
 			left_pgs_per_buf[i]--;
 		}
 	}
+
+	return true;
 
 	// NVMEV_INFO("buffer allocate - start_lpn: %lld, end_lpn: %lld, start_offset: %lld, size: %lld, used pgs: %ld, free pgs: %ld", 
 	// 	start_lpn, end_lpn, start_offset, size, list_count_nodes(&buf->used_ppgs), list_count_nodes(&buf->free_ppgs));
@@ -173,9 +170,20 @@ bool buffer_allocate(struct buffer *buf, uint64_t start_lpn, uint64_t end_lpn, u
 	// }
 
 	// spin_unlock(&buf->lock);
+}
 
+void buffer_allocate(struct buffer *buf, uint64_t start_lpn, uint64_t end_lpn, uint64_t start_offset, uint64_t size)
+{
+	struct buffer_ppg *ppg = NULL;
+	struct buffer_page *page = NULL;
+	uint32_t nr_parts = SSD_PARTITIONS;
+	uint64_t pgsz = buf->pg_size;
+	uint64_t start_size = min((buf->sec_per_pg - start_offset) * LBA_SIZE, size);
 
 	/* handle first page */
+	while (!spin_trylock(&buf->lock))
+		;
+	
 	__buffer_fill_page(buf, start_lpn++, start_size, start_offset);
 
 	for (size -= start_size; size > pgsz; size -= pgsz) {
@@ -185,7 +193,7 @@ bool buffer_allocate(struct buffer *buf, uint64_t start_lpn, uint64_t end_lpn, u
 	/* handle last page */
 	__buffer_fill_page(buf, start_lpn, size, 0);
 
-	return true;
+	spin_unlock(&buf->lock);
 }
 
 bool buffer_release(struct buffer *buf, uint64_t complete_time)
@@ -249,16 +257,22 @@ void buffer_refill(struct buffer *buf)
 // TODO: Fix after check conv_ftl
 struct buffer_page *buffer_search(struct buffer *buf, uint64_t lpn)
 {
+	while(!spin_trylock(&buf->lock))
+		;
+
 	struct buffer_ppg *ppg;
 	list_for_each_entry(ppg, &buf->used_ppgs, list) {
 		if (ppg->status == VALID) {
 			for (int i = 0; i < buf->pg_per_ppg; i++)  {
 				if (ppg->pages[i].lpn == lpn) {
+					spin_unlock(&buf->lock);
 					return &ppg->pages[i];
 				}
 			}
 		}
 	}
+
+	spin_unlock(&buf->lock);
 
 	return NULL;
 }

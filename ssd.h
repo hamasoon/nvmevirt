@@ -312,7 +312,8 @@ uint64_t ssd_advance_write_buffer(struct ssd *ssd, uint64_t request_time, uint64
 uint64_t ssd_next_idle_time(struct ssd *ssd);
 
 void buffer_init(struct buffer *buf, size_t size, struct ssdparams *spp);
-bool buffer_allocate(struct buffer *buf, uint64_t start_lpn, uint64_t end_lpn, uint64_t start_offset, uint64_t size);
+bool buffer_allocatable_check(struct buffer *buf, uint64_t start_lpn, uint64_t end_lpn, uint64_t start_offset, uint64_t size);
+void buffer_allocate(struct buffer *buf, uint64_t start_lpn, uint64_t end_lpn, uint64_t start_offset, uint64_t size);
 bool buffer_release(struct buffer *buf, uint64_t complete_time);
 void buffer_refill(struct buffer *buf);
 struct buffer_page *buffer_search(struct buffer *buf, uint64_t lpn);

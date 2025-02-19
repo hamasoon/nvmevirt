@@ -23,6 +23,10 @@
 #define CELL_MODE_TLC 3
 #define CELL_MODE_QLC 4
 
+/* Buffer Flush Policy */
+#define NAIVE 0
+#define LRU 1
+
 /* Must select one of INTEL_OPTANE, SAMSUNG_970PRO, or ZNS_PROTOTYPE
  * in Makefile */
 

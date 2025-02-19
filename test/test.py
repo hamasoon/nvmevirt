@@ -38,7 +38,22 @@ def random_access(size, bs=BS):
     random.shuffle(testset)
     return testset
 
-def round_robin(size, bs=BS):
+def round_robin_sequential(size, bs=BS):
+    result = []
+    tmp = [[] for _ in range(FTL_INSTANCES)]
+    lin_data = linear(size, bs)
+    
+    for d in lin_data:
+        tmp[(d // PAGE_SIZE) % FTL_INSTANCES].append(d)
+        
+    for j in range(len(tmp[0])):
+        for i in range(FTL_INSTANCES):
+            if j < len(tmp[i]):
+                result.append(tmp[i][j])
+        
+    return result
+
+def round_robin_random(size, bs=BS):
     result = []
     tmp = [[] for _ in range(FTL_INSTANCES)]
     lin_data = linear(size, bs)
@@ -96,9 +111,9 @@ def run_test(testtype, bs=BS):
     os.system(f'sudo {test_filename} -f {FILENAME} -m {IO_ENGINE} -j {NUMJOBS} -q {IO_DEPTH} -t {SIZE} -b {bs}')
 
 if __name__ == '__main__':
-    run_test(linear, bs='4K')
-    run_test(linear, bs='8K')
-    run_test(linear, bs='16K')
-    # run_test(random_access, bs='32K')
-    # run_test(random_access, bs='64K')
-    # run_test(random_access, bs='128K')    
+    run_test(round_robin_sequential, bs='4K')
+    run_test(round_robin_sequential, bs='8K')
+    run_test(round_robin_sequential, bs='16K')
+    # run_test(round_robin_sequential, bs='32K')
+    # run_test(round_robin, bs='64K')
+    # run_test(round_robin, bs='128K')

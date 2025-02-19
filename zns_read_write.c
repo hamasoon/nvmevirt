@@ -101,7 +101,7 @@ static bool __zns_write(struct zns_ftl *zns_ftl, struct nvmev_request *req,
 	else
 		write_buffer = zns_ftl->ssd->write_buffer;
 
-	if (buffer_allocate(write_buffer, LBA_TO_BYTE(nr_lba)) < LBA_TO_BYTE(nr_lba))
+	if (buffer_allocatable_check(write_buffer, LBA_TO_BYTE(nr_lba)) < LBA_TO_BYTE(nr_lba))
 		return false;
 
 	if ((LBA_TO_BYTE(nr_lba) % spp->write_unit_size) != 0) {
@@ -286,7 +286,7 @@ static bool __zns_write_zrwa(struct zns_ftl *zns_ftl, struct nvmev_request *req,
 			goto out;
 		}
 
-		if (!buffer_allocate(&zns_ftl->zrwa_buffer[zid], zpp->zrwa_size))
+		if (!buffer_allocatable_check(&zns_ftl->zrwa_buffer[zid], zpp->zrwa_size))
 			NVMEV_ASSERT(0);
 
 		// change to ZSIO
@@ -329,7 +329,7 @@ static bool __zns_write_zrwa(struct zns_ftl *zns_ftl, struct nvmev_request *req,
 	}
 
 	if (nr_lbas_flush > 0) {
-		if (!buffer_allocate(&zns_ftl->zrwa_buffer[zid], LBA_TO_BYTE(nr_lbas_flush)))
+		if (!buffer_allocatable_check(&zns_ftl->zrwa_buffer[zid], LBA_TO_BYTE(nr_lbas_flush)))
 			return false;
 
 		__increase_write_ptr(zns_ftl, zid, nr_lbas_flush);

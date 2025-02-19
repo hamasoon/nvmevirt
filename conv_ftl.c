@@ -50,7 +50,27 @@ static inline bool check_flush_buffer_allocate_fail(struct buffer *buf)
 	// if Flush occur previously, then some of the buffer still remain but less than threshold
 	// in this case, buffer utilization is decreased because of waiting for release and allocation
 	// SUGGEST: temporarily set the minimum threshold to flush buffer even if it is not much as the normal threshold
-	return cnt_full_ppg >= buf->flush_threshold && cnt_full_ppg == cnt_used_ppg;
+	return cnt_full_ppg >= buf->min_flush_threshold && cnt_full_ppg == cnt_used_ppg;
+}
+
+/*
+* Select a buffer page group to flush
+* Naive implementation: select the all buffer pages in the buffer when used buffer pages are more than threshold
+* LRU implementation: select the least recently used buffer pages in the buffer when used buffer pages are more than threshold
+*/
+static inline void select_flush_buffer(struct buffer *buf)
+{
+	#if (FLUSH_POLICY == NAIVE)
+	struct buffer_ppg *ppg;
+	list_for_each_entry(ppg, &buf->used_ppgs, list) {
+		if (ppg->status == VALID && ppg->pg_idx == buf->pg_per_ppg) {
+			ppg->status = RMW_TARGET;
+		}
+	}
+	#elif (FLUSH_POLICY == LRU)
+	
+	#endif
+	return;
 }
 
 static inline bool last_pg_in_wordline(struct conv_ftl *conv_ftl, struct ppa *ppa)
@@ -1039,10 +1059,15 @@ static uint64_t conv_rmw(struct nvmev_ns *ns, struct nvmev_request *req, uint64_
 	struct ppa prev_ppa;
 	struct ppa ppa;
 	int32_t xfer_size = 0;
+
+	select_flush_buffer(wbuf);
+
 	list_for_each_entry(ppg, &wbuf->used_ppgs, list) {
-		if(ppg->status != VALID || ppg->pg_idx != wbuf->pg_per_ppg) {
+		if(ppg->status != RMW_TARGET) {
 			continue;
 		}
+		
+		ppg->status = FLUSHING;
 		
 		uint64_t nsecs_completed = nsecs_rmw_start;
 		uint64_t nsecs_write_start = nsecs_rmw_start;
@@ -1082,7 +1107,6 @@ static uint64_t conv_rmw(struct nvmev_ns *ns, struct nvmev_request *req, uint64_
 			prev_ppa = ppa;
 		}
 
-		ppg->status = FLUSHING;
 		swr.stime = nsecs_write_start;
 
 		/* Assumption: all pages in physical buffer page */
@@ -1174,38 +1198,45 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 		return false;
 	}
 
-	if (!buffer_allocate(wbuf, start_lpn, end_lpn, start_offset, size)){
+	if (!buffer_allocatable_check(wbuf, start_lpn, end_lpn, start_offset, size)){
 		NVMEV_DEBUG("%s: buffer_allocate failed\n", __func__);
 		while (!spin_trylock(&wbuf->lock))
 			;
 
 		if (check_flush_buffer_allocate_fail(wbuf)) {
-			// int flushing_ppgs  = 0;
-			// int used_ppgs = 0;
-		
-			// struct buffer_ppg *ppg;
-			// list_for_each_entry(ppg, &wbuf->used_ppgs, list) {
-			// 	if (ppg->status == FLUSHING) {
-			// 		flushing_ppgs++;
-			// 	}
-		
-			// 	if (ppg->status == VALID) {
-			// 		used_ppgs++;
-			// 	}
-			// }
-			// NVMEV_INFO("Back RMW Start - Buffer Status: Free %ld, Flushing %d, Used %d\n", list_count_nodes(&wbuf->free_ppgs), flushing_ppgs, used_ppgs);
+			int flushing_ppgs  = 0;
+			int used_ppgs = 0;
+			int free_secs = 0;
+			int total_secs = spp->write_buffer_size / spp->secsz;
+	
+			struct buffer_ppg *ppg;
+			list_for_each_entry(ppg, &wbuf->used_ppgs, list) {
+				if (ppg->status == FLUSHING) {
+					flushing_ppgs++;
+				}
+	
+				if (ppg->status == VALID) {
+					used_ppgs++;
+				}
+	
+				for (int i = 0; i < wbuf->pg_per_ppg; i++) {
+					free_secs += ppg->pages[i].free_secs;
+				}
+			}
+	
+			int utilized_ratio = ((total_secs - free_secs) * 100) / total_secs;
+			NVMEV_INFO("Back RMW Start - Buffer Status: Free %ld, Flushing %d, Used %d, Utilization Ratio %d%%\n", list_count_nodes(&wbuf->free_ppgs), flushing_ppgs, used_ppgs, utilized_ratio);
 			conv_rmw(ns, req, nsecs_start);
 		}
 
 		spin_unlock(&wbuf->lock);
-
-		// do back rmw
 
 		return false;
 	}
 
 	// NVMEV_INFO("start_lpn=%lld, len=%lld, end_lpn=%lld, delay=%lld", start_lpn, nr_lba, end_lpn, local_clock() - time);
 	time = local_clock();
+	buffer_allocate(wbuf, start_lpn, end_lpn, start_offset, size);
 
 	nvmev_vdev->user_write += size;
 
@@ -1223,6 +1254,8 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 	if (check_flush_buffer(wbuf)) {
 		int flushing_ppgs  = 0;
 		int used_ppgs = 0;
+		int free_secs = 0;
+		int total_secs = spp->write_buffer_size / spp->secsz;
 
 		struct buffer_ppg *ppg;
 		list_for_each_entry(ppg, &wbuf->used_ppgs, list) {
@@ -1233,10 +1266,14 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 			if (ppg->status == VALID) {
 				used_ppgs++;
 			}
+
+			for (int i = 0; i < wbuf->pg_per_ppg; i++) {
+				free_secs += ppg->pages[i].free_secs;
+			}
 		}
 
-
-		// NVMEV_INFO("Front RMW Start - Buffer Status: Free %ld, Flushing %d, Used %d\n", list_count_nodes(&wbuf->free_ppgs), flushing_ppgs, used_ppgs);
+		int utilized_ratio = ((total_secs - free_secs) * 100) / total_secs;
+		NVMEV_INFO("Front RMW Start - Buffer Status: Free %ld, Flushing %d, Used %d, Utilization Ratio %d%%\n", list_count_nodes(&wbuf->free_ppgs), flushing_ppgs, used_ppgs, utilized_ratio);
 		nsecs_latest = max(conv_rmw(ns, req, nsecs_xfer_completed), nsecs_latest);
 	}
 
