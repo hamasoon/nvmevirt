@@ -1191,6 +1191,29 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 	uint64_t buffer_lat = 0;
 	uint64_t write_lat = 0;
 
+	if (local_clock() - time > 100000) {
+		while (!spin_trylock(&wbuf->lock))
+			;
+
+		int free_secs = 0;
+		int total_secs = spp->write_buffer_size / spp->secsz;
+
+		struct buffer_ppg *ppg;
+		list_for_each_entry(ppg, &wbuf->used_ppgs, list) {
+			for (int i = 0; i < wbuf->pg_per_ppg; i++) {
+				free_secs += ppg->pages[i].free_secs;
+			}
+		}
+
+		free_secs += list_count_nodes(&wbuf->free_ppgs) * wbuf->sec_per_pg * wbuf->pg_per_ppg;
+
+		int utilized_ratio = ((total_secs - free_secs) * 100) / total_secs;
+		NVMEV_INFO("Buffer Utilization Ratio: %d%%\n", utilized_ratio);
+		time = local_clock();
+
+		spin_unlock(&wbuf->lock);
+	}
+	
 	NVMEV_DEBUG_VERBOSE("%s: start_lpn=%lld, len=%lld, end_lpn=%lld", __func__, start_lpn, nr_lba, end_lpn);
 	if ((end_lpn / nr_parts) >= spp->tt_pgs) {
 		NVMEV_ERROR("%s: lpn passed FTL range (start_lpn=%lld > tt_pgs=%ld)\n",
@@ -1204,27 +1227,6 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 			;
 
 		if (check_flush_buffer_allocate_fail(wbuf)) {
-			// int flushing_ppgs  = 0;
-			// int used_ppgs = 0;
-			// int free_secs = 0;
-			// int total_secs = spp->write_buffer_size / spp->secsz;
-	
-			// struct buffer_ppg *ppg;
-			// list_for_each_entry(ppg, &wbuf->used_ppgs, list) {
-			// 	if (ppg->status == FLUSHING) {
-			// 		flushing_ppgs++;
-			// 	}
-	
-			// 	if (ppg->status == VALID) {
-			// 		used_ppgs++;
-			// 	}
-	
-			// 	for (int i = 0; i < wbuf->pg_per_ppg; i++) {
-			// 		free_secs += ppg->pages[i].free_secs;
-			// 	}
-			// }
-	
-			// int utilized_ratio = ((total_secs - free_secs) * 100) / total_secs;
 			// NVMEV_INFO("Back RMW Start - Buffer Status: Free %ld, Flushing %d, Used %d, Utilization Ratio %d%%\n", list_count_nodes(&wbuf->free_ppgs), flushing_ppgs, used_ppgs, utilized_ratio);
 			conv_rmw(ns, req, nsecs_start);
 		}
@@ -1235,7 +1237,7 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 	}
 
 	// NVMEV_INFO("start_lpn=%lld, len=%lld, end_lpn=%lld, delay=%lld", start_lpn, nr_lba, end_lpn, local_clock() - time);
-	time = local_clock();
+	// time = local_clock();
 	buffer_allocate(wbuf, start_lpn, end_lpn, start_offset, size);
 
 	nvmev_vdev->user_write += size;
@@ -1252,28 +1254,6 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 		;
 
 	if (check_flush_buffer(wbuf)) {
-		// int flushing_ppgs  = 0;
-		// int used_ppgs = 0;
-		// int free_secs = 0;
-		// int total_secs = spp->write_buffer_size / spp->secsz;
-
-		// struct buffer_ppg *ppg;
-		// list_for_each_entry(ppg, &wbuf->used_ppgs, list) {
-		// 	if (ppg->status == FLUSHING) {
-		// 		flushing_ppgs++;
-		// 	}
-
-		// 	if (ppg->status == VALID) {
-		// 		used_ppgs++;
-		// 	}
-
-		// 	for (int i = 0; i < wbuf->pg_per_ppg; i++) {
-		// 		free_secs += ppg->pages[i].free_secs;
-		// 	}
-		// }
-
-		// int utilized_ratio = ((total_secs - free_secs) * 100) / total_secs;
-
 		// NVMEV_INFO("Front RMW Start - Buffer Status: Free %ld, Flushing %d, Used %d, Utilization Ratio %d%%\n", list_count_nodes(&wbuf->free_ppgs), flushing_ppgs, used_ppgs, utilized_ratio);
 		nsecs_latest = max(conv_rmw(ns, req, nsecs_xfer_completed), nsecs_latest);
 	}
