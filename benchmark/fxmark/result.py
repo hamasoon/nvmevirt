@@ -37,22 +37,31 @@ def plot_data(data, workload):
     
     for dt in data_type:
         plt.clf()
+        plt.figure(figsize=(10, 6))
         plt.title(f'{workload} - {dt}')
         plt.xlabel('Block Size (Byte)')
-        plt.ylabel(dt)
+        plt.ylabel('Throughput (Kops/sec)')
         
         values = []
+        ratio = []
         for bs in block_size:
-            values.append(float(data.at[bs, dt]))
+            values.append(float(data.at[bs, dt]) / 1000)
+            ratio.append(format(float(data.at[bs, dt]) / float(data.at['origin', dt]) * 100, '.2f') + '%')
         
         bar = plt.bar(block_size, values, alpha=0.7, color=['white', 'white', 'gray', 'gray'], edgecolor='black')
         bar[0].set_label('4K')
         bar[1].set_label('16K')
         bar[2].set_label('32K')
-        bar[2].set_label('Origin')
+        bar[3].set_label('Origin')
         bar[1].set_hatch('/')
         bar[3].set_hatch('/')
         
+        idx = 0
+        for rect in bar:
+            height = rect.get_height()
+            plt.text(rect.get_x()+rect.get_width()/2.0, height, ratio[idx], ha = 'center',va='bottom',size=10)
+            idx += 1
+                
         plt.legend()
         if dt == 'works/sec':
             plt.savefig(os.path.join(os.path.dirname(__file__), f'plot/{workload}_works.sec.png'))

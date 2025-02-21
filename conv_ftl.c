@@ -1193,8 +1193,66 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 		return false;
 	}
 
+
+	if (local_clock() - time > 100000) {
+		// int free_secs = 0;
+		// int total_secs = GLOBAL_WB_SIZE / LBA_SIZE;
+
+		// for (int i = 0; i < nr_parts; i++) {
+		// 	conv_ftl = &conv_ftls[i];
+		// 	wbuf = &conv_ftl->ssd->write_buffer;
+		// 	while (!spin_trylock(&wbuf->lock))
+		// 		;
+			
+		// 	struct buffer_ppg *ppg = NULL;
+		// 	list_for_each_entry(ppg, &wbuf->used_ppgs, list) {
+		// 		for (int j = 0; j < wbuf->pg_per_ppg; j++) {
+		// 			free_secs += ppg->pages[j].free_secs;
+		// 		}
+		// 	}
+		// 	list_for_each_entry(ppg, &wbuf->free_ppgs, list) {
+		// 		free_secs += wbuf->pg_per_ppg * wbuf->sec_per_pg;
+		// 	}
+
+		// 	spin_unlock(&wbuf->lock);
+		// }
+
+		// int utilized_ratio = ((total_secs - free_secs) * 100) / total_secs;
+		// NVMEV_INFO("Buffer State Free secs: %d, Total secs: %d Utilized Ratio: %d%%\n", free_secs, total_secs, utilized_ratio);
+
+
+		int free_ppgs = 0;
+		int flushing_ppgs = 0;
+		int used_ppgs = 0;
+
+		for (int i = 0; i < nr_parts; i++) {
+			conv_ftl = &conv_ftls[i];
+			wbuf = &conv_ftl->ssd->write_buffer;
+			while (!spin_trylock(&wbuf->lock))
+				;
+			
+			struct buffer_ppg *ppg = NULL;
+			list_for_each_entry(ppg, &wbuf->used_ppgs, list) {
+				if (ppg->valid){
+					used_ppgs++;
+				}
+				else {
+					flushing_ppgs++;
+				}
+			}
+			
+			free_ppgs += list_count_nodes(&wbuf->free_ppgs);
+
+			spin_unlock(&wbuf->lock);
+		}
+
+		NVMEV_INFO("Buffer State Free ppgs: %d, Flushing ppgs: %d, Used ppgs: %d\n", free_ppgs, flushing_ppgs, used_ppgs);
+		time = local_clock();
+	}
+
 	if (!buffer_allocate(ns, start_lpn, end_lpn, start_offset, size)){
 		NVMEV_DEBUG("%s: buffer_allocate failed\n", __func__);
+
 		for (int i = 0; i < nr_parts; i++) {
 			conv_ftl = &conv_ftls[i];
 			wbuf = &conv_ftl->ssd->write_buffer;
@@ -1213,7 +1271,6 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 	}
 
 	// NVMEV_INFO("start_lpn=%lld, len=%lld, end_lpn=%lld, delay=%lld", start_lpn, nr_lba, end_lpn, local_clock() - time);
-	time = local_clock();
 
 	nvmev_vdev->user_write += size;
 

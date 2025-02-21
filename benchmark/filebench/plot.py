@@ -45,6 +45,7 @@ def plot_summary(data1, data2, data3, data4, workload):
     
     for t, l in zip(data_type, label):
         values = [data1.loc[t, 'total'], data2.loc[t, 'total'], data3.loc[t, 'total'], data4.loc[t, 'total']]
+        ratio = [format(values[i] / values[3] * 100, '.2f') + '%' for i in range(4)]
         plt.clf()
         plt.figure(figsize=(9, 6))
         bar = plt.bar(['4K', '16K', '32K', 'Origin'], values, alpha=0.7, color=['white', 'white', 'gray', 'gray'], edgecolor='black')
@@ -55,9 +56,15 @@ def plot_summary(data1, data2, data3, data4, workload):
         bar[1].set_hatch('/')
         bar[3].set_hatch('/')
         
+        idx = 0
+        for rect in bar:
+            height = rect.get_height()
+            plt.text(rect.get_x() + rect.get_width()/2.0, height, f'{ratio[idx]}', ha='center', va='bottom')
+            idx += 1
+        
         plt.xlabel('Block Size (Byte)')
         plt.ylabel(l)
-        plt.title(l)
+        plt.title(workload + ' - ' + l)
         
         if t == 'ops/sec':
             plt.savefig(os.path.join(os.path.dirname(__file__), f'plot/{workload}_ops.sec.png'))
