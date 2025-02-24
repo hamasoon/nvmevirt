@@ -4,6 +4,24 @@ CONFIG_NVMEVIRT_SSD := y
 #CONFIG_NVMEVIRT_ZNS := y
 #CONFIG_NVMEVIRT_KV := y
 
+# Mapping Size
+#MAPPING_4KB 0
+#MAPPING_16KB 1
+#MAPPING_32KB 2
+
+# Buffer Flush Timing Policy
+#FULL 0
+#FULL_WAIT_QUATER 1
+#FULL_WAIT_HALF 2
+#HALF_NAIVE 4
+#HALF_WATERMARK 5
+
+# Buffer Flush Target Policy
+#FIFO 0
+#LRU 1
+#FIFOPLUS 2
+#LRUPLUS 3
+
 obj-m   := nvmev.o
 nvmev-objs := main.o pci.o admin.o io.o dma.o
 ccflags-y += -Wno-unused-variable -Wno-unused-function
@@ -11,7 +29,7 @@ ccflags-y += -Wno-unused-variable -Wno-unused-function
 ccflags-$(CONFIG_NVMEVIRT_NVM) += -DBASE_SSD=INTEL_OPTANE
 nvmev-$(CONFIG_NVMEVIRT_NVM) += simple_ftl.o
 
-ccflags-$(CONFIG_NVMEVIRT_SSD) += -DBASE_SSD=SAMSUNG_970PRO -DFLUSH_TARGET_POLICY=NAIVE -DFLUSH_TIMING_POLICY=HALF_WATERMARK -DMAPPING_SIZE=MAPPING_4KB
+ccflags-$(CONFIG_NVMEVIRT_SSD) += -DBASE_SSD=SAMSUNG_970PRO -DFLUSH_TARGET_POLICY=FIFO -DFLUSH_TIMING_POLICY=FULL_WAIT_QUATER -DMAPPING_SIZE=MAPPING_4KB
 nvmev-$(CONFIG_NVMEVIRT_SSD) += ssd.o conv_ftl.o pqueue/pqueue.o channel_model.o
 
 ccflags-$(CONFIG_NVMEVIRT_ZNS) += -DBASE_SSD=WD_ZN540

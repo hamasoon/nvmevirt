@@ -30,8 +30,6 @@ void buffer_init(struct buffer *buf, size_t size, struct ssdparams *spp)
 	buf->flushing_ppgs_cnt = 0;
 	buf->min_flush_threshold = buf->ppg_per_buf / 4;
 	buf->flush_threshold = buf->ppg_per_buf / 2;
-	buf->flush_high_watermark = buf->ppg_per_buf / 3;
-	buf->flush_low_watermark = buf->flush_high_watermark * 2;
 
 	NVMEV_INFO("[buffer_init] buffer size: %ld, ppg size: %ld, ppg per buf: %ld, pg per ppg: %ld, sec per pg: %ld, flush threshold: %ld",
 		buf->size, buf->ppg_size, buf->ppg_per_buf, buf->pg_per_ppg, buf->sec_per_pg, buf->flush_threshold);
@@ -51,6 +49,7 @@ void buffer_init(struct buffer *buf, size_t size, struct ssdparams *spp)
 			block->pages[j].lpn = INVALID_LPN;
 			block->pages[j].free_secs = buf->sec_per_pg;
 			block->pages[j].sectors = kmalloc(sizeof(bool) * buf->sec_per_pg, GFP_KERNEL);
+			block->pages[j].ppg = block;
 		}
 		list_add_tail(&block->list, &buf->free_ppgs);
 	}
@@ -90,7 +89,7 @@ static void __buffer_fill_page(struct buffer *buf, uint64_t lpn, uint64_t size, 
 {
 	if (size == 0) return;
 
-	struct buffer_ppg* ppg;
+	struct buffer_ppg *ppg;
 	struct buffer_page *page = __buffer_get_page(buf, lpn);
 
 	if (page == NULL) {
@@ -105,10 +104,17 @@ static void __buffer_fill_page(struct buffer *buf, uint64_t lpn, uint64_t size, 
 
 		page = &ppg->pages[ppg->pg_idx++];
 	}
+	else {
+		ppg = page->ppg;
+	}
 
-	#if (FLUSH_TARGET_POLICY == LRU)	
+	#if (FLUSH_TARGET_POLICY == LRU)
+		NVMEV_INFO("LRU Problem");
 		list_move_tail(&ppg->list, &buf->used_ppgs);
 	#endif
+	// if (ppg == NULL) {
+	// 	NVMEV_INFO("ppg is NULL");
+	// }
 	ppg->access_time = local_clock();
 	page->lpn = lpn;
 
@@ -121,14 +127,18 @@ static void __buffer_fill_page(struct buffer *buf, uint64_t lpn, uint64_t size, 
 	}
 
 	/* Check ppg is full */
-	if (ppg->pg_idx == buf->pg_per_ppg) {
-		for (int i = 0; i < buf->pg_per_ppg; i++) {
-			if (ppg->pages[i].free_secs != 0) {
-				return;
-			}
+	if (ppg->pg_idx < buf->pg_per_ppg) {
+		return;
+	}
+
+	for (int i = 0; i < buf->pg_per_ppg; i++) {
+		if (ppg->pages[i].free_secs != 0) {
+			return;
 		}
 	}
 
+	// NVMEV_INFO("buffer fill - ftl_idx: %d, pg_idx: %d, lpn: %lld, free_secs: %ld", 
+	// 	ppg->ftl_idx, ppg->pg_idx, lpn, page->free_secs);
 	ppg->status = RMW_TARGET;
 
 	return;
@@ -143,25 +153,16 @@ bool buffer_allocatable_check(struct buffer *buf, uint64_t start_lpn, uint64_t e
 	uint64_t s_lpn = start_lpn;
 	uint64_t e_lpn = end_lpn;
 	uint64_t start_size = min((buf->sec_per_pg - start_offset) * LBA_SIZE, size);
-	size_t left_pgs_per_buf[SSD_PARTITIONS] = {0, };
+	size_t left_pgs[SSD_PARTITIONS] = {0, };
 	size_t left_ppgs = 0;
 	size_t required_pgs[SSD_PARTITIONS] = {0, };
 
 	while (!spin_trylock(&buf->lock))
 		;
 	
-	// int free_secs = 0;
-	// int total_secs = buf->size / LBA_SIZE;
-
 	list_for_each_entry(ppg, &buf->used_ppgs, list) {
-		left_pgs_per_buf[ppg->ftl_idx] += buf->pg_per_ppg - ppg->pg_idx;
-
-		// for (int i = 0; i < buf->pg_per_ppg; i++) {
-		// 	free_secs += ppg->pages[i].free_secs;
-		// }
+		left_pgs[ppg->ftl_idx] += buf->pg_per_ppg - ppg->pg_idx;
 	}
-
-	// int utilized_ratio = ((total_secs - free_secs) * 100) / total_secs;
 
 	left_ppgs = list_count_nodes(&buf->free_ppgs);
 
@@ -175,36 +176,23 @@ bool buffer_allocatable_check(struct buffer *buf, uint64_t start_lpn, uint64_t e
 
 	spin_unlock(&buf->lock);
 
+	// NVMEV_INFO("buffer allocatable check - left_ppgs: %ld, left_pgs: %ld, %ld, %ld, %ld, required_pgs: %ld, %ld, %ld, %ld", 
+	// 	left_ppgs, left_pgs[0], left_pgs[1], left_pgs[2], left_pgs[3], required_pgs[0], required_pgs[1], required_pgs[2], required_pgs[3]);
+
 	for (int i = 0; i < nr_parts; i++) {
 		for (int j = 0; j < required_pgs[i]; j++) {
-			if (left_pgs_per_buf[i] == 0) {
+			if (left_pgs[i] == 0) {
 				if (left_ppgs == 0) {
-					// NVMEV_INFO("Allocate Failed - free secs: %d, total secs: %d, utilized ratio: %d", 
-					// 	free_secs, total_secs, utilized_ratio);
 					return false;
 				}
 				left_ppgs--;
-				left_pgs_per_buf[i] += buf->pg_per_ppg;
+				left_pgs[i] += buf->pg_per_ppg;
 			}
-			left_pgs_per_buf[i]--;
+			left_pgs[i]--;
 		}
 	}
 
 	return true;
-
-	// NVMEV_INFO("buffer allocate - start_lpn: %lld, end_lpn: %lld, start_offset: %lld, size: %lld, used pgs: %ld, free pgs: %ld", 
-	// 	start_lpn, end_lpn, start_offset, size, list_count_nodes(&buf->used_ppgs), list_count_nodes(&buf->free_ppgs));
-
-	// while (!spin_trylock(&buf->lock))
-	// 	;
-
-	// NVMEV_INFO("buffer allocate - free buf: %ld, used buf: %ld", list_count_nodes(&buf->free_ppgs), list_count_nodes(&buf->used_ppgs));
-
-	// list_for_each_entry(ppg, &buf->used_ppgs, list) {
-	// 	NVMEV_INFO("buffer status - ftl_idx: %d, pg_idx: %d", ppg->ftl_idx, ppg->pg_idx);
-	// }
-
-	// spin_unlock(&buf->lock);
 }
 
 void buffer_allocate(struct buffer *buf, uint64_t start_lpn, uint64_t end_lpn, uint64_t start_offset, uint64_t size)

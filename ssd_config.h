@@ -29,8 +29,10 @@
 
 /* Buffer Flush Timing Policy */
 #define FULL 0
-#define HALF_NAIVE 1
-#define HALF_WATERMARK 2
+#define FULL_WAIT_QUATER 1
+#define FULL_WAIT_HALF 2
+#define HALF_NAIVE 4
+#define HALF_WATERMARK 5
 
 /* Buffer Flush Target Policy */
 #define FIFO 0

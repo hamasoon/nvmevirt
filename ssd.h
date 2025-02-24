@@ -161,8 +161,6 @@ struct buffer {
 	// size_t free_pgs_cnt;
 	size_t min_flush_threshold;
 	size_t flush_threshold;
-	size_t flush_high_watermark;
-	size_t flush_low_watermark;
 	size_t free_ppgs_cnt;
 	size_t used_ppgs_cnt;
 	size_t flushing_ppgs_cnt;
@@ -190,6 +188,7 @@ struct buffer_page {
 	uint64_t lpn;
 	size_t free_secs;
 	bool *sectors;
+	struct buffer_ppg *ppg;
 };
 
 /*
