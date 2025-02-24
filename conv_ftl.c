@@ -13,6 +13,9 @@ static uint64_t time = 0;
 // currently, threshold is half of the total blocks
 static inline bool check_flush_buffer(struct buffer *buf)
 {
+#if (FLUSH_TIMING_POLICY == FULL)
+	return false;
+#elif (FLUSH_TIMING_POLICY == HALF_WATERMARK || HALF_NAIVE)
 	size_t cnt_used_ppg = 0;
 	size_t cnt_full_ppg = 0;
 	struct buffer_ppg *block;
@@ -25,17 +28,21 @@ static inline bool check_flush_buffer(struct buffer *buf)
 		}
 	}
 
-	// full blocks in buffer should be greater or equal than threshold
-	// and also used blocks in buffer should be more than threshold --> using more than half of the buffer
-	// return cnt_full_ppg >= buf->flush_threshold && cnt_full_ppg > buf->flush_threshold;
-	// Discussionable Point: do we have to flush hardly???
-	return cnt_used_ppg > buf->flush_threshold && cnt_full_ppg >= buf->flush_threshold;
+	return cnt_full_ppg >= buf->flush_threshold && cnt_full_ppg == cnt_used_ppg;
+#endif
 }
 
 static inline bool check_flush_buffer_allocate_fail(struct buffer *buf)
 {
+#if (FLUSH_TIMING_POLICY == FULL)
+	return true;
+#elif (FLUSH_TIMING_POLICY == HALF_WATERMARK || HALF_NAIVE)
+	// Discussionable Point: What is the minimum threshold to flush?
+	// if Flush occur previously, then some of the buffer still remain but less than threshold
+	// in this case, buffer utilization is decreased because of waiting for release and allocation
+	// SUGGEST: temporarily set the minimum threshold to flush buffer even if it is not much as the normal threshold
 	size_t cnt_used_ppg = 0;
-	size_t cnt_full_ppg = 0;
+	size_t cnt_full_ppg = 0;	
 	struct buffer_ppg *block;
 	list_for_each_entry(block, &buf->used_ppgs, list) {
 		if (block->status == VALID) {
@@ -46,11 +53,8 @@ static inline bool check_flush_buffer_allocate_fail(struct buffer *buf)
 		}
 	}
 
-	// Discussionable Point: What is the minimum threshold to flush?
-	// if Flush occur previously, then some of the buffer still remain but less than threshold
-	// in this case, buffer utilization is decreased because of waiting for release and allocation
-	// SUGGEST: temporarily set the minimum threshold to flush buffer even if it is not much as the normal threshold
 	return cnt_full_ppg >= buf->min_flush_threshold && cnt_full_ppg == cnt_used_ppg;
+#endif
 }
 
 /*
@@ -60,17 +64,51 @@ static inline bool check_flush_buffer_allocate_fail(struct buffer *buf)
 */
 static inline void select_flush_buffer(struct buffer *buf)
 {
-	#if (FLUSH_POLICY == NAIVE)
+#if (FLUSH_TIMING_POLICY == FULL)
+	size_t flush_amount = buf->used_ppgs_cnt;
 	struct buffer_ppg *ppg;
 	list_for_each_entry(ppg, &buf->used_ppgs, list) {
 		if (ppg->status == VALID && ppg->pg_idx == buf->pg_per_ppg) {
 			ppg->status = RMW_TARGET;
+			if (--flush_amount == 0) {
+				break;
+			}
 		}
 	}
-	#elif (FLUSH_POLICY == LRU)
-	
-	#endif
 	return;
+#elif (FLUSH_TIMING_POLICY == HALF_NAIVE)
+	size_t flush_amount = 1;
+	struct buffer_ppg *ppg;
+	list_for_each_entry(ppg, &buf->used_ppgs, list) {
+		if (ppg->status == VALID && ppg->pg_idx == buf->pg_per_ppg) {
+			ppg->status = RMW_TARGET;
+			if (--flush_amount == 0) {
+				break;
+			}
+		}
+	}
+	return;
+#elif (FLUSH_TIMING_POLICY == HALF_WATERMARK)
+	size_t flush_amount = 0;
+
+	if (buf->used_ppgs_cnt > buf->flush_high_watermark) {
+		flush_amount = 1;
+	}
+	else if (buf->used_ppgs_cnt > buf->flush_low_watermark) {
+		flush_amount = 2;
+	}
+
+	struct buffer_ppg *ppg;
+	list_for_each_entry(ppg, &buf->used_ppgs, list) {
+		if (ppg->status == VALID && ppg->pg_idx == buf->pg_per_ppg) {
+			ppg->status = RMW_TARGET;
+			if (--flush_amount == 0) {
+				break;
+			}
+		}
+	}
+	return;
+#endif
 }
 
 static inline bool last_pg_in_wordline(struct conv_ftl *conv_ftl, struct ppa *ppa)
@@ -1023,7 +1061,6 @@ static bool conv_read(struct nvmev_ns *ns, struct nvmev_request *req, struct nvm
 	return true;
 }
 
-
 static uint64_t conv_rmw(struct nvmev_ns *ns, struct nvmev_request *req, uint64_t nsecs_rmw_start)
 {
 	// NVMEV_INFO("RMW Start\n");
@@ -1068,6 +1105,8 @@ static uint64_t conv_rmw(struct nvmev_ns *ns, struct nvmev_request *req, uint64_
 		}
 		
 		ppg->status = FLUSHING;
+		wbuf->used_ppgs_cnt--;
+		wbuf->flushing_ppgs_cnt++;
 		
 		uint64_t nsecs_completed = nsecs_rmw_start;
 		uint64_t nsecs_write_start = nsecs_rmw_start;
@@ -1253,6 +1292,10 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 	while (!spin_trylock(&wbuf->lock))
 		;
 
+	/* Flush full pages */
+	conv_rmw(ns, req, nsecs_start);
+
+	/* Check we need RMW */
 	if (check_flush_buffer(wbuf)) {
 		// NVMEV_INFO("Front RMW Start - Buffer Status: Free %ld, Flushing %d, Used %d, Utilization Ratio %d%%\n", list_count_nodes(&wbuf->free_ppgs), flushing_ppgs, used_ppgs, utilized_ratio);
 		nsecs_latest = max(conv_rmw(ns, req, nsecs_xfer_completed), nsecs_latest);

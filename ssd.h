@@ -161,6 +161,11 @@ struct buffer {
 	// size_t free_pgs_cnt;
 	size_t min_flush_threshold;
 	size_t flush_threshold;
+	size_t flush_high_watermark;
+	size_t flush_low_watermark;
+	size_t free_ppgs_cnt;
+	size_t used_ppgs_cnt;
+	size_t flushing_ppgs_cnt;
 	struct list_head free_ppgs;
 	struct list_head used_ppgs;
 };
@@ -175,6 +180,7 @@ struct buffer_ppg {
 	int status;
 	int ftl_idx;	
 	int pg_idx;
+	uint64_t access_time;
 	uint64_t complete_time;
 	struct buffer_page *pages;
     struct list_head list;

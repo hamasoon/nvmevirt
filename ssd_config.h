@@ -23,9 +23,20 @@
 #define CELL_MODE_TLC 3
 #define CELL_MODE_QLC 4
 
-/* Buffer Flush Policy */
-#define NAIVE 0
+#define MAPPING_4KB 0
+#define MAPPING_16KB 1
+#define MAPPING_32KB 2
+
+/* Buffer Flush Timing Policy */
+#define FULL 0
+#define HALF_NAIVE 1
+#define HALF_WATERMARK 2
+
+/* Buffer Flush Target Policy */
+#define FIFO 0
 #define LRU 1
+#define FIFOPLUS 2
+#define LRUPLUS 3
 
 /* Must select one of INTEL_OPTANE, SAMSUNG_970PRO, or ZNS_PROTOTYPE
  * in Makefile */
@@ -78,14 +89,12 @@ enum {
 #define NAND_CHANNELS (8)
 #define LUNS_PER_NAND_CH (2)
 #define PLNS_PER_LUN (1)
-#ifdef MAPPING_32KB
-#define LOGICAL_PAGE_SIZE KB(32)
-#else
-#ifdef MAPPING_16KB
-#define LOGICAL_PAGE_SIZE KB(16)
-#else
+#if (MAPPING_SIZE == MAPPING_4KB)
 #define LOGICAL_PAGE_SIZE KB(4)
-#endif
+#elif (MAPPING_SIZE == MAPPING_16KB)
+#define LOGICAL_PAGE_SIZE KB(16)
+#elif (MAPPING_SIZE == MAPPING_32KB)
+#define LOGICAL_PAGE_SIZE KB(32)
 #endif
 #define FLASH_PAGE_SIZE KB(32)
 #define ONESHOT_PAGE_SIZE (FLASH_PAGE_SIZE * 1)

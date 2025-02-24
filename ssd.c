@@ -25,8 +25,13 @@ void buffer_init(struct buffer *buf, size_t size, struct ssdparams *spp)
 	buf->pg_per_ppg = spp->pgs_per_flashpg;
 	buf->sec_per_pg = spp->secs_per_pg;
 	// buf->free_pgs_cnt = buf->ppg_per_buf * buf->pg_per_ppg;
-	buf->min_flush_threshold = buf->ppg_per_buf / 2;
+	buf->free_ppgs_cnt = buf->ppg_per_buf;
+	buf->used_ppgs_cnt = 0;
+	buf->flushing_ppgs_cnt = 0;
+	buf->min_flush_threshold = buf->ppg_per_buf / 4;
 	buf->flush_threshold = buf->ppg_per_buf / 2;
+	buf->flush_high_watermark = buf->ppg_per_buf / 3;
+	buf->flush_low_watermark = buf->flush_high_watermark * 2;
 
 	NVMEV_INFO("[buffer_init] buffer size: %ld, ppg size: %ld, ppg per buf: %ld, pg per ppg: %ld, sec per pg: %ld, flush threshold: %ld",
 		buf->size, buf->ppg_size, buf->ppg_per_buf, buf->pg_per_ppg, buf->sec_per_pg, buf->flush_threshold);
@@ -38,6 +43,7 @@ void buffer_init(struct buffer *buf, size_t size, struct ssdparams *spp)
 		struct buffer_ppg* block = 
 			(struct buffer_ppg*)kmalloc(sizeof(struct buffer_ppg), GFP_KERNEL);
 		block->status = VALID;
+		block->access_time = (uint64_t)-1;
 		block->complete_time = 0;
 		block->ftl_idx = -1;
 		block->pages = (struct buffer_page*)kmalloc(sizeof(struct buffer_page) * buf->pg_per_ppg, GFP_KERNEL);
@@ -93,12 +99,17 @@ static void __buffer_fill_page(struct buffer *buf, uint64_t lpn, uint64_t size, 
 			ppg = list_first_entry(&buf->free_ppgs, struct buffer_ppg, list);
 			list_move_tail(&ppg->list, &buf->used_ppgs);
 			ppg->ftl_idx = GET_FTL_IDX(lpn);
+			buf->free_ppgs_cnt--;
+			buf->used_ppgs_cnt++;
 		}
 
 		page = &ppg->pages[ppg->pg_idx++];
-		// buf->free_pgs_cnt--;
 	}
 
+	#if (FLUSH_TARGET_POLICY == LRU)	
+		list_move_tail(&ppg->list, &buf->used_ppgs);
+	#endif
+	ppg->access_time = local_clock();
 	page->lpn = lpn;
 
 	for (size_t i = 0; i < size / LBA_SIZE; i++) {
@@ -108,6 +119,19 @@ static void __buffer_fill_page(struct buffer *buf, uint64_t lpn, uint64_t size, 
 			page->sectors[idx] = true;
 		}
 	}
+
+	/* Check ppg is full */
+	if (ppg->pg_idx == buf->pg_per_ppg) {
+		for (int i = 0; i < buf->pg_per_ppg; i++) {
+			if (ppg->pages[i].free_secs != 0) {
+				return;
+			}
+		}
+	}
+
+	ppg->status = RMW_TARGET;
+
+	return;
 }
 
 bool buffer_allocatable_check(struct buffer *buf, uint64_t start_lpn, uint64_t end_lpn, uint64_t start_offset, uint64_t size)
@@ -217,6 +241,7 @@ bool buffer_release(struct buffer *buf, uint64_t complete_time)
 	list_for_each_entry_safe(block, tmp, &buf->used_ppgs, list) {
 		if (block->status == FLUSHING && block->complete_time == complete_time) {
 			list_move_tail(&block->list, &buf->free_ppgs);
+			block->access_time = (uint64_t)-1;
 			block->complete_time = 0;
 			block->status = VALID;
 			for (size_t i = 0; i < block->pg_idx; i++) {
@@ -227,6 +252,8 @@ bool buffer_release(struct buffer *buf, uint64_t complete_time)
 				}
 			}
 			// buf->free_pgs_cnt += block->pg_idx;
+			buf->free_ppgs_cnt++;
+			buf->flushing_ppgs_cnt--;
 			block->pg_idx = 0;
 			block->ftl_idx = -1;
 		}
@@ -248,6 +275,7 @@ void buffer_refill(struct buffer *buf)
 	struct buffer_ppg *block, *tmp;
 	list_for_each_entry_safe(block, tmp, &buf->used_ppgs, list) {
 		list_move_tail(&block->list, &buf->free_ppgs);
+		block->access_time = (uint64_t)-1;
 		block->complete_time = 0;
 		block->status = VALID;
 		for (size_t i = 0; i < block->pg_idx; i++) {
