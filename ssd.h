@@ -159,8 +159,9 @@ struct buffer {
 	size_t ppg_size;
 	size_t pg_size;
 	// size_t free_pgs_cnt;
-	size_t min_flush_threshold;
 	size_t flush_threshold;
+	size_t buffer_high_watermark;
+	size_t buffer_low_watermark;
 	size_t free_ppgs_cnt;
 	size_t used_ppgs_cnt;
 	size_t flushing_ppgs_cnt;

@@ -10,6 +10,7 @@
 #include <linux/delay.h>
 #include <linux/uaccess.h>
 #include <linux/version.h>
+#include <linux/vmalloc.h>
 
 #ifdef CONFIG_X86
 #include <asm/e820/types.h>

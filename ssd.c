@@ -28,8 +28,13 @@ void buffer_init(struct buffer *buf, size_t size, struct ssdparams *spp)
 	buf->free_ppgs_cnt = buf->ppg_per_buf;
 	buf->used_ppgs_cnt = 0;
 	buf->flushing_ppgs_cnt = 0;
-	buf->min_flush_threshold = buf->ppg_per_buf / 4;
+#if (FLUSH_TIMING_POLICY == FULL_WAIT_HALF)
 	buf->flush_threshold = buf->ppg_per_buf / 2;
+#elif (FLUSH_TIMING_POLICY == FULL_WAIT_QUATER)
+	buf->flush_threshold = buf->ppg_per_buf / 4;
+#endif
+	buf->buffer_low_watermark = buf->ppg_per_buf / 4;
+	buf->buffer_high_watermark = buf->ppg_per_buf / 2;
 
 	NVMEV_INFO("[buffer_init] buffer size: %ld, ppg size: %ld, ppg per buf: %ld, pg per ppg: %ld, sec per pg: %ld, flush threshold: %ld",
 		buf->size, buf->ppg_size, buf->ppg_per_buf, buf->pg_per_ppg, buf->sec_per_pg, buf->flush_threshold);

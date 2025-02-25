@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include <linux/ktime.h>
 #include <linux/sched/clock.h>
+#include <linux/vmalloc.h>
 
 #include "nvmev.h"
 #include "conv_ftl.h"
@@ -13,14 +14,14 @@ static uint64_t time = 0;
 // currently, threshold is half of the total blocks
 static inline bool check_flush_buffer(struct buffer *buf)
 {
-	size_t cnt_used_ppg = 0;
-	size_t cnt_full_ppg = 0;
+	size_t used_ppgs_cnt = 0;
+	size_t full_ppgs_cnt = 0;
 	struct buffer_ppg *block;
 	list_for_each_entry(block, &buf->used_ppgs, list) {
 		if (block->status == VALID) {
-			cnt_used_ppg++;
+			used_ppgs_cnt++;
 			if (block->pg_idx >= buf->pg_per_ppg) {
-				cnt_full_ppg++;
+				full_ppgs_cnt++;
 			}
 		}
 	}
@@ -31,49 +32,36 @@ static inline bool check_flush_buffer(struct buffer *buf)
 #elif (FLUSH_TIMING_POLICY == FULL_WAIT_HALF)
 	return false;
 #elif (FLUSH_TIMING_POLICY == HALF_NAIVE)
-	return cnt_full_ppg >= buf->flush_threshold && cnt_full_ppg == cnt_used_ppg;
+	return used_ppgs_cnt >= buf->ppg_per_buf / 2;
+#elif (FLUSH_TIMING_POLICY == HALF_STATIC)
+	// Discussionable Point: cnt_used or cnt_full
+	return used_ppgs_cnt >= buf->buffer_high_watermark;
 #elif (FLUSH_TIMING_POLICY == HALF_WATERMARK)
-	return cnt_full_ppg >= buf->flush_threshold && cnt_full_ppg == cnt_used_ppg;
+	return used_ppgs_cnt >= buf->buffer_high_watermark;
 #endif
 }
 
 static inline bool check_flush_buffer_allocate_fail(struct buffer *buf)
 {
-	size_t cnt_used_ppg = 0;
-	size_t cnt_full_ppg = 0;
+	size_t used_ppgs_cnt = 0;
+	size_t full_ppgs_cnt = 0;
 	struct buffer_ppg *block;
 	list_for_each_entry(block, &buf->used_ppgs, list) {
 		if (block->status == VALID) {
-			cnt_used_ppg++;
+			used_ppgs_cnt++;
 			if (block->pg_idx >= buf->pg_per_ppg) {
-				cnt_full_ppg++;
+				full_ppgs_cnt++;
 			}
 		}
 	}
 #if (FLUSH_TIMING_POLICY == FULL)
 	return true;
-#elif (FLUSH_TIMING_POLICY == FULL)
-	return cnt_full_ppg >= buf->min_flush_threshold
-#elif (FLUSH_TIMING_POLICY == FULL)
-	return cnt_full_ppg >= buf->flush_threshold
-#elif (FLUSH_TIMING_POLICY == HALF_WATERMARK || HALF_NAIVE)
-	// Discussionable Point: What is the minimum threshold to flush?
-	// if Flush occur previously, then some of the buffer still remain but less than threshold
-	// in this case, buffer utilization is decreased because of waiting for release and allocation
-	// SUGGEST: temporarily set the minimum threshold to flush buffer even if it is not much as the normal threshold
-	// size_t cnt_used_ppg = 0;
-	// size_t cnt_full_ppg = 0;	
-	// struct buffer_ppg *block;
-	// list_for_each_entry(block, &buf->used_ppgs, list) {
-	// 	if (block->status == VALID) {
-	// 		cnt_used_ppg++;
-	// 		if (block->pg_idx >= buf->pg_per_ppg) {
-	// 			cnt_full_ppg++;
-	// 		}
-	// 	}
-	// }
-
-	return true;
+#elif (FLUSH_TIMING_POLICY == FULL_WAIT_HALF || FULL_WAIT_QUATER)
+	return full_ppgs_cnt >= buf->flush_threshold;
+#elif (FLUSH_TIMING_POLICY == HALF_NAIVE)
+	return used_ppgs_cnt >= buf->buffer_high_watermark;
+#elif (FLUSH_TIMING_POLICY == HALF_WATERMARK || HALF_STATIC)
+	return used_ppgs_cnt >= buf->buffer_high_watermark;
 #endif
 }
 
@@ -84,40 +72,23 @@ static inline bool check_flush_buffer_allocate_fail(struct buffer *buf)
 */
 static inline void select_flush_buffer(struct buffer *buf)
 {
-#if (FLUSH_TIMING_POLICY == FULL)
-	size_t flush_amount = buf->used_ppgs_cnt;
-	struct buffer_ppg *ppg;
-	list_for_each_entry(ppg, &buf->used_ppgs, list) {
-		if (ppg->status == VALID && ppg->pg_idx == buf->pg_per_ppg) {
-			ppg->status = RMW_TARGET;
-			if (--flush_amount == 0) {
-				break;
-			}
-		}
-	}
-	return;
+	size_t flush_amount;
+#if (FLUSH_TIMING_POLICY == FULL || FULL_WAIT_QUATER || FULL_WAIT_HALF)
+	flush_amount = buf->used_ppgs_cnt;
 #elif (FLUSH_TIMING_POLICY == HALF_NAIVE)
-	size_t flush_amount = 1;
-	struct buffer_ppg *ppg;
-	list_for_each_entry(ppg, &buf->used_ppgs, list) {
-		if (ppg->status == VALID && ppg->pg_idx == buf->pg_per_ppg) {
-			ppg->status = RMW_TARGET;
-			if (--flush_amount == 0) {
-				break;
-			}
-		}
-	}
-	return;
+	flush_amount = buf->used_ppgs_cnt;
+#elif (FLUSH_TIMING_POLICY == HALF_STATIC)
+	flush_amount = 1;
 #elif (FLUSH_TIMING_POLICY == HALF_WATERMARK)
-	size_t flush_amount = 0;
+	flush_amount = 0;
 
-	if (buf->used_ppgs_cnt > buf->flush_threshold) {
+	if (buf->used_ppgs_cnt > buf->buffer_high_watermark) {
 		flush_amount = 1;
 	}
-	else if (buf->used_ppgs_cnt > buf->min_flush_threshold) {
+	else if (buf->used_ppgs_cnt > buf->buffer_low_watermark) {
 		flush_amount = 2;
 	}
-
+#endif
 	struct buffer_ppg *ppg;
 	list_for_each_entry(ppg, &buf->used_ppgs, list) {
 		if (ppg->status == VALID && ppg->pg_idx == buf->pg_per_ppg) {
@@ -127,8 +98,8 @@ static inline void select_flush_buffer(struct buffer *buf)
 			}
 		}
 	}
+
 	return;
-#endif
 }
 
 static inline bool last_pg_in_wordline(struct conv_ftl *conv_ftl, struct ppa *ppa)
@@ -240,7 +211,7 @@ static void init_lines(struct conv_ftl *conv_ftl)
 
 	lm->tt_lines = spp->blks_per_pl;
 	NVMEV_ASSERT(lm->tt_lines == spp->tt_lines);
-	lm->lines = kvmalloc(sizeof(struct line) * lm->tt_lines, GFP_KERNEL);
+	lm->lines = vmalloc(sizeof(struct line) * lm->tt_lines);
 
 	INIT_LIST_HEAD(&lm->free_line_list);
 	INIT_LIST_HEAD(&lm->full_line_list);
@@ -272,7 +243,7 @@ static void init_lines(struct conv_ftl *conv_ftl)
 static void remove_lines(struct conv_ftl *conv_ftl)
 {
 	pqueue_free(conv_ftl->lm.victim_line_pq);
-	kvfree(conv_ftl->lm.lines);
+	vfree(conv_ftl->lm.lines);
 }
 
 static void init_write_flow_control(struct conv_ftl *conv_ftl)
@@ -426,7 +397,7 @@ static void init_maptbl(struct conv_ftl *conv_ftl)
 	int i;
 	struct ssdparams *spp = &conv_ftl->ssd->sp;
 
-	conv_ftl->maptbl = kvmalloc(sizeof(struct ppa) * spp->tt_pgs, GFP_KERNEL);
+	conv_ftl->maptbl = vmalloc(sizeof(struct ppa) * spp->tt_pgs);
 	for (i = 0; i < spp->tt_pgs; i++) {
 		conv_ftl->maptbl[i].ppa = UNMAPPED_PPA;
 	}
@@ -434,7 +405,7 @@ static void init_maptbl(struct conv_ftl *conv_ftl)
 
 static void remove_maptbl(struct conv_ftl *conv_ftl)
 {
-	kvfree(conv_ftl->maptbl);
+	vfree(conv_ftl->maptbl);
 }
 
 static void init_rmap(struct conv_ftl *conv_ftl)
@@ -442,7 +413,7 @@ static void init_rmap(struct conv_ftl *conv_ftl)
 	int i;
 	struct ssdparams *spp = &conv_ftl->ssd->sp;
 
-	conv_ftl->rmap = kvmalloc(sizeof(uint64_t) * spp->tt_pgs, GFP_KERNEL);
+	conv_ftl->rmap = vmalloc(sizeof(uint64_t) * spp->tt_pgs);
 	for (i = 0; i < spp->tt_pgs; i++) {
 		conv_ftl->rmap[i] = INVALID_LPN;
 	}
@@ -450,7 +421,7 @@ static void init_rmap(struct conv_ftl *conv_ftl)
 
 static void remove_rmap(struct conv_ftl *conv_ftl)
 {
-	kvfree(conv_ftl->rmap);
+	vfree(conv_ftl->rmap);
 }
 
 static void conv_init_ftl(struct conv_ftl *conv_ftl, struct convparams *cpp, struct ssd *ssd)
