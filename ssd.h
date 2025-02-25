@@ -181,6 +181,7 @@ struct buffer_ppg {
 	int pg_idx;
 	uint64_t access_time;
 	uint64_t complete_time;
+	size_t full_pages_cnt;
 	struct buffer_page *pages;
     struct list_head list;
 };

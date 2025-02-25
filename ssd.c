@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include <linux/ktime.h>
 #include <linux/sched/clock.h>
+#include <linux/list_sort.h>
 
 #include "nvmev.h"
 #include "ssd.h"
@@ -9,6 +10,17 @@
 
 #define ROUNDDOWN(x, y) ((x) - ((x) % (y)))
 #define ROUNDUP(x, y) (((x) + (y) - 1) / (y) * (y))
+
+static int __init cmp(void *priv, struct list_head *a, struct list_head *b)
+{
+	struct buffer_ppg *pa = list_entry(a, struct buffer_ppg, list);
+	struct buffer_ppg *pb = list_entry(b, struct buffer_ppg, list);
+
+	if (pa->full_pages_cnt == pb->full_pages_cnt)
+		return 0;
+	return (pa->full_pages_cnt > pb->full_pages_cnt) ? -1 : 1;
+}
+
 
 static inline uint64_t __get_ioclock(struct ssd *ssd)
 {
@@ -47,6 +59,7 @@ void buffer_init(struct buffer *buf, size_t size, struct ssdparams *spp)
 			(struct buffer_ppg*)kmalloc(sizeof(struct buffer_ppg), GFP_KERNEL);
 		block->status = VALID;
 		block->access_time = (uint64_t)-1;
+		block->full_pages_cnt = 0;
 		block->complete_time = 0;
 		block->ftl_idx = -1;
 		block->pages = (struct buffer_page*)kmalloc(sizeof(struct buffer_page) * buf->pg_per_ppg, GFP_KERNEL);
@@ -113,13 +126,6 @@ static void __buffer_fill_page(struct buffer *buf, uint64_t lpn, uint64_t size, 
 		ppg = page->ppg;
 	}
 
-	#if (FLUSH_TARGET_POLICY == LRU)
-		NVMEV_INFO("LRU Problem");
-		list_move_tail(&ppg->list, &buf->used_ppgs);
-	#endif
-	// if (ppg == NULL) {
-	// 	NVMEV_INFO("ppg is NULL");
-	// }
 	ppg->access_time = local_clock();
 	page->lpn = lpn;
 
@@ -131,20 +137,23 @@ static void __buffer_fill_page(struct buffer *buf, uint64_t lpn, uint64_t size, 
 		}
 	}
 
+	if (page->free_secs == 0) {
+		ppg->full_pages_cnt++;
+	}
+
 	/* Check ppg is full */
-	if (ppg->pg_idx < buf->pg_per_ppg) {
-		return;
+	if (ppg->full_pages_cnt == buf->pg_per_ppg) {
+		ppg->status = RMW_TARGET;
 	}
 
-	for (int i = 0; i < buf->pg_per_ppg; i++) {
-		if (ppg->pages[i].free_secs != 0) {
-			return;
-		}
-	}
-
-	// NVMEV_INFO("buffer fill - ftl_idx: %d, pg_idx: %d, lpn: %lld, free_secs: %ld", 
-	// 	ppg->ftl_idx, ppg->pg_idx, lpn, page->free_secs);
-	ppg->status = RMW_TARGET;
+	#if (FLUSH_TARGET_POLICY == LRU)
+		list_move_tail(&ppg->list, &buf->used_ppgs);
+	#elif (FLUSH_TARGET_POLICY == LRUPLUS)
+		list_move_tail(&ppg->list, &buf->used_ppgs);
+		list_sort(NULL, &buf->used_ppgs, cmp);
+	#elif (FLUSH_TARGET_POLICY == FIFOPLUS)
+		list_sort(NULL, &buf->used_ppgs, cmp);
+	#endif
 
 	return;
 }
@@ -249,6 +258,7 @@ bool buffer_release(struct buffer *buf, uint64_t complete_time)
 			buf->flushing_ppgs_cnt--;
 			block->pg_idx = 0;
 			block->ftl_idx = -1;
+			block->full_pages_cnt = 0;
 		}
 	}
 
@@ -281,6 +291,7 @@ void buffer_refill(struct buffer *buf)
 		// buf->free_pgs_cnt += block->pg_idx;
 		block->pg_idx = 0;
 		block->ftl_idx = -1;
+		block->full_pages_cnt = 0;
 	}
 
 	spin_unlock(&buf->lock);
