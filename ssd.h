@@ -179,9 +179,9 @@ struct buffer_ppg {
 	int status;
 	int ftl_idx;	
 	int pg_idx;
+	size_t full_pages_cnt;
 	uint64_t access_time;
 	uint64_t complete_time;
-	size_t full_pages_cnt;
 	struct buffer_page *pages;
     struct list_head list;
 };

@@ -28,9 +28,10 @@
 #define MAPPING_32KB 2
 
 /* Buffer Flush Timing Policy */
-#define FULL 0
-#define FULL_WAIT_QUATER 1
-#define FULL_WAIT_HALF 2
+#define IMMEDIATE 0
+#define FULL 1
+#define FULL_WAIT_QUATER 2
+#define FULL_WAIT_HALF 3
 #define HALF_NAIVE 5
 #define HALF_STATIC 6
 #define HALF_WATERMARK 7

@@ -25,19 +25,19 @@ static inline bool check_flush_buffer(struct buffer *buf)
 			}
 		}
 	}
-#if (FLUSH_TIMING_POLICY == FULL)
+
+#if (FLUSH_TIMING_POLICY == IMMEDIATE)
+	return false;
+#elif (FLUSH_TIMING_POLICY == FULL)
 	return false;
 #elif (FLUSH_TIMING_POLICY == FULL_WAIT_QUATER)
 	return false;
 #elif (FLUSH_TIMING_POLICY == FULL_WAIT_HALF)
 	return false;
 #elif (FLUSH_TIMING_POLICY == HALF_NAIVE)
-	return used_ppgs_cnt >= buf->ppg_per_buf / 2;
-#elif (FLUSH_TIMING_POLICY == HALF_STATIC)
-	// Discussionable Point: cnt_used or cnt_full
-	return used_ppgs_cnt >= buf->buffer_high_watermark;
-#elif (FLUSH_TIMING_POLICY == HALF_WATERMARK)
-	return used_ppgs_cnt >= buf->buffer_high_watermark;
+	return full_ppgs_cnt >= buf->ppg_per_buf / 2;
+#elif (FLUSH_TIMING_POLICY == HALF_STATIC || FLUSH_TIMING_POLICY ==  HALF_WATERMARK)
+	return full_ppgs_cnt >= buf->buffer_high_watermark;
 #endif
 }
 
@@ -54,14 +54,15 @@ static inline bool check_flush_buffer_allocate_fail(struct buffer *buf)
 			}
 		}
 	}
-#if (FLUSH_TIMING_POLICY == FULL)
-	return true;
-#elif (FLUSH_TIMING_POLICY == FULL_WAIT_HALF || FULL_WAIT_QUATER)
+
+#if (FLUSH_TIMING_POLICY == IMMEDIATE)
+	return false;
+#elif (FLUSH_TIMING_POLICY == FULL)
+	return full_ppgs_cnt >= buf->ppg_per_buf;
+#elif (FLUSH_TIMING_POLICY == FULL_WAIT_HALF || FLUSH_TIMING_POLICY == FULL_WAIT_QUATER)
 	return full_ppgs_cnt >= buf->flush_threshold;
-#elif (FLUSH_TIMING_POLICY == HALF_NAIVE)
-	return used_ppgs_cnt >= buf->buffer_high_watermark;
-#elif (FLUSH_TIMING_POLICY == HALF_WATERMARK || HALF_STATIC)
-	return used_ppgs_cnt >= buf->buffer_high_watermark;
+#elif (FLUSH_TIMING_POLICY == HALF_NAIVE || FLUSH_TIMING_POLICY == HALF_WATERMARK || FLUSH_TIMING_POLICY == HALF_STATIC)
+	return full_ppgs_cnt >= buf->buffer_high_watermark;
 #endif
 }
 
@@ -72,8 +73,10 @@ static inline bool check_flush_buffer_allocate_fail(struct buffer *buf)
 */
 static inline void select_flush_buffer(struct buffer *buf)
 {
-	size_t flush_amount;
-#if (FLUSH_TIMING_POLICY == FULL || FULL_WAIT_QUATER || FULL_WAIT_HALF)
+	int flush_amount;
+#if (FLUSH_TIMING_POLICY == IMMEDIATE)
+	return;
+#elif (FLUSH_TIMING_POLICY == FULL || FULL_WAIT_QUATER || FULL_WAIT_HALF)
 	flush_amount = buf->used_ppgs_cnt;
 #elif (FLUSH_TIMING_POLICY == HALF_NAIVE)
 	flush_amount = buf->used_ppgs_cnt;
@@ -83,21 +86,29 @@ static inline void select_flush_buffer(struct buffer *buf)
 	flush_amount = 0;
 
 	if (buf->used_ppgs_cnt > buf->buffer_high_watermark) {
-		flush_amount = 1;
-	}
-	else if (buf->used_ppgs_cnt > buf->buffer_low_watermark) {
 		flush_amount = 2;
 	}
+	else if (buf->used_ppgs_cnt > buf->buffer_low_watermark) {
+		flush_amount = 4;
+	}
 #endif
+	int valid_ppgs = 0;
 	struct buffer_ppg *ppg;
 	list_for_each_entry(ppg, &buf->used_ppgs, list) {
+		
 		if (ppg->status == VALID && ppg->pg_idx == buf->pg_per_ppg) {
-			ppg->status = RMW_TARGET;
-			if (--flush_amount == 0) {
-				break;
+			// ppg->status = RMW_TARGET;
+			// if (--flush_amount == 0) {
+			// 	break;
+			// }
+			valid_ppgs++;
+			if (flush_amount-- >= 0) {
+				ppg->status = RMW_TARGET;
 			}
 		}
 	}
+
+	NVMEV_INFO("DO RMW: %d", valid_ppgs);
 
 	return;
 }
@@ -1075,7 +1086,6 @@ static uint64_t conv_rmw(struct nvmev_ns *ns, struct nvmev_request *req, uint64_
 		.type = USER_IO,
 		.cmd = NAND_READ,
 		.interleave_pci_dma = false,
-		.stime = nsecs_rmw_start,
 		.xfer_size = spp->pgsz,
 	};
 
@@ -1086,7 +1096,6 @@ static uint64_t conv_rmw(struct nvmev_ns *ns, struct nvmev_request *req, uint64_
 	struct buffer_page *page;
 	struct ppa prev_ppa;
 	struct ppa ppa;
-	int32_t xfer_size = 0;
 
 	list_for_each_entry(ppg, &wbuf->used_ppgs, list) {
 		if(ppg->status != RMW_TARGET) {
@@ -1101,38 +1110,40 @@ static uint64_t conv_rmw(struct nvmev_ns *ns, struct nvmev_request *req, uint64_
 		uint64_t nsecs_write_start = nsecs_rmw_start;
 		uint64_t lpn = INVALID_LPN;
 		uint64_t local_lpn = INVALID_LPN;
+		int32_t xfer_size = 0;
 		conv_ftl = &conv_ftls[ppg->ftl_idx];
-		prev_ppa = get_maptbl_ent(conv_ftl, LOCAL_LPN(ppg->pages[0].lpn));
 
-		for (size_t j = 0; j < wbuf->pg_per_ppg; j++) {
-			page = &ppg->pages[j];
-			lpn = page->lpn;
-			local_lpn = LOCAL_LPN(lpn);
-			ppa = get_maptbl_ent(conv_ftl, local_lpn);
+		if (ppg->full_pages_cnt < wbuf->pg_per_ppg) {
+			prev_ppa = get_maptbl_ent(conv_ftl, LOCAL_LPN(ppg->pages[0].lpn));
 
-			if (!mapped_ppa(&ppa) || !valid_ppa(conv_ftl, &ppa)) {
-				continue;
-			}
+			for (size_t j = 0; j < wbuf->pg_per_ppg; j++) {
+				page = &ppg->pages[j];
+				lpn = page->lpn;
+				local_lpn = LOCAL_LPN(lpn);
+				ppa = get_maptbl_ent(conv_ftl, local_lpn);
 
-			if (page->free_secs > 0) {
-				if (is_same_flash_page(conv_ftl, ppa, prev_ppa)) {
-					xfer_size += spp->pgsz;
+				if (!mapped_ppa(&ppa) || !valid_ppa(conv_ftl, &ppa)) {
 					continue;
-				} 
-					
-				if (xfer_size > 0) {
-					// NVMEV_INFO("RMW Read buffer(%lu) - lpn: %llu, xfer_size: %d, free_ppg: %lu, used_ppg: %lu\n", 
-					// 	ftl_idx, lpn, xfer_size, list_count_nodes(&wbuf->free_ppgs), list_count_nodes(&wbuf->used_ppgs));
-					srd.xfer_size = xfer_size;
-					srd.ppa = &prev_ppa;
-					nsecs_completed = ssd_advance_nand(conv_ftl->ssd, &srd);
-					nsecs_write_start = max(nsecs_completed, nsecs_write_start);
 				}
-					
-				xfer_size = spp->pgsz;
-			}
 
-			prev_ppa = ppa;
+				if (page->free_secs > 0) {
+					if (is_same_flash_page(conv_ftl, ppa, prev_ppa)) {
+						xfer_size += spp->pgsz;
+						continue;
+					} 
+						
+					if (xfer_size > 0) {
+						srd.xfer_size = xfer_size;
+						srd.ppa = &prev_ppa;
+						nsecs_completed = ssd_advance_nand(conv_ftl->ssd, &srd);
+						nsecs_write_start = max(nsecs_completed, nsecs_write_start);
+					}
+						
+					xfer_size = spp->pgsz;
+				}
+
+				prev_ppa = ppa;
+			}
 		}
 
 		swr.stime = nsecs_write_start;
@@ -1218,29 +1229,6 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 	uint64_t read_lat = 0;
 	uint64_t buffer_lat = 0;
 	uint64_t write_lat = 0;
-
-	// if (local_clock() - time > 100000) {
-	// 	while (!spin_trylock(&wbuf->lock))
-	// 		;
-
-	// 	int free_secs = 0;
-	// 	int total_secs = spp->write_buffer_size / spp->secsz;
-
-	// 	struct buffer_ppg *ppg;
-	// 	list_for_each_entry(ppg, &wbuf->used_ppgs, list) {
-	// 		for (int i = 0; i < wbuf->pg_per_ppg; i++) {
-	// 			free_secs += ppg->pages[i].free_secs;
-	// 		}
-	// 	}
-
-	// 	free_secs += list_count_nodes(&wbuf->free_ppgs) * wbuf->sec_per_pg * wbuf->pg_per_ppg;
-
-	// 	int utilized_ratio = ((total_secs - free_secs) * 100) / total_secs;
-	// 	NVMEV_INFO("Buffer Utilization Ratio: %d%%\n", utilized_ratio);
-	// 	time = local_clock();
-
-	// 	spin_unlock(&wbuf->lock);
-	// }
 	
 	NVMEV_DEBUG_VERBOSE("%s: start_lpn=%lld, len=%lld, end_lpn=%lld", __func__, start_lpn, nr_lba, end_lpn);
 	if ((end_lpn / nr_parts) >= spp->tt_pgs) {
@@ -1265,8 +1253,7 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 		return false;
 	}
 
-	// NVMEV_INFO("start_lpn=%lld, len=%lld, end_lpn=%lld, delay=%lld", start_lpn, nr_lba, end_lpn, local_clock() - time);
-	// time = local_clock();
+	// NVMEV_INFO("Write Occur: start_lpn: %llu, end_lpn: %llu, start_offset: %llu, size: %llu\n", start_lpn, end_lpn, start_offset, size);
 	buffer_allocate(wbuf, start_lpn, end_lpn, start_offset, size);
 
 	nvmev_vdev->user_write += size;
@@ -1287,9 +1274,8 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 
 	/* Check we need RMW */
 	if (check_flush_buffer(wbuf)) {
-		select_flush_buffer(wbuf);
-
 		// NVMEV_INFO("Front RMW Start - Buffer Status: Free %ld, Flushing %d, Used %d, Utilization Ratio %d%%\n", list_count_nodes(&wbuf->free_ppgs), flushing_ppgs, used_ppgs, utilized_ratio);
+		select_flush_buffer(wbuf);
 		nsecs_latest = max(conv_rmw(ns, req, nsecs_xfer_completed), nsecs_latest);
 	}
 

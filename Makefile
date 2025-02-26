@@ -29,5 +29,16 @@ format:
 dis:
 	objdump -d -S nvmev.ko > nvmev.S
 
+4k:
+	$(MAKE) -C $(KERNELDIR) M=$(PWD) modules
+	mv nvmev.ko nvmev_4k.ko
+
+16k:
+	$(MAKE) -C $(KERNELDIR) M=$(PWD) modules
+	mv nvmev.ko nvmev_16k.ko
+
+32k:
+	$(MAKE) -C $(KERNELDIR) M=$(PWD) modules
+	mv nvmev.ko nvmev_32k.ko
 
 include Makefile.local

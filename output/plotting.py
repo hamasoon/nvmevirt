@@ -3,9 +3,9 @@ import json
 import matplotlib.pyplot as plt
 import pandas as pd
     
-def read_data(type, target_data):
+def read_data(type, mapping, target_data):
     random = ['rand', 'seq']
-    rw = ['read', 'write']
+    rw = ['write']
     sync = ['async', 'sync']
     size = ['4k', '8k', '16k', '32k', '64k', '128k', '256k']
     index = []
@@ -22,7 +22,10 @@ def read_data(type, target_data):
             for s in sync:
                 for sz in size:
                     data.at[sz, f'{r}-{rw_type}-{s}'] = 0
-                    filename = type + '/' + r + rw_type + '-' + s + '-' + sz + '.json'
+                    if mapping == 'origin':
+                        filename = mapping + '/' + r + rw_type + '-' + s + '-' + sz + '.json'
+                    else:
+                        filename = type + '/' + mapping + '/' + r + rw_type + '-' + s + '-' + sz + '.json'
                     filepath = os.path.join(os.path.dirname(__file__), filename)
                     with open(filepath, 'r') as f:
                         raw_data = json.loads(f.read())
@@ -73,7 +76,7 @@ def plot_single(data, random='rand', rw_type='read', sync='sync', x_label='Block
     plt.title(f'{random}-{rw_type}-{sync}')
     plt.savefig(os.path.join(os.path.dirname(__file__), 'plot/' + random + '-' + rw_type + '-' + sync + '.png'))
 
-def plot_data(data1, data2, data3, data4, random='rand', rw_type='read', sync='sync', x_label='Block Size(Byte)', y_label='BW (MB/s)', plot_type='line'):
+def plot_data(data1, data2, data3, data4, type, random='rand', rw_type='read', sync='sync', x_label='Block Size(Byte)', y_label='BW (MB/s)', plot_type='line'):
     size = ['4K', '8K', '16K', '32K', '64K', '128K', '256K']
     data_type = f'{random}-{rw_type}-{sync}'
 
@@ -99,8 +102,11 @@ def plot_data(data1, data2, data3, data4, random='rand', rw_type='read', sync='s
     plt.title(f'{random}-{rw_type}-{sync}')
     plt.legend(title='Mapping Size')
                 
-    plt.savefig(os.path.join(os.path.dirname(__file__), 'plot/' + random + '-' + rw_type + '-' + sync + '.png'))
-    
+    if not os.path.exists(os.path.join(os.path.dirname(__file__), 'plot/' + type)):
+        os.mkdir(os.path.join(os.path.dirname(__file__), 'plot/' + type))
+    plt.savefig(os.path.join(os.path.dirname(__file__), 'plot/' + type + '/' + random + '-' + rw_type + '-' + sync + '.png'))
+    plt.clf()
+    plt.close()
     
 def plot_mix_data(data1, data2, data3, type):
     for sz in data1.columns:
@@ -116,19 +122,24 @@ def plot_mix_data(data1, data2, data3, type):
         plt.savefig(os.path.join(os.path.dirname(__file__), 'plot/mix/' + sz + '.png'))
         
 if __name__ == '__main__':
-    data1 = read_data('4k', 'bw')
-    data2 = read_data('16k', 'bw')
-    data3 = read_data('32k', 'bw')
-    data4 = read_data('origin', 'bw')
+    type = ['IMMEDIATE', 'FULL', 'FULL_QUATER', 'FULL_HALF', 'HALF', 'HALF_STATIC_FIFO', 'HALF_WATERMARK_FIFO', 'HALF_WATERMARK_LRU', 'HALF_WATERMARK_FIFOPLUS', 'HALF_WATERMARK_LRUPLUS']
+    dict = {}
     
-    random = ['rand', 'seq']
-    rw = ['read', 'write']
-    sync = ['async', 'sync']
+    origin_data = read_data('', 'origin', 'bw')
     
-    for r in random:
-        for rw_type in rw:
-            for s in sync:
-                plot_data(data1, data2, data3, data4, r, rw_type, s, 'Block Size(Byte)', 'BW (MB/s)', 'line')
+    for t in type:    
+        data1 = read_data(t, '4k', 'bw')
+        data2 = read_data(t, '16k', 'bw')
+        data3 = read_data(t, '32k', 'bw')
+        
+        random = ['rand', 'seq']
+        rw = ['write']
+        sync = ['async', 'sync']
+        
+        for r in random:
+            for rw_type in rw:
+                for s in sync:
+                    plot_data(data1, data2, data3, origin_data, t, r, rw_type, s, 'Block Size(Byte)', 'BW (MB/s)', 'line')
     
     # data = read_data('origin', 'bw')
     
