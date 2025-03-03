@@ -31,8 +31,6 @@ static inline bool check_flush_buffer(struct buffer *buf)
 			}
 		}
 	}
-
-	return used_ppgs_cnt >= buf->flush_threshold;
 #endif
 }
 
@@ -54,8 +52,7 @@ static inline bool check_flush_buffer_allocate_fail(struct buffer *buf)
 			}
 		}
 	}
-
-	return used_ppgs_cnt >= buf->flush_threshold;
+	return used_ppgs_cnt >= buf->buffer_high_watermark;
 #endif
 }
 
@@ -66,26 +63,20 @@ static inline bool check_flush_buffer_allocate_fail(struct buffer *buf)
 */
 static inline void select_flush_buffer(struct buffer *buf)
 {
-	int flush_amount;
-#if (FLUSH_TIMING_POLICY == IMMEDIATE)
-	return;
-#elif (FLUSH_TIMING_POLICY == FULL)
-#if (FLUSH_AMOUNT_POLICY == SINGLE)
+	size_t flush_amount;
+#if (FLUSH_TIMING_POLICY == FULL || FULL_WAIT_QUATER || FULL_WAIT_HALF)
+	flush_amount = buf->used_ppgs_cnt;
+#elif (FLUSH_TIMING_POLICY == HALF_NAIVE)
+	flush_amount = buf->used_ppgs_cnt;
+#elif (FLUSH_TIMING_POLICY == HALF_STATIC)
 	flush_amount = 1;
-#elif (FLUSH_AMOUNT_POLICY == DOUBLE)
-	flush_amount = 2;
-#elif (FLUSH_AMOUNT_POLICY == BUFFER_QUATER)
-	flush_amount = buf->ppg_per_buf / 4;
-#elif (FLUSH_AMOUNT_POLICY == BUFFER_HALF)
-	flush_amount = buf->ppg_per_buf / 2;
-#endif
-#elif (FLUSH_TIMING_POLICY == WATERMARK_NAIVE)
-	flush_amount = 1;
-#elif (FLUSH_TIMING_POLICY == WATERMARK_HIGHLOW)
-	if (buf->used_ppgs_cnt >= buf->buffer_low_watermark) {
+#elif (FLUSH_TIMING_POLICY == HALF_WATERMARK)
+	flush_amount = 0;
+
+	if (buf->used_ppgs_cnt > buf->buffer_high_watermark) {
 		flush_amount = 1;
 	}
-	else if (buf->used_ppgs_cnt >= buf->buffer_high_watermark) {
+	else if (buf->used_ppgs_cnt > buf->buffer_low_watermark) {
 		flush_amount = 2;
 	}
 	else {
@@ -97,6 +88,7 @@ static inline void select_flush_buffer(struct buffer *buf)
 	int valid_ppgs = 0;
 	struct buffer_ppg *ppg;
 	list_for_each_entry(ppg, &buf->used_ppgs, list) {
+		
 		if (ppg->status == VALID && ppg->pg_idx == buf->pg_per_ppg) {
 			// ppg->status = RMW_TARGET;
 			// if (--flush_amount == 0) {
@@ -108,8 +100,6 @@ static inline void select_flush_buffer(struct buffer *buf)
 			}
 		}
 	}
-
-	// NVMEV_INFO("DO RMW: %d", valid_ppgs);
 
 	return;
 }
@@ -1231,13 +1221,12 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 	uint64_t buffer_lat = 0;
 	uint64_t write_lat = 0;
 
-
-	// if (local_clock() - time > 1000000) {
-	// 	while(!spin_trylock(&wbuf->lock));
+	// if (local_clock() - time > 100000) {
+	// 	while (!spin_trylock(&wbuf->lock))
 	// 		;
 
-	// 	int free_secs = wbuf->sec_per_pg * wbuf->pg_per_ppg * list_count_nodes(&wbuf->free_ppgs);
-	// 	int total_secs = wbuf->ppg_per_buf * wbuf->pg_per_ppg * wbuf->sec_per_pg;
+	// 	int free_secs = 0;
+	// 	int total_secs = spp->write_buffer_size / spp->secsz;
 
 	// 	struct buffer_ppg *ppg;
 	// 	list_for_each_entry(ppg, &wbuf->used_ppgs, list) {
@@ -1246,13 +1235,13 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 	// 		}
 	// 	}
 
-	// 	int used_secs = total_secs - free_secs;
-	// 	int utilized_ratio = (used_secs * 100) / total_secs;
-		
-	// 	NVMEV_INFO("Buffer Status Utilization Ratio %d%%\n", utilized_ratio);
+	// 	free_secs += list_count_nodes(&wbuf->free_ppgs) * wbuf->sec_per_pg * wbuf->pg_per_ppg;
+
+	// 	int utilized_ratio = ((total_secs - free_secs) * 100) / total_secs;
+	// 	NVMEV_INFO("Buffer Utilization Ratio: %d%%\n", utilized_ratio);
+	// 	time = local_clock();
 
 	// 	spin_unlock(&wbuf->lock);
-	// 	time = local_clock();
 	// }
 	
 	NVMEV_DEBUG_VERBOSE("%s: start_lpn=%lld, len=%lld, end_lpn=%lld", __func__, start_lpn, nr_lba, end_lpn);
@@ -1280,12 +1269,8 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 		return false;
 	}
 
-	// NVMEV_INFO("Write Occur: start_lpn: %llu, end_lpn: %llu, start_offset: %llu, size: %llu\n", start_lpn, end_lpn, start_offset, size);
-
-	// if (full_waiting) {
-	// 	NVMEV_INFO("Write Latency: %llu\n", local_clock() - time);
-	// 	full_waiting = false;
-	// }
+	// NVMEV_INFO("start_lpn=%lld, len=%lld, end_lpn=%lld, delay=%lld", start_lpn, nr_lba, end_lpn, local_clock() - time);
+	// time = local_clock();
 	buffer_allocate(wbuf, start_lpn, end_lpn, start_offset, size);
 
 	nvmev_vdev->user_write += size;

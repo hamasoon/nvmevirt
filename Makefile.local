@@ -3,9 +3,9 @@
 
 load:
 	sudo insmod ./nvmev.ko \
-	memmap_start=22G \
-	memmap_size=10G \
-	cpus=7,8,9,10
+	memmap_start=48G \
+	memmap_size=16G \
+	cpus=10,11,12,13
 
 load_origin:
 	sudo insmod ./nvmev_origin.ko \
@@ -20,7 +20,9 @@ set_nomerge:
 	sudo bash -c 'echo 2 > /sys/block/nvme3n1/queue/nomerges'
 
 fio_read:
-	sudo fio --name=test --ioengine=sync --rw=read --bs=64k --size=1m --filename=/dev/nvme2n1 --direct=1 --group_reporting --norandommap
+	sudo fio --name=test --ioengine=sync --rw=read --bs=64k --size=1m \
+	--filename=/dev/nvme2n1 --direct=1 --group_reporting --norandommap
 
 fio_write:
-	sudo fio --name=test --ioengine=io_uring --iodepth=16 --rw=randwrite --bs=4k --size=16M --numjobs=4 --filename=/dev/nvme2n1 --direct=1 --group_reporting
+	sudo fio --name=test --ioengine=io_uring --iodepth=16 --rw=randwrite --bs=8k --size=1G --numjobs=4 \
+	--filename=/dev/nvme2n1 --direct=1 --group_reporting
