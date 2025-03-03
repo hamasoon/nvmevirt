@@ -8,7 +8,7 @@ FILENAME = '/dev/nvme3n1'
 IO_ENGINE = 'libaio'
 NUMJOBS = 4
 IO_DEPTH = 16
-SIZE = '4G'
+SIZE = '3G'
 BS = '128K'
 UNIT = 4096
 
@@ -111,9 +111,9 @@ def run_test(testtype, bs=BS):
     os.system(f'sudo {test_filename} -f {FILENAME} -m {IO_ENGINE} -j {NUMJOBS} -q {IO_DEPTH} -t {SIZE} -b {bs}')
 
 if __name__ == '__main__':
-    run_test(round_robin_sequential, bs='4K')
-    run_test(round_robin_sequential, bs='8K')
-    run_test(round_robin_sequential, bs='16K')
-    # run_test(round_robin_sequential, bs='32K')
-    # run_test(round_robin, bs='64K')
-    # run_test(round_robin, bs='128K')
+    run_test(round_robin_random, bs='4K')
+    run_test(round_robin_random, bs='8K')
+    run_test(round_robin_random, bs='16K')
+    run_test(round_robin_random, bs='32K')
+    run_test(round_robin_random, bs='64K')
+    run_test(round_robin_random, bs='128K')

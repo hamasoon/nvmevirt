@@ -28,18 +28,23 @@
 #define MAPPING_32KB 2
 
 /* Buffer Flush Timing Policy */
-#define FULL 0
-#define FULL_WAIT_QUATER 1
-#define FULL_WAIT_HALF 2
-#define HALF_NAIVE 5
-#define HALF_STATIC 6
-#define HALF_WATERMARK 7
+#define IMMEDIATE 0
+#define FULL 1
+#define WATERMARK_NAIVE 5
+#define WATERMARK_HIGHLOW 6
+#define WATERMARK_ONDEMAND 7
 
 /* Buffer Flush Target Policy */
 #define FIFO 0
 #define LRU 1
 #define FIFOPLUS 2
 #define LRUPLUS 3
+
+/* Buffer Flush Amount Policy */
+#define SINGLE 0
+#define DOUBLE 1
+#define BUFFER_QUATER 2
+#define BUFFER_HALF 3
 
 /* Must select one of INTEL_OPTANE, SAMSUNG_970PRO, or ZNS_PROTOTYPE
  * in Makefile */
