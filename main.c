@@ -55,7 +55,7 @@
  * 2. Memmap size
  ****************************************************************/
 
-struct nvmev_dev *nvmev_vdev = NULL;
+static struct nvmev_dev *nvmev_vdev = NULL;
 
 static unsigned long memmap_start = 0;
 static unsigned long memmap_size = 0;

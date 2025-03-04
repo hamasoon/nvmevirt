@@ -91,6 +91,7 @@ struct nvmev_sq_stat {
 	unsigned long long total_io;
 };
 
+// Represent single SQ entry
 struct nvmev_submission_queue {
 	int qid;
 	int cqid;
@@ -242,11 +243,14 @@ struct nvmev_dev {
 
 	struct nvmev_ns *ns;
 	unsigned int nr_ns;
+	// total depth of SQ
 	unsigned int nr_sq;
 	unsigned int nr_cq;
 
 	struct nvmev_admin_queue *admin_q;
+	// SQ
 	struct nvmev_submission_queue *sqes[NR_MAX_IO_QUEUE + 1];
+	// CQ
 	struct nvmev_completion_queue *cqes[NR_MAX_IO_QUEUE + 1];
 
 	unsigned int mdts;

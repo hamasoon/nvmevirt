@@ -7,6 +7,8 @@
 #include "conv_ftl.h"
 #define ROUND_DOWN(x, y) ((x) & ~((y)-1))
 #define ROUND_UP(x, y) ((((x) + (y) - 1) / (y)) * (y))
+#define sq_entry(entry_id) sq->sq[SQ_ENTRY_TO_PAGE_NUM(entry_id)][SQ_ENTRY_TO_PAGE_OFFSET(entry_id)]
+#define cq_entry(entry_id) cq->cq[CQ_ENTRY_TO_PAGE_NUM(entry_id)][CQ_ENTRY_TO_PAGE_OFFSET(entry_id)]
 
 static uint64_t time = 0;
 static bool full_waiting = false;
@@ -83,7 +85,46 @@ static inline void select_flush_buffer(struct buffer *buf)
 		return;
 	}
 #elif (FLUSH_TIMING_POLICY == WATERMARK_ONDEMAND)
-	flush_amount = buf->ppg_per_buf;
+	/* IN PROGRESS */
+	int needed_pages[SSD_PARTITIONS] = {0, };
+
+	for (int i = 1; i <= nvmev_vdev->nr_sq; i++) {
+		struct nvmev_submission_queue *sq = nvmev_vdev->sqes[i];
+		if (!sq)
+			continue;
+		
+		// Have to ask this about shim
+		int sq_entry_id = nvmev_vdev->dbs[sq->qid * 2];
+		struct nvme_command *cmd = &sq_entry(sq_entry_id);	
+		uint64_t lba = cmd->rw.slba;
+		uint64_t nr_lba = (cmd->rw.length + 1);
+		uint64_t start_lpn = lba / buf->sec_per_pg;
+		uint64_t end_lpn = (lba + nr_lba - 1) / buf->sec_per_pg;
+		uint64_t size = (cmd->rw.length + 1) << LBA_BITS;
+
+		int tmp[SSD_PARTITIONS] = {0, };
+		for (uint64_t lpn = start_lpn; lpn <= end_lpn; lpn++) {
+			tmp[GET_FTL_IDX(lpn)]++;
+		}
+		
+		struct buffer_ppg *ppg = NULL;
+		struct buffer_page *page = NULL;
+		list_for_each_entry(ppg, &buf->used_ppgs, list) {
+			if (ppg->status == VALID) {
+				for (int i = 0; i < buf->pg_per_ppg; i++)  {
+					if (ppg->pages[i].lpn >= start_lpn && ppg->pages[i].lpn <= end_lpn) {
+						tmp[GET_FTL_IDX(ppg->pages[i].lpn)]--;
+					}
+				}
+			}
+		}
+
+		for(int i = 0; i < SSD_PARTITIONS; i++) {
+			needed_pages[i] += tmp[i];
+		}
+	}
+
+
 #endif
 	int valid_ppgs = 0;
 	struct buffer_ppg *ppg;

@@ -208,7 +208,6 @@ bool buffer_allocatable_check(struct buffer *buf, uint64_t start_lpn, uint64_t e
 		for (int j = 0; j < required_pgs[i]; j++) {
 			if (left_pgs[i] == 0) {
 				if (left_ppgs == 0) {
-					NVMEV_INFO("allocate fail - used_ppgs: %ld, flushing_ppgs: %ld, free_ppgs: %ld", buf->used_ppgs_cnt, buf->flushing_ppgs_cnt, buf->free_ppgs_cnt);
 					return false;
 				}
 				left_ppgs--;
