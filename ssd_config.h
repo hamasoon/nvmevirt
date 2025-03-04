@@ -45,6 +45,7 @@
 #define DOUBLE 1
 #define BUFFER_QUATER 2
 #define BUFFER_HALF 3
+#define BUFFER_ALL 4
 
 /* Must select one of INTEL_OPTANE, SAMSUNG_970PRO, or ZNS_PROTOTYPE
  * in Makefile */

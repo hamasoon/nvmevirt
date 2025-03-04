@@ -21,8 +21,8 @@ set_nomerge:
 
 fio_read:
 	sudo fio --name=test --ioengine=sync --rw=read --bs=64k --size=1m \
-	--filename=/dev/nvme2n1 --direct=1 --group_reporting --norandommap
+	--filename=/dev/nvme3n1 --direct=1 --group_reporting --norandommap
 
 fio_write:
 	sudo fio --name=test --ioengine=io_uring --iodepth=16 --rw=randwrite --bs=8k --size=1G --numjobs=4 \
-	--filename=/dev/nvme2n1 --direct=1 --group_reporting
+	--filename=/dev/nvme3n1 --direct=1 --group_reporting
