@@ -1,0 +1,805 @@
+RocksDB:    version 9.8.0
+Date:       Wed Mar  5 05:41:32 2025
+CPU:        32 * AMD Ryzen 9 7950X3D 16-Core Processor
+CPUCache:   1024 KB
+2025/03/05-05:42:32  ... thread 18: (694000,694000) ops and (11565.8,11565.8) ops/second in (60.004748,60.004748) seconds
+2025/03/05-05:42:32  ... thread 20: (694000,694000) ops and (11565.6,11565.6) ops/second in (60.005756,60.005756) seconds
+2025/03/05-05:42:32  ... thread 29: (690000,690000) ops and (11497.5,11497.5) ops/second in (60.013200,60.013200) seconds
+2025/03/05-05:42:32  ... thread 24: (686000,686000) ops and (11429.4,11429.4) ops/second in (60.020493,60.020493) seconds
+2025/03/05-05:42:32  ... thread 6: (695000,695000) ops and (11577.1,11577.1) ops/second in (60.032046,60.032046) seconds
+2025/03/05-05:42:32  ... thread 31: (694000,694000) ops and (11559.9,11559.9) ops/second in (60.034938,60.034938) seconds
+2025/03/05-05:42:32  ... thread 28: (690000,690000) ops and (11493.2,11493.2) ops/second in (60.035675,60.035675) seconds
+2025/03/05-05:42:32  ... thread 0: (998000,998000) ops and (16623.2,16623.2) ops/second in (60.036464,60.036464) seconds
+
+** Compaction Stats [default] **
+Level    Files   Size     Score Read(GB)  Rn(GB) Rnp1(GB) Write(GB) Wnew(GB) Moved(GB) W-Amp Rd(MB/s) Wr(MB/s) Comp(sec) CompMergeCPU(sec) Comp(cnt) Avg(sec) KeyIn KeyDrop Rblob(GB) Wblob(GB)
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  L0      1/0   59.31 MB   0.2      0.0     0.0      0.0       0.5      0.5       0.0   1.0      0.0    111.7      4.78              4.68         9    0.531       0      0       0.0       0.0
+  L1      6/0   701.46 MB   0.7      2.9     1.5      1.4       2.1      0.7       0.0   1.3    135.1     95.7     22.00             21.55         3    7.334   5318K  1526K       0.0       0.0
+ Sum      7/0   760.76 MB   0.0      2.9     1.5      1.4       2.6      1.2       0.0   4.9    111.0     98.5     26.78             26.23        12    2.232   5318K  1526K       0.0       0.0
+ Int      0/0    0.00 KB   0.0      2.9     1.5      1.4       2.6      1.2       0.0   4.9    111.0     98.5     26.78             26.23        12    2.232   5318K  1526K       0.0       0.0
+
+** Compaction Stats [default] **
+Priority    Files   Size     Score Read(GB)  Rn(GB) Rnp1(GB) Write(GB) Wnew(GB) Moved(GB) W-Amp Rd(MB/s) Wr(MB/s) Comp(sec) CompMergeCPU(sec) Comp(cnt) Avg(sec) KeyIn KeyDrop Rblob(GB) Wblob(GB)
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Low      0/0    0.00 KB   0.0      2.9     1.5      1.4       2.1      0.7       0.0   0.0    135.1     95.7     22.00             21.55         3    7.334   5318K  1526K       0.0       0.0
+High      0/0    0.00 KB   0.0      0.0     0.0      0.0       0.5      0.5       0.0   0.0      0.0    111.7      4.78              4.68         9    0.531       0      0       0.0       0.0
+
+Blob file count: 0, total size: 0.0 GB, garbage size: 0.0 GB, space amp: 0.0
+
+Uptime(secs): 60.0 total, 60.0 interval
+Flush(GB): cumulative 0.521, interval 0.521
+AddFile(GB): cumulative 0.000, interval 0.000
+AddFile(Total Files): cumulative 0, interval 0
+AddFile(L0 Files): cumulative 0, interval 0
+AddFile(Keys): cumulative 0, interval 0
+Cumulative compaction: 2.58 GB write, 43.94 MB/s write, 2.90 GB read, 49.51 MB/s read, 26.8 seconds
+Interval compaction: 2.58 GB write, 43.94 MB/s write, 2.90 GB read, 49.51 MB/s read, 26.8 seconds
+Estimated pending compaction bytes: 0
+Write Stall (count): cf-l0-file-count-limit-delays-with-ongoing-compaction: 0, cf-l0-file-count-limit-stops-with-ongoing-compaction: 0, l0-file-count-limit-delays: 0, l0-file-count-limit-stops: 0, memtable-limit-delays: 0, memtable-limit-stops: 0, pending-compaction-bytes-delays: 0, pending-compaction-bytes-stops: 0, total-delays: 0, total-stops: 0
+Block cache LRUCache@0x64e266fe85c0#39837 capacity: 16.00 GB seed: 1547765340 usage: 0.09 KB table_size: 1024 occupancy: 1 collections: 1 last_copies: 0 last_secs: 2.2e-05 secs_since: 60
+Block cache entry stats(count,size,portion): Misc(1,0.00 KB,0%)
+
+** File Read Latency Histogram By Level [default] **
+
+** DB Stats **
+Uptime(secs): 60.0 total, 60.0 interval
+Cumulative writes: 998K writes, 998K keys, 998K commit groups, 1.0 writes per commit group, ingest: 1.14 GB, 19.43 MB/s
+Cumulative WAL: 998K writes, 998K syncs, 1.00 writes per sync, written: 1.14 GB, 19.43 MB/s
+Cumulative stall: 00:00:0.000 H:M:S, 0.0 percent
+Interval writes: 998K writes, 998K keys, 998K commit groups, 1.0 writes per commit group, ingest: 1166.87 MB, 19.44 MB/s
+Interval WAL: 998K writes, 998K syncs, 1.00 writes per sync, written: 1.14 GB, 19.44 MB/s
+Interval stall: 00:00:0.000 H:M:S, 0.0 percent
+Write Stall (count): write-buffer-manager-limit-stops: 0
+num-running-compactions: 0
+num-running-flushes: 0
+
+2025/03/05-05:42:32  ... thread 10: (689000,689000) ops and (11476.0,11476.0) ops/second in (60.038150,60.038150) seconds
+2025/03/05-05:42:32  ... thread 14: (691000,691000) ops and (11508.6,11508.6) ops/second in (60.042275,60.042275) seconds
+2025/03/05-05:42:32  ... thread 8: (694000,694000) ops and (11558.1,11558.1) ops/second in (60.044324,60.044324) seconds
+2025/03/05-05:42:32  ... thread 9: (690000,690000) ops and (11491.2,11491.2) ops/second in (60.046163,60.046163) seconds
+2025/03/05-05:42:32  ... thread 11: (691000,691000) ops and (11506.4,11506.4) ops/second in (60.053428,60.053428) seconds
+2025/03/05-05:42:32  ... thread 23: (691000,691000) ops and (11506.3,11506.3) ops/second in (60.054000,60.054000) seconds
+2025/03/05-05:42:32  ... thread 21: (691000,691000) ops and (11505.4,11505.4) ops/second in (60.058834,60.058834) seconds
+2025/03/05-05:42:32  ... thread 27: (692000,692000) ops and (11520.9,11520.9) ops/second in (60.064834,60.064834) seconds
+2025/03/05-05:42:32  ... thread 5: (690000,690000) ops and (11485.1,11485.1) ops/second in (60.077986,60.077986) seconds
+2025/03/05-05:42:32  ... thread 32: (693000,693000) ops and (11533.8,11533.8) ops/second in (60.084138,60.084138) seconds
+2025/03/05-05:42:32  ... thread 13: (696000,696000) ops and (11583.7,11583.7) ops/second in (60.084679,60.084679) seconds
+2025/03/05-05:42:32  ... thread 1: (687000,687000) ops and (11433.2,11433.2) ops/second in (60.088286,60.088286) seconds
+2025/03/05-05:42:32  ... thread 12: (690000,690000) ops and (11482.7,11482.7) ops/second in (60.090655,60.090655) seconds
+2025/03/05-05:42:32  ... thread 17: (694000,694000) ops and (11548.0,11548.0) ops/second in (60.096739,60.096739) seconds
+2025/03/05-05:42:32  ... thread 3: (691000,691000) ops and (11498.1,11498.1) ops/second in (60.097039,60.097039) seconds
+2025/03/05-05:42:32  ... thread 16: (688000,688000) ops and (11448.1,11448.1) ops/second in (60.097246,60.097246) seconds
+2025/03/05-05:42:32  ... thread 2: (696000,696000) ops and (11580.8,11580.8) ops/second in (60.099387,60.099387) seconds
+2025/03/05-05:42:32  ... thread 25: (695000,695000) ops and (11564.0,11564.0) ops/second in (60.100495,60.100495) seconds
+2025/03/05-05:42:32  ... thread 30: (692000,692000) ops and (11513.9,11513.9) ops/second in (60.101229,60.101229) seconds
+2025/03/05-05:42:32  ... thread 4: (694000,694000) ops and (11544.7,11544.7) ops/second in (60.113916,60.113916) seconds
+2025/03/05-05:42:32  ... thread 19: (697000,697000) ops and (11594.6,11594.6) ops/second in (60.114331,60.114331) seconds
+2025/03/05-05:42:32  ... thread 22: (695000,695000) ops and (11561.2,11561.2) ops/second in (60.114932,60.114932) seconds
+2025/03/05-05:42:32  ... thread 15: (689000,689000) ops and (11461.1,11461.1) ops/second in (60.116158,60.116158) seconds
+2025/03/05-05:42:32  ... thread 7: (692000,692000) ops and (11510.2,11510.2) ops/second in (60.120340,60.120340) seconds
+2025/03/05-05:42:32  ... thread 26: (693000,693000) ops and (11526.5,11526.5) ops/second in (60.122537,60.122537) seconds
+2025/03/05-05:43:32  ... thread 31: (331000,1025000) ops and (5514.9,8537.9) ops/second in (60.018683,120.053621) seconds
+2025/03/05-05:43:32  ... thread 18: (333000,1027000) ops and (5544.1,8553.4) ops/second in (60.063816,120.068564) seconds
+2025/03/05-05:43:32  ... thread 29: (331000,1021000) ops and (5511.2,8503.2) ops/second in (60.059665,120.072865) seconds
+2025/03/05-05:43:32  ... thread 20: (333000,1027000) ops and (5542.6,8552.2) ops/second in (60.080544,120.086300) seconds
+2025/03/05-05:43:32  ... thread 6: (331000,1026000) ops and (5511.4,8543.7) ops/second in (60.056977,120.089023) seconds
+2025/03/05-05:43:32  ... thread 0: (1077000,2075000) ops and (17933.7,17278.6) ops/second in (60.054529,120.090993) seconds
+
+** Compaction Stats [default] **
+Level    Files   Size     Score Read(GB)  Rn(GB) Rnp1(GB) Write(GB) Wnew(GB) Moved(GB) W-Amp Rd(MB/s) Wr(MB/s) Comp(sec) CompMergeCPU(sec) Comp(cnt) Avg(sec) KeyIn KeyDrop Rblob(GB) Wblob(GB)
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  L0      3/0   177.85 MB   0.8      0.0     0.0      0.0       1.1      1.1       0.0   1.0      0.0    113.5      9.92              9.71        19    0.522       0      0       0.0       0.0
+  L1      6/0   701.46 MB   0.7      4.7     2.0      2.7       3.4      0.7       0.0   1.7    136.9     99.0     35.41             34.32         5    7.083   8690K  2369K       0.0       0.0
+ Sum      9/0   879.30 MB   0.0      4.7     2.0      2.7       4.5      1.8       0.0   4.1    107.0    102.2     45.34             44.03        24    1.889   8690K  2369K       0.0       0.0
+ Int      0/0    0.00 KB   0.0      4.7     2.0      2.7       4.5      1.8       0.0   4.1    107.0    102.2     45.34             44.03        24    1.889   8690K  2369K       0.0       0.0
+
+** Compaction Stats [default] **
+Priority    Files   Size     Score Read(GB)  Rn(GB) Rnp1(GB) Write(GB) Wnew(GB) Moved(GB) W-Amp Rd(MB/s) Wr(MB/s) Comp(sec) CompMergeCPU(sec) Comp(cnt) Avg(sec) KeyIn KeyDrop Rblob(GB) Wblob(GB)
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Low      0/0    0.00 KB   0.0      4.7     2.0      2.7       3.4      0.7       0.0   0.0    136.9     99.0     35.41             34.32         5    7.083   8690K  2369K       0.0       0.0
+High      0/0    0.00 KB   0.0      0.0     0.0      0.0       1.1      1.1       0.0   0.0      0.0    113.5      9.92              9.71        19    0.522       0      0       0.0       0.0
+
+Blob file count: 0, total size: 0.0 GB, garbage size: 0.0 GB, space amp: 0.0
+
+Uptime(secs): 120.1 total, 120.1 interval
+Flush(GB): cumulative 1.100, interval 1.100
+AddFile(GB): cumulative 0.000, interval 0.000
+AddFile(Total Files): cumulative 0, interval 0
+AddFile(L0 Files): cumulative 0, interval 0
+AddFile(Keys): cumulative 0, interval 0
+Cumulative compaction: 4.53 GB write, 38.59 MB/s write, 4.74 GB read, 40.38 MB/s read, 45.3 seconds
+Interval compaction: 4.53 GB write, 38.59 MB/s write, 4.74 GB read, 40.38 MB/s read, 45.3 seconds
+Estimated pending compaction bytes: 0
+Write Stall (count): cf-l0-file-count-limit-delays-with-ongoing-compaction: 0, cf-l0-file-count-limit-stops-with-ongoing-compaction: 0, l0-file-count-limit-delays: 0, l0-file-count-limit-stops: 0, memtable-limit-delays: 0, memtable-limit-stops: 0, pending-compaction-bytes-delays: 0, pending-compaction-bytes-stops: 0, total-delays: 0, total-stops: 0
+Block cache LRUCache@0x64e266fe85c0#39837 capacity: 16.00 GB seed: 1547765340 usage: 0.09 KB table_size: 1024 occupancy: 1 collections: 1 last_copies: 0 last_secs: 2.2e-05 secs_since: 120
+Block cache entry stats(count,size,portion): Misc(1,0.00 KB,0%)
+
+** File Read Latency Histogram By Level [default] **
+
+** DB Stats **
+Uptime(secs): 120.1 total, 60.1 interval
+Cumulative writes: 2075K writes, 2075K keys, 2075K commit groups, 1.0 writes per commit group, ingest: 2.37 GB, 20.20 MB/s
+Cumulative WAL: 2075K writes, 2075K syncs, 1.00 writes per sync, written: 2.37 GB, 20.20 MB/s
+Cumulative stall: 00:00:0.000 H:M:S, 0.0 percent
+Interval writes: 1077K writes, 1077K keys, 1077K commit groups, 1.0 writes per commit group, ingest: 1259.23 MB, 20.97 MB/s
+Interval WAL: 1077K writes, 1077K syncs, 1.00 writes per sync, written: 1.23 GB, 20.97 MB/s
+Interval stall: 00:00:0.000 H:M:S, 0.0 percent
+Write Stall (count): write-buffer-manager-limit-stops: 0
+num-running-compactions: 0
+num-running-flushes: 0
+
+2025/03/05-05:43:32  ... thread 27: (333000,1025000) ops and (5547.4,8535.0) ops/second in (60.028381,120.093215) seconds
+2025/03/05-05:43:32  ... thread 21: (333000,1024000) ops and (5546.5,8526.4) ops/second in (60.038398,120.097232) seconds
+2025/03/05-05:43:32  ... thread 23: (333000,1024000) ops and (5544.7,8525.4) ops/second in (60.057751,120.111751) seconds
+2025/03/05-05:43:32  ... thread 28: (334000,1024000) ops and (5559.5,8525.3) ops/second in (60.076989,120.112664) seconds
+2025/03/05-05:43:32  ... thread 25: (331000,1026000) ops and (5514.9,8541.5) ops/second in (60.019373,120.119868) seconds
+2025/03/05-05:43:32  ... thread 12: (332000,1022000) ops and (5530.0,8507.7) ops/second in (60.036183,120.126838) seconds
+2025/03/05-05:43:32  ... thread 24: (334000,1020000) ops and (5556.1,8490.5) ops/second in (60.114353,120.134846) seconds
+2025/03/05-05:43:32  ... thread 2: (334000,1030000) ops and (5563.1,8573.5) ops/second in (60.038269,120.137656) seconds
+2025/03/05-05:43:32  ... thread 5: (333000,1023000) ops and (5542.8,8513.9) ops/second in (60.077851,120.155837) seconds
+2025/03/05-05:43:32  ... thread 11: (335000,1026000) ops and (5573.6,8538.7) ops/second in (60.105154,120.158582) seconds
+2025/03/05-05:43:32  ... thread 3: (334000,1025000) ops and (5559.9,8529.6) ops/second in (60.073375,120.170414) seconds
+2025/03/05-05:43:32  ... thread 32: (332000,1025000) ops and (5525.1,8529.4) ops/second in (60.089067,120.173205) seconds
+2025/03/05-05:43:32  ... thread 15: (333000,1022000) ops and (5542.8,8502.9) ops/second in (60.077700,120.193858) seconds
+2025/03/05-05:43:32  ... thread 9: (335000,1025000) ops and (5566.5,8525.5) ops/second in (60.181304,120.227467) seconds
+2025/03/05-05:43:32  ... thread 10: (335000,1024000) ops and (5565.3,8516.8) ops/second in (60.194904,120.233054) seconds
+2025/03/05-05:43:32  ... thread 14: (334000,1025000) ops and (5548.2,8524.5) ops/second in (60.199976,120.242251) seconds
+2025/03/05-05:43:32  ... thread 7: (334000,1026000) ops and (5554.5,8532.1) ops/second in (60.130904,120.251244) seconds
+2025/03/05-05:43:32  ... thread 8: (332000,1026000) ops and (5513.5,8531.5) ops/second in (60.215847,120.260171) seconds
+2025/03/05-05:43:32  ... thread 1: (334000,1021000) ops and (5550.5,8489.8) ops/second in (60.174248,120.262534) seconds
+2025/03/05-05:43:32  ... thread 13: (333000,1029000) ops and (5533.0,8555.8) ops/second in (60.184733,120.269412) seconds
+2025/03/05-05:43:32  ... thread 16: (335000,1023000) ops and (5562.9,8502.5) ops/second in (60.220068,120.317314) seconds
+2025/03/05-05:43:32  ... thread 17: (335000,1029000) ops and (5562.4,8552.1) ops/second in (60.225265,120.322004) seconds
+2025/03/05-05:43:32  ... thread 19: (332000,1029000) ops and (5512.9,8551.0) ops/second in (60.222216,120.336547) seconds
+2025/03/05-05:43:32  ... thread 22: (334000,1029000) ops and (5545.3,8550.3) ops/second in (60.231661,120.346593) seconds
+2025/03/05-05:43:32  ... thread 26: (332000,1025000) ops and (5512.6,8517.0) ops/second in (60.225407,120.347944) seconds
+2025/03/05-05:43:32  ... thread 4: (334000,1028000) ops and (5544.9,8541.8) ops/second in (60.235180,120.349096) seconds
+2025/03/05-05:43:32  ... thread 30: (334000,1026000) ops and (5539.9,8522.3) ops/second in (60.289422,120.390651) seconds
+2025/03/05-05:44:32  ... thread 0: (1021000,3096000) ops and (17005.1,17187.4) ops/second in (60.040794,180.131787) seconds
+
+** Compaction Stats [default] **
+Level    Files   Size     Score Read(GB)  Rn(GB) Rnp1(GB) Write(GB) Wnew(GB) Moved(GB) W-Amp Rd(MB/s) Wr(MB/s) Comp(sec) CompMergeCPU(sec) Comp(cnt) Avg(sec) KeyIn KeyDrop Rblob(GB) Wblob(GB)
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  L0      4/4   237.13 MB   0.0      0.0     0.0      0.0       1.6      1.6       0.0   1.0      0.0    112.5     14.76             14.42        28    0.527       0      0       0.0       0.0
+  L1      7/7   807.10 MB   0.0      6.6     2.5      4.1       4.9      0.8       0.0   2.0    132.2     98.7     51.14             48.23         7    7.305     12M  3022K       0.0       0.0
+ Sum     11/11   1.02 GB   0.0      6.6     2.5      4.1       6.6      2.4       0.0   4.0    102.6    101.8     65.89             62.65        35    1.883     12M  3022K       0.0       0.0
+ Int      0/0    0.00 KB   0.0      6.6     2.5      4.1       6.6      2.4       0.0   4.0    102.6    101.8     65.89             62.65        35    1.883     12M  3022K       0.0       0.0
+
+** Compaction Stats [default] **
+Priority    Files   Size     Score Read(GB)  Rn(GB) Rnp1(GB) Write(GB) Wnew(GB) Moved(GB) W-Amp Rd(MB/s) Wr(MB/s) Comp(sec) CompMergeCPU(sec) Comp(cnt) Avg(sec) KeyIn KeyDrop Rblob(GB) Wblob(GB)
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Low      0/0    0.00 KB   0.0      6.6     2.5      4.1       4.9      0.8       0.0   0.0    132.2     98.7     51.14             48.23         7    7.305     12M  3022K       0.0       0.0
+High      0/0    0.00 KB   0.0      0.0     0.0      0.0       1.6      1.6       0.0   0.0      0.0    112.5     14.76             14.42        28    0.527       0      0       0.0       0.0
+
+Blob file count: 0, total size: 0.0 GB, garbage size: 0.0 GB, space amp: 0.0
+
+Uptime(secs): 180.1 total, 180.1 interval
+Flush(GB): cumulative 1.621, interval 1.621
+AddFile(GB): cumulative 0.000, interval 0.000
+AddFile(Total Files): cumulative 0, interval 0
+AddFile(L0 Files): cumulative 0, interval 0
+AddFile(Keys): cumulative 0, interval 0
+Cumulative compaction: 6.55 GB write, 37.24 MB/s write, 6.60 GB read, 37.52 MB/s read, 65.9 seconds
+Interval compaction: 6.55 GB write, 37.24 MB/s write, 6.60 GB read, 37.52 MB/s read, 65.9 seconds
+Estimated pending compaction bytes: 1094958006
+Write Stall (count): cf-l0-file-count-limit-delays-with-ongoing-compaction: 0, cf-l0-file-count-limit-stops-with-ongoing-compaction: 0, l0-file-count-limit-delays: 0, l0-file-count-limit-stops: 0, memtable-limit-delays: 0, memtable-limit-stops: 0, pending-compaction-bytes-delays: 0, pending-compaction-bytes-stops: 0, total-delays: 0, total-stops: 0
+Block cache LRUCache@0x64e266fe85c0#39837 capacity: 16.00 GB seed: 1547765340 usage: 0.09 KB table_size: 1024 occupancy: 1 collections: 1 last_copies: 0 last_secs: 2.2e-05 secs_since: 180
+Block cache entry stats(count,size,portion): Misc(1,0.00 KB,0%)
+
+** File Read Latency Histogram By Level [default] **
+
+** DB Stats **
+Uptime(secs): 180.1 total, 60.0 interval
+Cumulative writes: 3096K writes, 3096K keys, 3096K commit groups, 1.0 writes per commit group, ingest: 3.54 GB, 20.10 MB/s
+Cumulative WAL: 3096K writes, 3096K syncs, 1.00 writes per sync, written: 3.54 GB, 20.10 MB/s
+Cumulative stall: 00:00:0.000 H:M:S, 0.0 percent
+Interval writes: 1021K writes, 1021K keys, 1021K commit groups, 1.0 writes per commit group, ingest: 1193.76 MB, 19.88 MB/s
+Interval WAL: 1021K writes, 1021K syncs, 1.00 writes per sync, written: 1.17 GB, 19.88 MB/s
+Interval stall: 00:00:0.000 H:M:S, 0.0 percent
+Write Stall (count): write-buffer-manager-limit-stops: 0
+num-running-compactions: 1
+num-running-flushes: 0
+
+2025/03/05-05:44:32  ... thread 21: (893000,1917000) ops and (14868.6,10640.7) ops/second in (60.059485,180.156717) seconds
+2025/03/05-05:44:32  ... thread 27: (893000,1918000) ops and (14809.0,10632.3) ops/second in (60.301282,180.394497) seconds
+2025/03/05-05:44:32  ... thread 4: (877000,1905000) ops and (14604.4,10559.9) ops/second in (60.050521,180.399617) seconds
+2025/03/05-05:44:32  ... thread 23: (888000,1912000) ops and (14722.4,10597.0) ops/second in (60.316267,180.428018) seconds
+2025/03/05-05:44:33  ... thread 16: (886000,1909000) ops and (14720.4,10575.8) ops/second in (60.188736,180.506050) seconds
+2025/03/05-05:44:33  ... thread 17: (886000,1915000) ops and (14708.9,10606.0) ops/second in (60.235809,180.557813) seconds
+2025/03/05-05:44:33  ... thread 20: (887000,1914000) ops and (14633.3,10592.1) ops/second in (60.615041,180.701341) seconds
+2025/03/05-05:44:33  ... thread 22: (899000,1928000) ops and (14893.2,10669.0) ops/second in (60.363160,180.709753) seconds
+2025/03/05-05:44:33  ... thread 3: (890000,1915000) ops and (14692.2,10594.9) ops/second in (60.576382,180.746796) seconds
+2025/03/05-05:44:33  ... thread 14: (884000,1909000) ops and (14598.2,10558.8) ops/second in (60.555506,180.797757) seconds
+2025/03/05-05:44:33  ... thread 6: (897000,1923000) ops and (14743.0,10628.3) ops/second in (60.842390,180.931413) seconds
+2025/03/05-05:44:33  ... thread 5: (897000,1920000) ops and (14734.4,10605.8) ops/second in (60.877848,181.033685) seconds
+2025/03/05-05:44:33  ... thread 7: (901000,1927000) ops and (14807.8,10640.7) ops/second in (60.846150,181.097394) seconds
+2025/03/05-05:44:33  ... thread 12: (899000,1921000) ops and (14715.8,10600.5) ops/second in (61.090928,181.217766) seconds
+2025/03/05-05:44:33  ... thread 11: (890000,1916000) ops and (14567.9,10570.9) ops/second in (61.093426,181.252008) seconds
+2025/03/05-05:44:33  ... thread 30: (897000,1923000) ops and (14720.6,10605.2) ops/second in (60.934972,181.325623) seconds
+2025/03/05-05:44:33  ... thread 1: (894000,1915000) ops and (14627.0,10557.8) ops/second in (61.119785,181.382319) seconds
+2025/03/05-05:44:34  ... thread 28: (884000,1908000) ops and (14398.1,10511.8) ops/second in (61.397080,181.509744) seconds
+2025/03/05-05:44:34  ... thread 31: (884000,1909000) ops and (14376.1,10515.3) ops/second in (61.491154,181.544775) seconds
+2025/03/05-05:44:34  ... thread 13: (889000,1918000) ops and (14491.0,10560.6) ops/second in (61.348495,181.617907) seconds
+2025/03/05-05:44:34  ... thread 8: (896000,1922000) ops and (14552.4,10570.3) ops/second in (61.570783,181.830954) seconds
+2025/03/05-05:44:34  ... thread 19: (901000,1930000) ops and (14647.5,10613.2) ops/second in (61.512187,181.848734) seconds
+2025/03/05-05:44:34  ... thread 24: (891000,1911000) ops and (14400.0,10499.4) ops/second in (61.875165,182.010011) seconds
+2025/03/05-05:44:34  ... thread 15: (887000,1909000) ops and (14334.8,10484.9) ops/second in (61.877544,182.071402) seconds
+2025/03/05-05:44:34  ... thread 10: (889000,1913000) ops and (14360.1,10502.9) ops/second in (61.907841,182.140895) seconds
+2025/03/05-05:44:34  ... thread 29: (890000,1911000) ops and (14338.5,10491.7) ops/second in (62.070580,182.143445) seconds
+2025/03/05-05:44:34  ... thread 2: (893000,1923000) ops and (14372.6,10550.3) ops/second in (62.132051,182.269707) seconds
+2025/03/05-05:44:34  ... thread 32: (900000,1925000) ops and (14477.2,10557.2) ops/second in (62.166653,182.339858) seconds
+2025/03/05-05:44:34  ... thread 9: (905000,1930000) ops and (14561.3,10582.4) ops/second in (62.150956,182.378423) seconds
+2025/03/05-05:44:34  ... thread 18: (881000,1908000) ops and (14127.4,10458.8) ops/second in (62.361222,182.429786) seconds
+2025/03/05-05:44:35  ... thread 25: (872000,1898000) ops and (13976.3,10399.4) ops/second in (62.391408,182.511276) seconds
+2025/03/05-05:44:35  ... thread 26: (906000,1931000) ops and (14556.0,10575.6) ops/second in (62.242181,182.590125) seconds
+2025/03/05-05:45:32  ... thread 0: (1049000,4145000) ops and (17481.2,17260.8) ops/second in (60.007209,240.138996) seconds
+
+** Compaction Stats [default] **
+Level    Files   Size     Score Read(GB)  Rn(GB) Rnp1(GB) Write(GB) Wnew(GB) Moved(GB) W-Amp Rd(MB/s) Wr(MB/s) Comp(sec) CompMergeCPU(sec) Comp(cnt) Avg(sec) KeyIn KeyDrop Rblob(GB) Wblob(GB)
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  L0      2/0   118.51 MB   0.5      0.0     0.0      0.0       2.2      2.2       0.0   1.0      0.0    111.8     20.16             19.57        38    0.530       0      0       0.0       0.0
+  L1      8/0   951.51 MB   0.9      9.8     3.2      6.7       7.6      0.9       0.0   2.4    130.1    100.6     77.32             73.51        10    7.732     18M  4027K       0.0       0.0
+ Sum     10/0    1.04 GB   0.0      9.8     3.2      6.7       9.8      3.1       0.0   4.5    103.2    102.9     97.47             93.08        48    2.031     18M  4027K       0.0       0.0
+ Int      0/0    0.00 KB   0.0      9.8     3.2      6.7       9.8      3.1       0.0   4.5    103.2    102.9     97.47             93.08        48    2.031     18M  4027K       0.0       0.0
+
+** Compaction Stats [default] **
+Priority    Files   Size     Score Read(GB)  Rn(GB) Rnp1(GB) Write(GB) Wnew(GB) Moved(GB) W-Amp Rd(MB/s) Wr(MB/s) Comp(sec) CompMergeCPU(sec) Comp(cnt) Avg(sec) KeyIn KeyDrop Rblob(GB) Wblob(GB)
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Low      0/0    0.00 KB   0.0      9.8     3.2      6.7       7.6      0.9       0.0   0.0    130.1    100.6     77.32             73.51        10    7.732     18M  4027K       0.0       0.0
+High      0/0    0.00 KB   0.0      0.0     0.0      0.0       2.2      2.2       0.0   0.0      0.0    111.8     20.16             19.57        38    0.530       0      0       0.0       0.0
+
+Blob file count: 0, total size: 0.0 GB, garbage size: 0.0 GB, space amp: 0.0
+
+Uptime(secs): 240.1 total, 240.1 interval
+Flush(GB): cumulative 2.200, interval 2.200
+AddFile(GB): cumulative 0.000, interval 0.000
+AddFile(Total Files): cumulative 0, interval 0
+AddFile(L0 Files): cumulative 0, interval 0
+AddFile(Keys): cumulative 0, interval 0
+Cumulative compaction: 9.80 GB write, 41.78 MB/s write, 9.82 GB read, 41.88 MB/s read, 97.5 seconds
+Interval compaction: 9.80 GB write, 41.78 MB/s write, 9.82 GB read, 41.88 MB/s read, 97.5 seconds
+Estimated pending compaction bytes: 0
+Write Stall (count): cf-l0-file-count-limit-delays-with-ongoing-compaction: 0, cf-l0-file-count-limit-stops-with-ongoing-compaction: 0, l0-file-count-limit-delays: 0, l0-file-count-limit-stops: 0, memtable-limit-delays: 0, memtable-limit-stops: 0, pending-compaction-bytes-delays: 0, pending-compaction-bytes-stops: 0, total-delays: 0, total-stops: 0
+Block cache LRUCache@0x64e266fe85c0#39837 capacity: 16.00 GB seed: 1547765340 usage: 0.09 KB table_size: 1024 occupancy: 1 collections: 1 last_copies: 0 last_secs: 2.2e-05 secs_since: 240
+Block cache entry stats(count,size,portion): Misc(1,0.00 KB,0%)
+
+** File Read Latency Histogram By Level [default] **
+
+** DB Stats **
+Uptime(secs): 240.1 total, 60.0 interval
+Cumulative writes: 4145K writes, 4145K keys, 4145K commit groups, 1.0 writes per commit group, ingest: 4.73 GB, 20.18 MB/s
+Cumulative WAL: 4145K writes, 4145K syncs, 1.00 writes per sync, written: 4.73 GB, 20.18 MB/s
+Cumulative stall: 00:00:0.000 H:M:S, 0.0 percent
+Interval writes: 1049K writes, 1049K keys, 1049K commit groups, 1.0 writes per commit group, ingest: 1226.50 MB, 20.44 MB/s
+Interval WAL: 1049K writes, 1049K syncs, 1.00 writes per sync, written: 1.20 GB, 20.44 MB/s
+Interval stall: 00:00:0.000 H:M:S, 0.0 percent
+Write Stall (count): write-buffer-manager-limit-stops: 0
+num-running-compactions: 0
+num-running-flushes: 0
+
+2025/03/05-05:45:32  ... thread 21: (212000,2129000) ops and (3530.5,8863.3) ops/second in (60.047326,240.204043) seconds
+2025/03/05-05:45:32  ... thread 4: (211000,2116000) ops and (3515.6,8801.4) ops/second in (60.017559,240.417176) seconds
+2025/03/05-05:45:33  ... thread 23: (212000,2124000) ops and (3531.9,8833.3) ops/second in (60.025011,240.453029) seconds
+2025/03/05-05:45:33  ... thread 27: (213000,2131000) ops and (3544.6,8861.2) ops/second in (60.090870,240.485367) seconds
+2025/03/05-05:45:33  ... thread 16: (214000,2123000) ops and (3561.7,8824.2) ops/second in (60.083034,240.589084) seconds
+2025/03/05-05:45:33  ... thread 17: (216000,2131000) ops and (3593.7,8854.7) ops/second in (60.104549,240.662362) seconds
+2025/03/05-05:45:33  ... thread 20: (214000,2128000) ops and (3563.3,8838.7) ops/second in (60.057084,240.758425) seconds
+2025/03/05-05:45:33  ... thread 14: (216000,2125000) ops and (3599.9,8824.7) ops/second in (60.002369,240.800126) seconds
+2025/03/05-05:45:33  ... thread 22: (214000,2142000) ops and (3560.4,8894.8) ops/second in (60.106368,240.816121) seconds
+2025/03/05-05:45:33  ... thread 3: (216000,2131000) ops and (3594.1,8848.0) ops/second in (60.097947,240.844743) seconds
+2025/03/05-05:45:33  ... thread 6: (217000,2140000) ops and (3610.6,8878.5) ops/second in (60.101186,241.032599) seconds
+2025/03/05-05:45:33  ... thread 5: (216000,2136000) ops and (3594.3,8858.3) ops/second in (60.095872,241.129557) seconds
+2025/03/05-05:45:33  ... thread 7: (217000,2144000) ops and (3611.1,8889.3) ops/second in (60.092223,241.189617) seconds
+2025/03/05-05:45:33  ... thread 12: (217000,2138000) ops and (3612.2,8860.6) ops/second in (60.073960,241.291726) seconds
+2025/03/05-05:45:33  ... thread 11: (217000,2133000) ops and (3611.7,8838.4) ops/second in (60.082296,241.334304) seconds
+2025/03/05-05:45:33  ... thread 30: (218000,2141000) ops and (3627.3,8868.1) ops/second in (60.100327,241.425950) seconds
+2025/03/05-05:45:34  ... thread 1: (219000,2134000) ops and (3644.7,8837.5) ops/second in (60.088032,241.470351) seconds
+2025/03/05-05:45:34  ... thread 28: (221000,2129000) ops and (3675.9,8810.9) ops/second in (60.121882,241.631626) seconds
+2025/03/05-05:45:34  ... thread 13: (220000,2138000) ops and (3665.3,8847.9) ops/second in (60.021893,241.639800) seconds
+2025/03/05-05:45:34  ... thread 31: (220000,2129000) ops and (3660.3,8810.3) ops/second in (60.104074,241.648849) seconds
+2025/03/05-05:45:34  ... thread 8: (222000,2144000) ops and (3692.2,8861.1) ops/second in (60.126353,241.957307) seconds
+2025/03/05-05:45:34  ... thread 19: (222000,2152000) ops and (3693.2,8894.1) ops/second in (60.110643,241.959377) seconds
+2025/03/05-05:45:34  ... thread 24: (223000,2134000) ops and (3710.9,8814.4) ops/second in (60.092583,242.102594) seconds
+2025/03/05-05:45:34  ... thread 15: (223000,2132000) ops and (3713.3,8805.4) ops/second in (60.053952,242.125354) seconds
+2025/03/05-05:45:34  ... thread 29: (226000,2137000) ops and (3761.4,8822.3) ops/second in (60.083882,242.227327) seconds
+2025/03/05-05:45:34  ... thread 10: (226000,2139000) ops and (3758.0,8828.7) ops/second in (60.138428,242.279323) seconds
+2025/03/05-05:45:34  ... thread 2: (225000,2148000) ops and (3744.6,8863.0) ops/second in (60.085927,242.355634) seconds
+2025/03/05-05:45:34  ... thread 32: (226000,2151000) ops and (3762.0,8873.2) ops/second in (60.074501,242.414359) seconds
+2025/03/05-05:45:34  ... thread 9: (226000,2156000) ops and (3763.1,8893.1) ops/second in (60.056174,242.434597) seconds
+2025/03/05-05:45:35  ... thread 18: (225000,2133000) ops and (3747.1,8796.8) ops/second in (60.045928,242.475714) seconds
+2025/03/05-05:45:35  ... thread 25: (224000,2122000) ops and (3732.0,8749.3) ops/second in (60.021673,242.532949) seconds
+2025/03/05-05:45:35  ... thread 26: (227000,2158000) ops and (3783.3,8895.6) ops/second in (60.000552,242.590677) seconds
+2025/03/05-05:46:32  ... thread 0: (1045000,5190000) ops and (17411.1,17290.9) ops/second in (60.019078,300.158074) seconds
+
+** Compaction Stats [default] **
+Level    Files   Size     Score Read(GB)  Rn(GB) Rnp1(GB) Write(GB) Wnew(GB) Moved(GB) W-Amp Rd(MB/s) Wr(MB/s) Comp(sec) CompMergeCPU(sec) Comp(cnt) Avg(sec) KeyIn KeyDrop Rblob(GB) Wblob(GB)
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  L0      3/0   177.93 MB   0.8      0.0     0.0      0.0       2.7      2.7       0.0   1.0      0.0    111.8     24.93             24.26        47    0.530       0      0       0.0       0.0
+  L1      8/0   1006.97 MB   1.0     12.2     3.6      8.6       9.5      1.0       0.0   2.6    129.5    101.5     96.23             91.99        12    8.019     22M  4770K       0.0       0.0
+ Sum     11/0    1.16 GB   0.0     12.2     3.6      8.6      12.3      3.7       0.0   4.5    102.9    103.6    121.16            116.25        59    2.054     22M  4770K       0.0       0.0
+ Int      0/0    0.00 KB   0.0     12.2     3.6      8.6      12.3      3.7       0.0   4.5    102.9    103.6    121.16            116.25        59    2.054     22M  4770K       0.0       0.0
+
+** Compaction Stats [default] **
+Priority    Files   Size     Score Read(GB)  Rn(GB) Rnp1(GB) Write(GB) Wnew(GB) Moved(GB) W-Amp Rd(MB/s) Wr(MB/s) Comp(sec) CompMergeCPU(sec) Comp(cnt) Avg(sec) KeyIn KeyDrop Rblob(GB) Wblob(GB)
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Low      0/0    0.00 KB   0.0     12.2     3.6      8.6       9.5      1.0       0.0   0.0    129.5    101.5     96.23             91.99        12    8.019     22M  4770K       0.0       0.0
+High      0/0    0.00 KB   0.0      0.0     0.0      0.0       2.7      2.7       0.0   0.0      0.0    111.8     24.93             24.26        47    0.530       0      0       0.0       0.0
+
+Blob file count: 0, total size: 0.0 GB, garbage size: 0.0 GB, space amp: 0.0
+
+Uptime(secs): 300.2 total, 300.2 interval
+Flush(GB): cumulative 2.721, interval 2.721
+AddFile(GB): cumulative 0.000, interval 0.000
+AddFile(Total Files): cumulative 0, interval 0
+AddFile(L0 Files): cumulative 0, interval 0
+AddFile(Keys): cumulative 0, interval 0
+Cumulative compaction: 12.26 GB write, 41.83 MB/s write, 12.17 GB read, 41.53 MB/s read, 121.2 seconds
+Interval compaction: 12.26 GB write, 41.83 MB/s write, 12.17 GB read, 41.53 MB/s read, 121.2 seconds
+Estimated pending compaction bytes: 0
+Write Stall (count): cf-l0-file-count-limit-delays-with-ongoing-compaction: 0, cf-l0-file-count-limit-stops-with-ongoing-compaction: 0, l0-file-count-limit-delays: 0, l0-file-count-limit-stops: 0, memtable-limit-delays: 0, memtable-limit-stops: 0, pending-compaction-bytes-delays: 0, pending-compaction-bytes-stops: 0, total-delays: 0, total-stops: 0
+Block cache LRUCache@0x64e266fe85c0#39837 capacity: 16.00 GB seed: 1547765340 usage: 0.09 KB table_size: 1024 occupancy: 1 collections: 1 last_copies: 0 last_secs: 2.2e-05 secs_since: 300
+Block cache entry stats(count,size,portion): Misc(1,0.00 KB,0%)
+
+** File Read Latency Histogram By Level [default] **
+
+** DB Stats **
+Uptime(secs): 300.2 total, 60.0 interval
+Cumulative writes: 5190K writes, 5190K keys, 5190K commit groups, 1.0 writes per commit group, ingest: 5.93 GB, 20.22 MB/s
+Cumulative WAL: 5190K writes, 5190K syncs, 1.00 writes per sync, written: 5.93 GB, 20.22 MB/s
+Cumulative stall: 00:00:0.000 H:M:S, 0.0 percent
+Interval writes: 1045K writes, 1045K keys, 1045K commit groups, 1.0 writes per commit group, ingest: 1221.82 MB, 20.36 MB/s
+Interval WAL: 1045K writes, 1045K syncs, 1.00 writes per sync, written: 1.19 GB, 20.36 MB/s
+Interval stall: 00:00:0.000 H:M:S, 0.0 percent
+Write Stall (count): write-buffer-manager-limit-stops: 0
+num-running-compactions: 0
+num-running-flushes: 0
+
+2025/03/05-05:46:33  ... thread 4: (209000,2325000) ops and (3477.3,7736.6) ops/second in (60.103726,300.520902) seconds
+2025/03/05-05:46:33  ... thread 23: (208000,2332000) ops and (3460.7,7758.9) ops/second in (60.103921,300.556950) seconds
+2025/03/05-05:46:33  ... thread 16: (207000,2330000) ops and (3448.7,7750.8) ops/second in (60.023312,300.612396) seconds
+2025/03/05-05:46:33  ... thread 21: (210000,2339000) ops and (3473.3,7779.4) ops/second in (60.460392,300.664435) seconds
+2025/03/05-05:46:33  ... thread 17: (207000,2338000) ops and (3443.6,7773.3) ops/second in (60.111531,300.773893) seconds
+2025/03/05-05:46:33  ... thread 22: (207000,2349000) ops and (3447.2,7807.5) ops/second in (60.048173,300.864294) seconds
+2025/03/05-05:46:33  ... thread 27: (210000,2341000) ops and (3476.1,7780.0) ops/second in (60.413247,300.898614) seconds
+2025/03/05-05:46:33  ... thread 3: (207000,2338000) ops and (3445.6,7769.5) ops/second in (60.077020,300.921763) seconds
+2025/03/05-05:46:33  ... thread 20: (208000,2336000) ops and (3456.3,7762.4) ops/second in (60.180032,300.938457) seconds
+2025/03/05-05:46:33  ... thread 14: (207000,2332000) ops and (3435.0,7745.9) ops/second in (60.261492,301.061618) seconds
+2025/03/05-05:46:33  ... thread 7: (205000,2349000) ops and (3415.9,7798.7) ops/second in (60.014038,301.203655) seconds
+2025/03/05-05:46:33  ... thread 12: (202000,2340000) ops and (3361.2,7764.0) ops/second in (60.097693,301.389419) seconds
+2025/03/05-05:46:34  ... thread 5: (204000,2340000) ops and (3368.8,7756.4) ops/second in (60.555659,301.685216) seconds
+2025/03/05-05:46:34  ... thread 28: (201000,2330000) ops and (3337.2,7718.7) ops/second in (60.230982,301.862608) seconds
+2025/03/05-05:46:34  ... thread 6: (207000,2347000) ops and (3393.1,7770.5) ops/second in (61.006500,302.039099) seconds
+2025/03/05-05:46:34  ... thread 11: (203000,2336000) ops and (3340.9,7732.6) ops/second in (60.762496,302.096800) seconds
+2025/03/05-05:46:34  ... thread 13: (202000,2340000) ops and (3333.4,7742.2) ops/second in (60.598643,302.238443) seconds
+2025/03/05-05:46:34  ... thread 1: (204000,2338000) ops and (3346.4,7730.7) ops/second in (60.961843,302.432194) seconds
+2025/03/05-05:46:35  ... thread 29: (198000,2335000) ops and (3281.9,7717.5) ops/second in (60.331550,302.558877) seconds
+2025/03/05-05:46:35  ... thread 19: (200000,2352000) ops and (3299.2,7773.1) ops/second in (60.621376,302.580753) seconds
+2025/03/05-05:46:35  ... thread 9: (196000,2352000) ops and (3253.3,7770.6) ops/second in (60.246523,302.681120) seconds
+2025/03/05-05:46:35  ... thread 26: (195000,2353000) ops and (3241.0,7771.9) ops/second in (60.166324,302.757001) seconds
+2025/03/05-05:46:35  ... thread 25: (194000,2316000) ops and (3215.8,7647.1) ops/second in (60.326534,302.859483) seconds
+2025/03/05-05:46:35  ... thread 32: (196000,2347000) ops and (3237.3,7746.9) ops/second in (60.544635,302.958994) seconds
+2025/03/05-05:46:35  ... thread 31: (202000,2331000) ops and (3294.7,7694.1) ops/second in (61.310849,302.959698) seconds
+2025/03/05-05:46:35  ... thread 30: (203000,2344000) ops and (3283.8,7729.7) ops/second in (61.819514,303.245464) seconds
+2025/03/05-05:46:35  ... thread 18: (197000,2330000) ops and (3240.0,7682.7) ops/second in (60.802219,303.277933) seconds
+2025/03/05-05:46:35  ... thread 10: (198000,2337000) ops and (3237.5,7701.7) ops/second in (61.158695,303.438018) seconds
+2025/03/05-05:46:36  ... thread 15: (199000,2331000) ops and (3240.1,7679.3) ops/second in (61.417294,303.542648) seconds
+2025/03/05-05:46:36  ... thread 8: (198000,2342000) ops and (3205.5,7710.9) ops/second in (61.769735,303.727042) seconds
+2025/03/05-05:46:36  ... thread 24: (200000,2334000) ops and (3239.4,7681.6) ops/second in (61.739794,303.842388) seconds
+2025/03/05-05:46:36  ... thread 2: (199000,2347000) ops and (3220.4,7716.6) ops/second in (61.793113,304.148747) seconds
+2025/03/05-05:47:32  ... thread 0: (1069000,6259000) ops and (17815.1,17378.2) ops/second in (60.005231,360.163305) seconds
+
+** Compaction Stats [default] **
+Level    Files   Size     Score Read(GB)  Rn(GB) Rnp1(GB) Write(GB) Wnew(GB) Moved(GB) W-Amp Rd(MB/s) Wr(MB/s) Comp(sec) CompMergeCPU(sec) Comp(cnt) Avg(sec) KeyIn KeyDrop Rblob(GB) Wblob(GB)
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  L0      1/0   59.27 MB   0.2      0.0     0.0      0.0       3.3      3.3       0.0   1.0      0.0    111.6     30.29             29.50        57    0.531       0      0       0.0       0.0
+  L1      5/0   728.73 MB   0.7     15.0     4.3     10.7      11.9      1.2       0.0   2.8    128.5    101.9    119.31            114.59        15    7.954     27M  5620K       0.0       0.0
+  L2      4/0   515.05 MB   0.1      0.0     0.0      0.0       0.0      0.0       0.5   0.0      0.0      0.0      0.00              0.00         0    0.000       0      0       0.0       0.0
+ Sum     10/0    1.27 GB   0.0     15.0     4.3     10.7      15.2      4.5       0.5   4.6    102.5    103.9    149.60            144.08        72    2.078     27M  5620K       0.0       0.0
+ Int      0/0    0.00 KB   0.0     15.0     4.3     10.7      15.2      4.5       0.5   4.6    102.5    103.9    149.60            144.08        72    2.078     27M  5620K       0.0       0.0
+
+** Compaction Stats [default] **
+Priority    Files   Size     Score Read(GB)  Rn(GB) Rnp1(GB) Write(GB) Wnew(GB) Moved(GB) W-Amp Rd(MB/s) Wr(MB/s) Comp(sec) CompMergeCPU(sec) Comp(cnt) Avg(sec) KeyIn KeyDrop Rblob(GB) Wblob(GB)
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Low      0/0    0.00 KB   0.0     15.0     4.3     10.7      11.9      1.2       0.0   0.0    128.5    101.9    119.31            114.59        15    7.954     27M  5620K       0.0       0.0
+High      0/0    0.00 KB   0.0      0.0     0.0      0.0       3.3      3.3       0.0   0.0      0.0    111.6     30.29             29.50        57    0.531       0      0       0.0       0.0
+
+Blob file count: 0, total size: 0.0 GB, garbage size: 0.0 GB, space amp: 0.0
+
+Uptime(secs): 360.2 total, 360.2 interval
+Flush(GB): cumulative 3.300, interval 3.300
+AddFile(GB): cumulative 0.000, interval 0.000
+AddFile(Total Files): cumulative 0, interval 0
+AddFile(L0 Files): cumulative 0, interval 0
+AddFile(Keys): cumulative 0, interval 0
+Cumulative compaction: 15.17 GB write, 43.14 MB/s write, 14.97 GB read, 42.56 MB/s read, 149.6 seconds
+Interval compaction: 15.17 GB write, 43.14 MB/s write, 14.97 GB read, 42.56 MB/s read, 149.6 seconds
+Estimated pending compaction bytes: 0
+Write Stall (count): cf-l0-file-count-limit-delays-with-ongoing-compaction: 0, cf-l0-file-count-limit-stops-with-ongoing-compaction: 0, l0-file-count-limit-delays: 0, l0-file-count-limit-stops: 0, memtable-limit-delays: 0, memtable-limit-stops: 0, pending-compaction-bytes-delays: 0, pending-compaction-bytes-stops: 0, total-delays: 0, total-stops: 0
+Block cache LRUCache@0x64e266fe85c0#39837 capacity: 16.00 GB seed: 1547765340 usage: 0.09 KB table_size: 1024 occupancy: 1 collections: 1 last_copies: 0 last_secs: 2.2e-05 secs_since: 360
+Block cache entry stats(count,size,portion): Misc(1,0.00 KB,0%)
+
+** File Read Latency Histogram By Level [default] **
+
+** DB Stats **
+Uptime(secs): 360.2 total, 60.0 interval
+Cumulative writes: 6259K writes, 6259K keys, 6259K commit groups, 1.0 writes per commit group, ingest: 7.15 GB, 20.32 MB/s
+Cumulative WAL: 6259K writes, 6259K syncs, 1.00 writes per sync, written: 7.15 GB, 20.32 MB/s
+Cumulative stall: 00:00:0.000 H:M:S, 0.0 percent
+Interval writes: 1069K writes, 1069K keys, 1069K commit groups, 1.0 writes per commit group, ingest: 1249.88 MB, 20.83 MB/s
+Interval WAL: 1069K writes, 1069K syncs, 1.00 writes per sync, written: 1.22 GB, 20.83 MB/s
+Interval stall: 00:00:0.000 H:M:S, 0.0 percent
+Write Stall (count): write-buffer-manager-limit-stops: 0
+num-running-compactions: 0
+num-running-flushes: 0
+
+2025/03/05-05:47:33  ... thread 23: (125000,2457000) ops and (2081.7,6813.6) ops/second in (60.047419,360.604369) seconds
+2025/03/05-05:47:33  ... thread 4: (124000,2449000) ops and (2060.9,6789.8) ops/second in (60.167193,360.688095) seconds
+2025/03/05-05:47:33  ... thread 16: (124000,2454000) ops and (2063.6,6803.4) ops/second in (60.090085,360.702481) seconds
+2025/03/05-05:47:33  ... thread 21: (125000,2464000) ops and (2074.8,6827.2) ops/second in (60.245477,360.909912) seconds
+2025/03/05-05:47:33  ... thread 3: (125000,2463000) ops and (2080.0,6822.4) ops/second in (60.094902,361.016665) seconds
+2025/03/05-05:47:33  ... thread 27: (126000,2467000) ops and (2093.4,6832.1) ops/second in (60.189093,361.087707) seconds
+2025/03/05-05:47:33  ... thread 17: (125000,2463000) ops and (2072.2,6820.9) ops/second in (60.321829,361.095722) seconds
+2025/03/05-05:47:33  ... thread 20: (125000,2461000) ops and (2074.6,6813.6) ops/second in (60.251659,361.190116) seconds
+2025/03/05-05:47:33  ... thread 22: (125000,2474000) ops and (2071.8,6849.4) ops/second in (60.333159,361.197453) seconds
+2025/03/05-05:47:33  ... thread 14: (125000,2457000) ops and (2077.7,6801.9) ops/second in (60.163009,361.224627) seconds
+2025/03/05-05:47:33  ... thread 7: (125000,2474000) ops and (2078.9,6846.9) ops/second in (60.126537,361.330192) seconds
+2025/03/05-05:47:34  ... thread 12: (125000,2465000) ops and (2080.6,6819.4) ops/second in (60.077642,361.467061) seconds
+2025/03/05-05:47:34  ... thread 5: (126000,2466000) ops and (2093.9,6814.8) ops/second in (60.175759,361.860975) seconds
+2025/03/05-05:47:34  ... thread 11: (126000,2462000) ops and (2097.3,6797.8) ops/second in (60.076924,362.173724) seconds
+2025/03/05-05:47:34  ... thread 28: (127000,2457000) ops and (2105.6,6784.0) ops/second in (60.314685,362.177293) seconds
+2025/03/05-05:47:34  ... thread 6: (127000,2474000) ops and (2111.1,6830.5) ops/second in (60.157959,362.197058) seconds
+2025/03/05-05:47:34  ... thread 13: (127000,2467000) ops and (2111.2,6807.5) ops/second in (60.155146,362.393589) seconds
+2025/03/05-05:47:35  ... thread 1: (128000,2466000) ops and (2132.9,6803.8) ops/second in (60.012923,362.445117) seconds
+2025/03/05-05:47:35  ... thread 19: (128000,2480000) ops and (2133.1,6839.7) ops/second in (60.007638,362.588391) seconds
+2025/03/05-05:47:35  ... thread 29: (128000,2463000) ops and (2129.1,6791.1) ops/second in (60.120240,362.679117) seconds
+2025/03/05-05:47:35  ... thread 9: (128000,2480000) ops and (2121.7,6831.8) ops/second in (60.329083,363.010203) seconds
+2025/03/05-05:47:35  ... thread 25: (128000,2444000) ops and (2126.8,6732.0) ops/second in (60.183319,363.042802) seconds
+2025/03/05-05:47:35  ... thread 26: (128000,2481000) ops and (2122.0,6833.2) ops/second in (60.320617,363.077618) seconds
+2025/03/05-05:47:35  ... thread 32: (129000,2476000) ops and (2145.4,6819.3) ops/second in (60.128686,363.087680) seconds
+2025/03/05-05:47:35  ... thread 18: (129000,2459000) ops and (2148.7,6768.3) ops/second in (60.034913,363.312846) seconds
+2025/03/05-05:47:35  ... thread 31: (129000,2460000) ops and (2136.7,6770.6) ops/second in (60.373941,363.333639) seconds
+2025/03/05-05:47:36  ... thread 30: (130000,2474000) ops and (2155.4,6805.0) ops/second in (60.313154,363.558618) seconds
+2025/03/05-05:47:36  ... thread 15: (130000,2461000) ops and (2165.0,6768.6) ops/second in (60.047429,363.590077) seconds
+2025/03/05-05:47:36  ... thread 8: (130000,2472000) ops and (2165.5,6795.7) ops/second in (60.031297,363.758339) seconds
+2025/03/05-05:47:36  ... thread 10: (130000,2467000) ops and (2153.4,6781.1) ops/second in (60.368341,363.806359) seconds
+2025/03/05-05:47:36  ... thread 24: (132000,2466000) ops and (2188.7,6771.9) ops/second in (60.309633,364.152021) seconds
+2025/03/05-05:47:36  ... thread 2: (133000,2480000) ops and (2206.2,6805.1) ops/second in (60.284384,364.433131) seconds
+2025/03/05-05:48:32  ... thread 0: (1042000,7301000) ops and (17356.4,17375.1) ops/second in (60.035420,420.198725) seconds
+
+** Compaction Stats [default] **
+Level    Files   Size     Score Read(GB)  Rn(GB) Rnp1(GB) Write(GB) Wnew(GB) Moved(GB) W-Amp Rd(MB/s) Wr(MB/s) Comp(sec) CompMergeCPU(sec) Comp(cnt) Avg(sec) KeyIn KeyDrop Rblob(GB) Wblob(GB)
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  L0      3/0   178.07 MB   0.8      0.0     0.0      0.0       3.9      3.9       0.0   1.0      0.0    111.7     35.58             34.68        67    0.531       0      0       0.0       0.0
+  L1      7/0   869.03 MB   0.8     16.9     4.8     12.2      13.5      1.4       0.0   2.8    127.2    101.5    136.27            130.87        17    8.016     31M  6218K       0.0       0.0
+  L2      4/0   515.05 MB   0.1      0.0     0.0      0.0       0.0      0.0       0.5   0.0      0.0      0.0      0.00              0.00         0    0.000       0      0       0.0       0.0
+ Sum     14/0    1.53 GB   0.0     16.9     4.8     12.2      17.4      5.2       0.5   4.5    100.9    103.6    171.85            165.55        84    2.046     31M  6218K       0.0       0.0
+ Int      0/0    0.00 KB   0.0     16.9     4.8     12.2      17.4      5.2       0.5   4.5    100.9    103.6    171.85            165.55        84    2.046     31M  6218K       0.0       0.0
+
+** Compaction Stats [default] **
+Priority    Files   Size     Score Read(GB)  Rn(GB) Rnp1(GB) Write(GB) Wnew(GB) Moved(GB) W-Amp Rd(MB/s) Wr(MB/s) Comp(sec) CompMergeCPU(sec) Comp(cnt) Avg(sec) KeyIn KeyDrop Rblob(GB) Wblob(GB)
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Low      0/0    0.00 KB   0.0     16.9     4.8     12.2      13.5      1.4       0.0   0.0    127.2    101.5    136.27            130.87        17    8.016     31M  6218K       0.0       0.0
+High      0/0    0.00 KB   0.0      0.0     0.0      0.0       3.9      3.9       0.0   0.0      0.0    111.7     35.58             34.68        67    0.531       0      0       0.0       0.0
+
+Blob file count: 0, total size: 0.0 GB, garbage size: 0.0 GB, space amp: 0.0
+
+Uptime(secs): 420.2 total, 420.2 interval
+Flush(GB): cumulative 3.880, interval 3.880
+AddFile(GB): cumulative 0.000, interval 0.000
+AddFile(Total Files): cumulative 0, interval 0
+AddFile(L0 Files): cumulative 0, interval 0
+AddFile(Keys): cumulative 0, interval 0
+Cumulative compaction: 17.39 GB write, 42.37 MB/s write, 16.93 GB read, 41.26 MB/s read, 171.8 seconds
+Interval compaction: 17.39 GB write, 42.37 MB/s write, 16.93 GB read, 41.26 MB/s read, 171.8 seconds
+Estimated pending compaction bytes: 0
+Write Stall (count): cf-l0-file-count-limit-delays-with-ongoing-compaction: 0, cf-l0-file-count-limit-stops-with-ongoing-compaction: 0, l0-file-count-limit-delays: 0, l0-file-count-limit-stops: 0, memtable-limit-delays: 0, memtable-limit-stops: 0, pending-compaction-bytes-delays: 0, pending-compaction-bytes-stops: 0, total-delays: 0, total-stops: 0
+Block cache LRUCache@0x64e266fe85c0#39837 capacity: 16.00 GB seed: 1547765340 usage: 0.09 KB table_size: 1024 occupancy: 1 collections: 1 last_copies: 0 last_secs: 2.2e-05 secs_since: 420
+Block cache entry stats(count,size,portion): Misc(1,0.00 KB,0%)
+
+** File Read Latency Histogram By Level [default] **
+
+** DB Stats **
+Uptime(secs): 420.2 total, 60.0 interval
+Cumulative writes: 7301K writes, 7301K keys, 7301K commit groups, 1.0 writes per commit group, ingest: 8.34 GB, 20.31 MB/s
+Cumulative WAL: 7301K writes, 7301K syncs, 1.00 writes per sync, written: 8.34 GB, 20.31 MB/s
+Cumulative stall: 00:00:0.000 H:M:S, 0.0 percent
+Interval writes: 1042K writes, 1042K keys, 1042K commit groups, 1.0 writes per commit group, ingest: 1218.31 MB, 20.29 MB/s
+Interval WAL: 1042K writes, 1042K syncs, 1.00 writes per sync, written: 1.19 GB, 20.29 MB/s
+Interval stall: 00:00:0.000 H:M:S, 0.0 percent
+Write Stall (count): write-buffer-manager-limit-stops: 0
+num-running-compactions: 0
+num-running-flushes: 0
+
+2025/03/05-05:48:33  ... thread 23: (102000,2559000) ops and (1695.4,6081.7) ops/second in (60.164523,420.768892) seconds
+2025/03/05-05:48:33  ... thread 4: (103000,2552000) ops and (1711.3,6063.5) ops/second in (60.188618,420.876713) seconds
+2025/03/05-05:48:33  ... thread 21: (102000,2566000) ops and (1697.6,6095.1) ops/second in (60.085966,420.995878) seconds
+2025/03/05-05:48:33  ... thread 16: (103000,2557000) ops and (1704.4,6071.7) ops/second in (60.431576,421.134057) seconds
+2025/03/05-05:48:33  ... thread 3: (102000,2565000) ops and (1691.3,6087.9) ops/second in (60.309615,421.326280) seconds
+2025/03/05-05:48:33  ... thread 7: (102000,2576000) ops and (1698.9,6113.4) ops/second in (60.038029,421.368221) seconds
+2025/03/05-05:48:33  ... thread 14: (103000,2560000) ops and (1711.7,6075.0) ops/second in (60.173944,421.398571) seconds
+2025/03/05-05:48:33  ... thread 27: (103000,2570000) ops and (1707.4,6098.5) ops/second in (60.324406,421.412113) seconds
+2025/03/05-05:48:34  ... thread 20: (102000,2563000) ops and (1692.1,6081.1) ops/second in (60.279133,421.469249) seconds
+2025/03/05-05:48:34  ... thread 17: (103000,2566000) ops and (1702.9,6086.6) ops/second in (60.484043,421.579765) seconds
+2025/03/05-05:48:34  ... thread 22: (103000,2577000) ops and (1704.5,6112.0) ops/second in (60.428877,421.626330) seconds
+2025/03/05-05:48:34  ... thread 12: (103000,2568000) ops and (1708.4,6088.8) ops/second in (60.290476,421.757537) seconds
+2025/03/05-05:48:34  ... thread 5: (103000,2569000) ops and (1707.0,6084.8) ops/second in (60.340507,422.201482) seconds
+2025/03/05-05:48:34  ... thread 6: (102000,2576000) ops and (1697.0,6099.9) ops/second in (60.107416,422.304474) seconds
+2025/03/05-05:48:34  ... thread 28: (102000,2559000) ops and (1695.7,6059.2) ops/second in (60.153622,422.330915) seconds
+2025/03/05-05:48:35  ... thread 11: (102000,2564000) ops and (1691.3,6068.9) ops/second in (60.309755,422.483479) seconds
+2025/03/05-05:48:35  ... thread 19: (101000,2581000) ops and (1682.5,6107.2) ops/second in (60.028621,422.617012) seconds
+2025/03/05-05:48:35  ... thread 1: (102000,2568000) ops and (1694.0,6075.8) ops/second in (60.214013,422.659130) seconds
+2025/03/05-05:48:35  ... thread 13: (103000,2570000) ops and (1704.1,6078.0) ops/second in (60.443622,422.837211) seconds
+2025/03/05-05:48:35  ... thread 29: (102000,2565000) ops and (1694.9,6065.8) ops/second in (60.180764,422.859881) seconds
+2025/03/05-05:48:35  ... thread 25: (101000,2545000) ops and (1678.9,6013.7) ops/second in (60.158805,423.201607) seconds
+2025/03/05-05:48:35  ... thread 9: (103000,2583000) ops and (1710.5,6103.1) ops/second in (60.215549,423.225752) seconds
+2025/03/05-05:48:35  ... thread 32: (101000,2577000) ops and (1677.9,6088.2) ops/second in (60.192519,423.280199) seconds
+2025/03/05-05:48:35  ... thread 18: (101000,2560000) ops and (1681.5,6046.6) ops/second in (60.065482,423.378328) seconds
+2025/03/05-05:48:35  ... thread 26: (102000,2583000) ops and (1691.4,6100.9) ops/second in (60.305345,423.382963) seconds
+2025/03/05-05:48:36  ... thread 31: (102000,2562000) ops and (1689.8,6046.8) ops/second in (60.362073,423.695712) seconds
+2025/03/05-05:48:36  ... thread 15: (100000,2561000) ops and (1663.3,6044.2) ops/second in (60.122880,423.712957) seconds
+2025/03/05-05:48:36  ... thread 30: (102000,2576000) ops and (1695.0,6079.3) ops/second in (60.177485,423.736103) seconds
+2025/03/05-05:48:36  ... thread 8: (100000,2572000) ops and (1666.7,6069.5) ops/second in (60.000462,423.758801) seconds
+2025/03/05-05:48:36  ... thread 10: (101000,2568000) ops and (1671.4,6053.2) ops/second in (60.429442,424.235801) seconds
+2025/03/05-05:48:36  ... thread 24: (100000,2566000) ops and (1659.6,6046.1) ops/second in (60.254946,424.406967) seconds
+2025/03/05-05:48:37  ... thread 2: (99000,2579000) ops and (1648.4,6075.5) ops/second in (60.057906,424.491037) seconds
+2025/03/05-05:49:32  ... thread 0: (1038000,8339000) ops and (17290.2,17364.5) ops/second in (60.033938,480.232663) seconds
+
+** Compaction Stats [default] **
+Level    Files   Size     Score Read(GB)  Rn(GB) Rnp1(GB) Write(GB) Wnew(GB) Moved(GB) W-Amp Rd(MB/s) Wr(MB/s) Comp(sec) CompMergeCPU(sec) Comp(cnt) Avg(sec) KeyIn KeyDrop Rblob(GB) Wblob(GB)
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  L0      4/4   237.52 MB   0.0      0.0     0.0      0.0       4.4      4.4       0.0   1.0      0.0    111.7     40.35             39.38        76    0.531       0      0       0.0       0.0
+  L1      7/7   959.72 MB   0.0     19.1     5.2     13.9      15.3      1.4       0.0   2.9    126.6    101.5    154.80            149.11        19    8.147     35M  6902K       0.0       0.0
+  L2      4/0   515.05 MB   0.1      0.0     0.0      0.0       0.0      0.0       0.5   0.0      0.0      0.0      0.00              0.00         0    0.000       0      0       0.0       0.0
+ Sum     15/11   1.67 GB   0.0     19.1     5.2     13.9      19.7      5.8       0.5   4.5    100.4    103.6    195.14            188.49        95    2.054     35M  6902K       0.0       0.0
+ Int      0/0    0.00 KB   0.0     19.1     5.2     13.9      19.7      5.8       0.5   4.5    100.4    103.6    195.14            188.49        95    2.054     35M  6902K       0.0       0.0
+
+** Compaction Stats [default] **
+Priority    Files   Size     Score Read(GB)  Rn(GB) Rnp1(GB) Write(GB) Wnew(GB) Moved(GB) W-Amp Rd(MB/s) Wr(MB/s) Comp(sec) CompMergeCPU(sec) Comp(cnt) Avg(sec) KeyIn KeyDrop Rblob(GB) Wblob(GB)
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Low      0/0    0.00 KB   0.0     19.1     5.2     13.9      15.3      1.4       0.0   0.0    126.6    101.5    154.80            149.11        19    8.147     35M  6902K       0.0       0.0
+High      0/0    0.00 KB   0.0      0.0     0.0      0.0       4.4      4.4       0.0   0.0      0.0    111.7     40.35             39.38        76    0.531       0      0       0.0       0.0
+
+Blob file count: 0, total size: 0.0 GB, garbage size: 0.0 GB, space amp: 0.0
+
+Uptime(secs): 480.2 total, 480.2 interval
+Flush(GB): cumulative 4.402, interval 4.402
+AddFile(GB): cumulative 0.000, interval 0.000
+AddFile(Total Files): cumulative 0, interval 0
+AddFile(L0 Files): cumulative 0, interval 0
+AddFile(Keys): cumulative 0, interval 0
+Cumulative compaction: 19.74 GB write, 42.10 MB/s write, 19.14 GB read, 40.81 MB/s read, 195.1 seconds
+Interval compaction: 19.74 GB write, 42.10 MB/s write, 19.14 GB read, 40.81 MB/s read, 195.1 seconds
+Estimated pending compaction bytes: 1515202179
+Write Stall (count): cf-l0-file-count-limit-delays-with-ongoing-compaction: 0, cf-l0-file-count-limit-stops-with-ongoing-compaction: 0, l0-file-count-limit-delays: 0, l0-file-count-limit-stops: 0, memtable-limit-delays: 0, memtable-limit-stops: 0, pending-compaction-bytes-delays: 0, pending-compaction-bytes-stops: 0, total-delays: 0, total-stops: 0
+Block cache LRUCache@0x64e266fe85c0#39837 capacity: 16.00 GB seed: 1547765340 usage: 0.09 KB table_size: 1024 occupancy: 1 collections: 1 last_copies: 0 last_secs: 2.2e-05 secs_since: 480
+Block cache entry stats(count,size,portion): Misc(1,0.00 KB,0%)
+
+** File Read Latency Histogram By Level [default] **
+
+** DB Stats **
+Uptime(secs): 480.2 total, 60.0 interval
+Cumulative writes: 8339K writes, 8339K keys, 8339K commit groups, 1.0 writes per commit group, ingest: 9.52 GB, 20.30 MB/s
+Cumulative WAL: 8339K writes, 8339K syncs, 1.00 writes per sync, written: 9.52 GB, 20.30 MB/s
+Cumulative stall: 00:00:0.000 H:M:S, 0.0 percent
+Interval writes: 1038K writes, 1038K keys, 1038K commit groups, 1.0 writes per commit group, ingest: 1213.63 MB, 20.22 MB/s
+Interval WAL: 1038K writes, 1038K syncs, 1.00 writes per sync, written: 1.19 GB, 20.22 MB/s
+Interval stall: 00:00:0.000 H:M:S, 0.0 percent
+Write Stall (count): write-buffer-manager-limit-stops: 0
+num-running-compactions: 1
+num-running-flushes: 0
+
+2025/03/05-05:49:35  ... thread 3: (128000,2693000) ops and (2071.3,5574.2) ops/second in (61.796605,483.122885) seconds
+2025/03/05-05:49:35  ... thread 27: (128000,2698000) ops and (2073.6,5584.3) ops/second in (61.728754,483.140867) seconds
+2025/03/05-05:49:36  ... thread 14: (129000,2689000) ops and (2056.9,5554.5) ops/second in (62.715028,484.113599) seconds
+2025/03/05-05:49:36  ... thread 32: (125000,2702000) ops and (2053.8,5581.0) ops/second in (60.862350,484.142549) seconds
+2025/03/05-05:49:36  ... thread 11: (126000,2690000) ops and (2043.5,5556.2) ops/second in (61.658843,484.142322) seconds
+2025/03/05-05:49:36  ... thread 5: (127000,2696000) ops and (2050.2,5568.6) ops/second in (61.943715,484.145197) seconds
+2025/03/05-05:49:36  ... thread 4: (131000,2683000) ops and (2070.5,5541.7) ops/second in (63.270881,484.147594) seconds
+2025/03/05-05:49:36  ... thread 16: (130000,2687000) ops and (2062.6,5549.8) ops/second in (63.027646,484.161703) seconds
+2025/03/05-05:49:36  ... thread 20: (129000,2692000) ops and (2056.9,5559.9) ops/second in (62.715464,484.184713) seconds
+2025/03/05-05:49:36  ... thread 21: (130000,2696000) ops and (2057.3,5568.1) ops/second in (63.189032,484.184910) seconds
+2025/03/05-05:49:36  ... thread 7: (128000,2704000) ops and (2036.9,5584.4) ops/second in (62.841730,484.209951) seconds
+2025/03/05-05:49:36  ... thread 15: (124000,2685000) ops and (2049.5,5545.0) ops/second in (60.503972,484.216929) seconds
+2025/03/05-05:49:36  ... thread 1: (126000,2694000) ops and (2046.3,5563.4) ops/second in (61.575416,484.234546) seconds
+2025/03/05-05:49:36  ... thread 12: (128000,2696000) ops and (2048.3,5567.4) ops/second in (62.490998,484.248535) seconds
+2025/03/05-05:49:36  ... thread 26: (125000,2708000) ops and (2053.7,5592.2) ops/second in (60.867054,484.250017) seconds
+2025/03/05-05:49:36  ... thread 18: (127000,2687000) ops and (2085.9,5548.6) ops/second in (60.885004,484.263332) seconds
+2025/03/05-05:49:36  ... thread 10: (124000,2692000) ops and (2064.9,5558.7) ops/second in (60.050384,484.286185) seconds
+2025/03/05-05:49:36  ... thread 22: (130000,2707000) ops and (2074.0,5589.4) ops/second in (62.679903,484.306233) seconds
+2025/03/05-05:49:36  ... thread 25: (125000,2670000) ops and (2045.0,5512.8) ops/second in (61.124789,484.326396) seconds
+2025/03/05-05:49:36  ... thread 31: (125000,2687000) ops and (2061.5,5547.9) ops/second in (60.634320,484.330032) seconds
+2025/03/05-05:49:36  ... thread 28: (128000,2687000) ops and (2064.1,5547.7) ops/second in (62.012883,484.343798) seconds
+2025/03/05-05:49:36  ... thread 8: (125000,2697000) ops and (2063.0,5568.3) ops/second in (60.591903,484.350704) seconds
+2025/03/05-05:49:36  ... thread 29: (127000,2692000) ops and (2064.9,5557.8) ops/second in (61.503740,484.363621) seconds
+2025/03/05-05:49:36  ... thread 6: (128000,2704000) ops and (2062.4,5582.5) ops/second in (62.064550,484.369024) seconds
+2025/03/05-05:49:36  ... thread 23: (131000,2690000) ops and (2059.6,5553.6) ops/second in (63.604074,484.372966) seconds
+2025/03/05-05:49:36  ... thread 17: (130000,2696000) ops and (2070.2,5565.9) ops/second in (62.795328,484.375093) seconds
+2025/03/05-05:49:36  ... thread 30: (126000,2702000) ops and (2077.6,5578.2) ops/second in (60.646397,484.382500) seconds
+2025/03/05-05:49:36  ... thread 9: (126000,2709000) ops and (2058.6,5592.1) ops/second in (61.206326,484.432078) seconds
+2025/03/05-05:49:36  ... thread 19: (127000,2708000) ops and (2054.2,5589.9) ops/second in (61.824024,484.441036) seconds
+2025/03/05-05:49:37  ... thread 13: (128000,2698000) ops and (2077.3,5569.1) ops/second in (61.617503,484.454714) seconds
+2025/03/05-05:49:37  ... thread 24: (124000,2690000) ops and (2055.6,5549.5) ops/second in (60.321979,484.728946) seconds
+2025/03/05-05:49:37  ... thread 2: (126000,2705000) ops and (2089.6,5579.7) ops/second in (60.299493,484.790530) seconds
+2025/03/05-05:50:32  ... thread 0: (1049000,9388000) ops and (17477.0,17377.0) ops/second in (60.021887,540.254550) seconds
+
+** Compaction Stats [default] **
+Level    Files   Size     Score Read(GB)  Rn(GB) Rnp1(GB) Write(GB) Wnew(GB) Moved(GB) W-Amp Rd(MB/s) Wr(MB/s) Comp(sec) CompMergeCPU(sec) Comp(cnt) Avg(sec) KeyIn KeyDrop Rblob(GB) Wblob(GB)
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  L0      2/0   118.72 MB   0.5      0.0     0.0      0.0       5.0      5.0       0.0   1.0      0.0    111.8     45.63             44.54        86    0.531       0      0       0.0       0.0
+  L1      4/0   484.66 MB   0.5     22.7     5.9     16.8      18.3      1.5       0.0   3.1    126.3    101.8    184.34            177.81        22    8.379     41M  8027K       0.0       0.0
+  L2      7/0    1.04 GB   0.1      0.0     0.0      0.0       0.0      0.0       1.0   0.0      0.0      0.0      0.00              0.00         0    0.000       0      0       0.0       0.0
+ Sum     13/0    1.63 GB   0.0     22.7     5.9     16.8      23.3      6.5       1.0   4.7    101.2    103.8    229.98            222.35       108    2.129     41M  8027K       0.0       0.0
+ Int      0/0    0.00 KB   0.0     22.7     5.9     16.8      23.3      6.5       1.0   4.7    101.2    103.8    229.98            222.35       108    2.129     41M  8027K       0.0       0.0
+
+** Compaction Stats [default] **
+Priority    Files   Size     Score Read(GB)  Rn(GB) Rnp1(GB) Write(GB) Wnew(GB) Moved(GB) W-Amp Rd(MB/s) Wr(MB/s) Comp(sec) CompMergeCPU(sec) Comp(cnt) Avg(sec) KeyIn KeyDrop Rblob(GB) Wblob(GB)
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Low      0/0    0.00 KB   0.0     22.7     5.9     16.8      18.3      1.5       0.0   0.0    126.3    101.8    184.34            177.81        22    8.379     41M  8027K       0.0       0.0
+High      0/0    0.00 KB   0.0      0.0     0.0      0.0       5.0      5.0       0.0   0.0      0.0    111.8     45.63             44.54        86    0.531       0      0       0.0       0.0
+
+Blob file count: 0, total size: 0.0 GB, garbage size: 0.0 GB, space amp: 0.0
+
+Uptime(secs): 540.3 total, 540.3 interval
+Flush(GB): cumulative 4.981, interval 4.981
+AddFile(GB): cumulative 0.000, interval 0.000
+AddFile(Total Files): cumulative 0, interval 0
+AddFile(L0 Files): cumulative 0, interval 0
+AddFile(Keys): cumulative 0, interval 0
+Cumulative compaction: 23.30 GB write, 44.17 MB/s write, 22.74 GB read, 43.10 MB/s read, 230.0 seconds
+Interval compaction: 23.30 GB write, 44.17 MB/s write, 22.74 GB read, 43.10 MB/s read, 230.0 seconds
+Estimated pending compaction bytes: 0
+Write Stall (count): cf-l0-file-count-limit-delays-with-ongoing-compaction: 0, cf-l0-file-count-limit-stops-with-ongoing-compaction: 0, l0-file-count-limit-delays: 0, l0-file-count-limit-stops: 0, memtable-limit-delays: 0, memtable-limit-stops: 0, pending-compaction-bytes-delays: 0, pending-compaction-bytes-stops: 0, total-delays: 0, total-stops: 0
+Block cache LRUCache@0x64e266fe85c0#39837 capacity: 16.00 GB seed: 1547765340 usage: 0.09 KB table_size: 1024 occupancy: 1 collections: 1 last_copies: 0 last_secs: 2.2e-05 secs_since: 540
+Block cache entry stats(count,size,portion): Misc(1,0.00 KB,0%)
+
+** File Read Latency Histogram By Level [default] **
+
+** DB Stats **
+Uptime(secs): 540.3 total, 60.0 interval
+Cumulative writes: 9388K writes, 9388K keys, 9388K commit groups, 1.0 writes per commit group, ingest: 10.72 GB, 20.32 MB/s
+Cumulative WAL: 9388K writes, 9388K syncs, 1.00 writes per sync, written: 10.72 GB, 20.32 MB/s
+Cumulative stall: 00:00:0.000 H:M:S, 0.0 percent
+Interval writes: 1049K writes, 1049K keys, 1049K commit groups, 1.0 writes per commit group, ingest: 1226.50 MB, 20.43 MB/s
+Interval WAL: 1049K writes, 1049K syncs, 1.00 writes per sync, written: 1.20 GB, 20.43 MB/s
+Interval stall: 00:00:0.000 H:M:S, 0.0 percent
+Write Stall (count): write-buffer-manager-limit-stops: 0
+num-running-compactions: 0
+num-running-flushes: 0
+
+2025/03/05-05:50:35  ... thread 27: (142000,2840000) ops and (2355.0,5226.0) ops/second in (60.296523,543.437390) seconds
+2025/03/05-05:50:36  ... thread 3: (142000,2835000) ops and (2343.5,5214.1) ops/second in (60.593619,543.716504) seconds
+2025/03/05-05:50:36  ... thread 16: (143000,2830000) ops and (2383.3,5200.6) ops/second in (60.001737,544.163440) seconds
+2025/03/05-05:50:36  ... thread 7: (141000,2845000) ops and (2343.7,5226.2) ops/second in (60.160860,544.370811) seconds
+2025/03/05-05:50:36  ... thread 25: (141000,2811000) ops and (2348.2,5163.7) ops/second in (60.046953,544.373349) seconds
+2025/03/05-05:50:36  ... thread 1: (141000,2835000) ops and (2344.4,5207.8) ops/second in (60.142310,544.376856) seconds
+2025/03/05-05:50:36  ... thread 20: (141000,2833000) ops and (2340.7,5203.7) ops/second in (60.239238,544.423951) seconds
+2025/03/05-05:50:37  ... thread 11: (142000,2832000) ops and (2354.3,5201.5) ops/second in (60.315156,544.457478) seconds
+2025/03/05-05:50:37  ... thread 22: (143000,2850000) ops and (2375.2,5234.0) ops/second in (60.206334,544.512567) seconds
+2025/03/05-05:50:37  ... thread 15: (142000,2827000) ops and (2354.6,5191.7) ops/second in (60.308541,544.525470) seconds
+2025/03/05-05:50:37  ... thread 21: (142000,2838000) ops and (2353.0,5211.8) ops/second in (60.349385,544.534295) seconds
+2025/03/05-05:50:37  ... thread 14: (143000,2832000) ops and (2364.8,5200.3) ops/second in (60.469482,544.583081) seconds
+2025/03/05-05:50:37  ... thread 9: (143000,2852000) ops and (2377.0,5237.0) ops/second in (60.159597,544.591675) seconds
+2025/03/05-05:50:37  ... thread 4: (143000,2826000) ops and (2365.3,5189.1) ops/second in (60.457465,544.605059) seconds
+2025/03/05-05:50:37  ... thread 12: (144000,2840000) ops and (2385.6,5214.7) ops/second in (60.363084,544.611619) seconds
+2025/03/05-05:50:37  ... thread 10: (142000,2834000) ops and (2350.6,5202.9) ops/second in (60.411010,544.697195) seconds
+2025/03/05-05:50:37  ... thread 19: (142000,2850000) ops and (2354.6,5231.8) ops/second in (60.308091,544.749127) seconds
+2025/03/05-05:50:37  ... thread 8: (142000,2839000) ops and (2350.9,5211.5) ops/second in (60.401704,544.752408) seconds
+2025/03/05-05:50:37  ... thread 29: (143000,2835000) ops and (2366.5,5203.8) ops/second in (60.427272,544.790893) seconds
+2025/03/05-05:50:37  ... thread 6: (142000,2846000) ops and (2349.8,5223.9) ops/second in (60.430275,544.799299) seconds
+2025/03/05-05:50:37  ... thread 31: (142000,2829000) ops and (2348.2,5192.7) ops/second in (60.472874,544.802906) seconds
+2025/03/05-05:50:37  ... thread 26: (143000,2851000) ops and (2361.1,5233.0) ops/second in (60.564981,544.814998) seconds
+2025/03/05-05:50:37  ... thread 32: (143000,2845000) ops and (2356.8,5221.9) ops/second in (60.675287,544.817836) seconds
+2025/03/05-05:50:37  ... thread 30: (142000,2844000) ops and (2349.6,5220.1) ops/second in (60.436700,544.819200) seconds
+2025/03/05-05:50:37  ... thread 13: (142000,2840000) ops and (2352.2,5212.7) ops/second in (60.370139,544.824853) seconds
+2025/03/05-05:50:37  ... thread 18: (143000,2830000) ops and (2360.3,5194.1) ops/second in (60.584921,544.848253) seconds
+2025/03/05-05:50:37  ... thread 5: (142000,2838000) ops and (2339.0,5208.7) ops/second in (60.708544,544.853741) seconds
+2025/03/05-05:50:37  ... thread 23: (142000,2832000) ops and (2347.2,5197.6) ops/second in (60.497910,544.870876) seconds
+2025/03/05-05:50:37  ... thread 28: (142000,2829000) ops and (2341.5,5190.9) ops/second in (60.644417,544.988215) seconds
+2025/03/05-05:50:37  ... thread 17: (142000,2838000) ops and (2339.6,5206.7) ops/second in (60.695344,545.070437) seconds
+2025/03/05-05:50:37  ... thread 2: (142000,2847000) ops and (2354.2,5222.8) ops/second in (60.318305,545.108835) seconds
+2025/03/05-05:50:37  ... thread 24: (143000,2833000) ops and (2361.2,5195.4) ops/second in (60.561558,545.290504) seconds
+2025/03/05-05:51:32  ... thread 0: (1067000,10455000) ops and (17778.7,17417.2) ops/second in (60.015483,600.270033) seconds
+
+** Compaction Stats [default] **
+Level    Files   Size     Score Read(GB)  Rn(GB) Rnp1(GB) Write(GB) Wnew(GB) Moved(GB) W-Amp Rd(MB/s) Wr(MB/s) Comp(sec) CompMergeCPU(sec) Comp(cnt) Avg(sec) KeyIn KeyDrop Rblob(GB) Wblob(GB)
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  L0      4/4   237.51 MB   0.0      0.0     0.0      0.0       5.6      5.6       0.0   1.0      0.0    111.6     51.01             49.82        96    0.531       0      0       0.0       0.0
+  L1      7/7   710.79 MB   0.0     24.3     6.4     17.9      19.6      1.7       0.0   3.1    125.8    101.6    197.63            190.83        24    8.235     44M  8469K       0.0       0.0
+  L2      7/0    1.04 GB   0.1      0.0     0.0      0.0       0.0      0.0       1.0   0.0      0.0      0.0      0.00              0.00         0    0.000       0      0       0.0       0.0
+ Sum     18/11   1.97 GB   0.0     24.3     6.4     17.9      25.2      7.3       1.0   4.5    100.0    103.7    248.64            240.66       120    2.072     44M  8469K       0.0       0.0
+ Int      0/0    0.00 KB   0.0     24.3     6.4     17.9      25.2      7.3       1.0   4.5    100.0    103.7    248.64            240.66       120    2.072     44M  8469K       0.0       0.0
+
+** Compaction Stats [default] **
+Priority    Files   Size     Score Read(GB)  Rn(GB) Rnp1(GB) Write(GB) Wnew(GB) Moved(GB) W-Amp Rd(MB/s) Wr(MB/s) Comp(sec) CompMergeCPU(sec) Comp(cnt) Avg(sec) KeyIn KeyDrop Rblob(GB) Wblob(GB)
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Low      0/0    0.00 KB   0.0     24.3     6.4     17.9      19.6      1.7       0.0   0.0    125.8    101.6    197.63            190.83        24    8.235     44M  8469K       0.0       0.0
+High      0/0    0.00 KB   0.0      0.0     0.0      0.0       5.6      5.6       0.0   0.0      0.0    111.6     51.01             49.82        96    0.531       0      0       0.0       0.0
+
+Blob file count: 0, total size: 0.0 GB, garbage size: 0.0 GB, space amp: 0.0
+
+Uptime(secs): 600.3 total, 600.3 interval
+Flush(GB): cumulative 5.561, interval 5.561
+AddFile(GB): cumulative 0.000, interval 0.000
+AddFile(Total Files): cumulative 0, interval 0
+AddFile(L0 Files): cumulative 0, interval 0
+AddFile(Keys): cumulative 0, interval 0
+Cumulative compaction: 25.17 GB write, 42.94 MB/s write, 24.27 GB read, 41.40 MB/s read, 248.6 seconds
+Interval compaction: 25.17 GB write, 42.94 MB/s write, 24.27 GB read, 41.40 MB/s read, 248.6 seconds
+Estimated pending compaction bytes: 994358981
+Write Stall (count): cf-l0-file-count-limit-delays-with-ongoing-compaction: 0, cf-l0-file-count-limit-stops-with-ongoing-compaction: 0, l0-file-count-limit-delays: 0, l0-file-count-limit-stops: 0, memtable-limit-delays: 0, memtable-limit-stops: 0, pending-compaction-bytes-delays: 0, pending-compaction-bytes-stops: 0, total-delays: 0, total-stops: 0
+Block cache LRUCache@0x64e266fe85c0#39837 capacity: 16.00 GB seed: 1547765340 usage: 0.09 KB table_size: 1024 occupancy: 1 collections: 1 last_copies: 0 last_secs: 2.2e-05 secs_since: 600
+Block cache entry stats(count,size,portion): Misc(1,0.00 KB,0%)
+
+** File Read Latency Histogram By Level [default] **
+
+** DB Stats **
+Uptime(secs): 600.3 total, 60.0 interval
+Cumulative writes: 10M writes, 10M keys, 10M commit groups, 1.0 writes per commit group, ingest: 11.94 GB, 20.36 MB/s
+Cumulative WAL: 10M writes, 10M syncs, 1.00 writes per sync, written: 11.94 GB, 20.36 MB/s
+Cumulative stall: 00:00:0.000 H:M:S, 0.0 percent
+Interval writes: 1067K writes, 1067K keys, 1067K commit groups, 1.0 writes per commit group, ingest: 1247.54 MB, 20.79 MB/s
+Interval WAL: 1067K writes, 1067K syncs, 1.00 writes per sync, written: 1.22 GB, 20.79 MB/s
+Interval stall: 00:00:0.000 H:M:S, 0.0 percent
+Write Stall (count): write-buffer-manager-limit-stops: 0
+num-running-compactions: 1
+num-running-flushes: 0
+
+Initializing RocksDB Options from the specified file
+Initializing RocksDB Options from command-line flags
+Integrated BlobDB: blob cache disabled
+Keys:       10 bytes each (+ 0 bytes user-defined timestamp)
+Values:     1200 bytes each (600 bytes after compression)
+Entries:    2000000
+Prefix:    0 bytes
+Keys per prefix:    0
+RawSize:    2307.9 MB (estimated)
+FileSize:   1163.5 MB (estimated)
+Write rate: 0 bytes/second
+Read rate: 0 ops/second
+Compression: ZSTD
+Compression sampling rate: 0
+Memtablerep: SkipListFactory
+Perf Level: 1
+------------------------------------------------
+DB path: [/mnt/nvme/db]
+readwhilewriting :     204.761 micros/op 156098 ops/sec 602.223 seconds 94005968 operations;  139.1 MB/s (2267814 of 2935999 found)
+
+Microseconds per read:
+Count: 94005968 Average: 204.7612  StdDev: 1103.29
+Min: 0  Median: 10.9138  Max: 273729
+Percentiles: P50: 10.91 P75: 47.56 P99: 1792.35 P99.9: 18372.94 P99.99: 42425.25
+------------------------------------------------------
+[       0,       1 ]  2420499   2.575%   2.575% #
+(       1,       2 ]  4358766   4.637%   7.212% #
+(       2,       3 ]  5588047   5.944%  13.156% #
+(       3,       4 ]  7295210   7.760%  20.916% ##
+(       4,       6 ] 11826435  12.581%  33.497% ###
+(       6,      10 ] 13646680  14.517%  48.014% ###
+(      10,      15 ] 10217570  10.869%  58.883% ##
+(      15,      22 ]  7047257   7.497%  66.379% #
+(      22,      34 ]  5700600   6.064%  72.443% #
+(      34,      51 ]  3013326   3.205%  75.649% #
+(      51,      76 ]  1457871   1.551%  77.200% 
+(      76,     110 ]   880652   0.937%  78.136% 
+(     110,     170 ]   911279   0.969%  79.106% 
+(     170,     250 ]  1028045   1.094%  80.199% 
+(     250,     380 ]  4048911   4.307%  84.506% #
+(     380,     580 ]  5424683   5.771%  90.277% #
+(     580,     870 ]  4433560   4.716%  94.993% #
+(     870,    1300 ]  2823831   3.004%  97.997% #
+(    1300,    1900 ]  1148793   1.222%  99.219% 
+(    1900,    2900 ]   308005   0.328%  99.547% 
+(    2900,    4400 ]    68504   0.073%  99.620% 
+(    4400,    6600 ]    44162   0.047%  99.667% 
+(    6600,    9900 ]    85219   0.091%  99.757% 
+(    9900,   14000 ]    69091   0.073%  99.831% 
+(   14000,   22000 ]   118851   0.126%  99.957% 
+(   22000,   33000 ]    22078   0.023%  99.981% 
+(   33000,   50000 ]    15588   0.017%  99.997% 
+(   50000,   75000 ]     1961   0.002%  99.999% 
+(   75000,  110000 ]      429   0.000% 100.000% 
+(  110000,  170000 ]       60   0.000% 100.000% 
+(  170000,  250000 ]        4   0.000% 100.000% 
+(  250000,  380000 ]        1   0.000% 100.000% 
+

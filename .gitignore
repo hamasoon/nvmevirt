@@ -171,7 +171,6 @@ sphinx_*/
 
 # Local makefile
 Makefile.local
-*.log
 *.zip
 /fio/
 /.vscode/
