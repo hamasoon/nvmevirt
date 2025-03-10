@@ -22,19 +22,7 @@ static inline bool check_flush_buffer(struct buffer *buf)
 #elif (FLUSH_TIMING_POLICY == FULL)
 	return false;
 #elif (FLUSH_TIMING_POLICY == WATERMARK_NAIVE || FLUSH_TIMING_POLICY == WATERMARK_HIGHLOW || FLUSH_TIMING_POLICY == WATERMARK_ONDEMAND)
-	size_t used_ppgs_cnt = 0;
-	size_t full_ppgs_cnt = 0;
-	struct buffer_ppg *block;
-	list_for_each_entry(block, &buf->used_ppgs, list) {
-		if (block->status == VALID) {
-			used_ppgs_cnt++;
-			if (block->pg_idx >= buf->pg_per_ppg) {
-				full_ppgs_cnt++;
-			}
-		}
-	}
-
-	return used_ppgs_cnt >= buf->buffer_high_watermark;
+	return buf->used_ppgs_cnt >= buf->buffer_high_watermark;
 #endif
 }
 
@@ -45,18 +33,7 @@ static inline bool check_flush_buffer_allocate_fail(struct buffer *buf)
 #elif (FLUSH_TIMING_POLICY == FULL)
 	return true;
 #elif (FLUSH_TIMING_POLICY == WATERMARK_NAIVE || FLUSH_TIMING_POLICY == WATERMARK_HIGHLOW || FLUSH_TIMING_POLICY == WATERMARK_ONDEMAND)
-	size_t used_ppgs_cnt = 0;
-	size_t full_ppgs_cnt = 0;
-	struct buffer_ppg *block;
-	list_for_each_entry(block, &buf->used_ppgs, list) {
-		if (block->status == VALID) {
-			used_ppgs_cnt++;
-			if (block->pg_idx >= buf->pg_per_ppg) {
-				full_ppgs_cnt++;
-			}
-		}
-	}
-	return used_ppgs_cnt >= buf->buffer_high_watermark;
+	return buf->used_ppgs_cnt >= buf->buffer_high_watermark;
 #endif
 }
 
@@ -190,8 +167,12 @@ static inline void select_flush_buffer(struct buffer *buf)
 	list_for_each_entry(ppg, &buf->used_ppgs, list) {
 		if (ppg->status == VALID && ppg->pg_idx == buf->pg_per_ppg) {
 			valid_ppgs++;
-			if (flush_amount-- >= 0) {
+			if (flush_amount > 0) {
 				ppg->status = RMW_TARGET;
+				flush_amount--;
+			}
+			else {
+				break;
 			}
 		}
 	}
@@ -1367,6 +1348,8 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 	// NVMEV_INFO("start_lpn=%lld, len=%lld, end_lpn=%lld, delay=%lld", start_lpn, nr_lba, end_lpn, local_clock() - time);
 	// time = local_clock();
 	buffer_allocate(wbuf, start_lpn, end_lpn, start_offset, size);
+
+	// NVMEV_INFO("Buffer Status - Free %ld, Flushing %ld, Used %ld\n", wbuf->free_ppgs_cnt, wbuf->flushing_ppgs_cnt, wbuf->used_ppgs_cnt);
 
 	nvmev_vdev->user_write += size;
 
