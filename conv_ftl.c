@@ -73,102 +73,84 @@ static inline void select_flush_buffer(struct buffer *buf)
 	}
 #elif (FLUSH_TIMING_POLICY == WATERMARK_ONDEMAND)
 	/* IN PROGRESS */
+	flush_amount = 1;
 	int needed_ppgs[SSD_PARTITIONS] = {0, };
 
 	// Collecting write requests and extracting needed ppgs
-	for (int i = 1; i <= nvmev_vdev->nr_sq; i++) {
-		struct nvmev_submission_queue *sq = nvmev_vdev->sqes[i];
+	for (int qid = 1; qid <= nvmev_vdev->nr_sq; qid++) {
+		struct nvmev_submission_queue *sq = nvmev_vdev->sqes[qid];
+		int dbs = nvmev_vdev->dbs[qid * 2];
 		if (!sq)
 			continue;
 		
 		// Have to ask this to SHIM
-		int sq_entry_id = nvmev_vdev->dbs[sq->qid * 2];
-		struct nvme_command *cmd = &sq_entry(sq_entry_id);	
-		uint64_t lba = cmd->rw.slba;
-		uint64_t nr_lba = (cmd->rw.length + 1);
-		uint64_t start_lpn = lba / buf->sec_per_pg;
-		uint64_t end_lpn = (lba + nr_lba - 1) / buf->sec_per_pg;
-		uint64_t size = (cmd->rw.length + 1) << LBA_BITS;
-
-		for (uint64_t lpn = start_lpn; lpn <= end_lpn; lpn++) {
-			needed_ppgs[GET_FTL_IDX(lpn)]++;
-		}
-
-		// int tmp[SSD_PARTITIONS] = {0, };
-		// for (uint64_t lpn = start_lpn; lpn <= end_lpn; lpn++) {
-		// 	tmp[GET_FTL_IDX(lpn)]++;
-		// }
-		
-		// struct buffer_ppg *ppg = NULL;
-		// struct buffer_page *page = NULL;
-		// list_for_each_entry(ppg, &buf->used_ppgs, list) {
-		// 	if (ppg->status == VALID) {
-		// 		for (int i = 0; i < buf->pg_per_ppg; i++)  {
-		// 			if (ppg->pages[i].lpn >= start_lpn && ppg->pages[i].lpn <= end_lpn) {
-		// 				tmp[GET_FTL_IDX(ppg->pages[i].lpn)]--;
-		// 			}
-		// 		}
-		// 	}
-		// }
-
-		// for(int i = 0; i < SSD_PARTITIONS; i++) {
-		// 	needed_ppgs[i] += tmp[i];
-		// }
-	}
-
-	struct buffer_ppg *ppg = NULL;
-	struct buffer_page *page = NULL;
-	list_for_each_entry(ppg, &buf->used_ppgs, list) {
-		if (ppg->status == VALID) {
-			needed_ppgs[ppg->ftl_idx] -= (buf->pg_per_ppg - ppg->pg_idx);
-		}
-		else if (ppg->status == FLUSHING || ppg->status == RMW_TARGET) {
-			needed_ppgs[ppg->ftl_idx] -= buf->pg_per_ppg;
-		}
-	}
-
-	for (int i = 0; i < SSD_PARTITIONS; i++) {
-		if (needed_ppgs[i] < 0) {
-			needed_ppgs[i] = 0;
-			continue;
-		}
-		needed_ppgs[i] = (needed_ppgs[i] + buf->pg_per_ppg - 1) / buf->pg_per_ppg;
-	}
-
-	int idx = 0;
-	for (int i = 0; i < buf->free_ppgs_cnt; i++) {
-		int cnt = 0;
-		while (needed_ppgs[idx] == 0) {
-			idx = (idx + 1) % SSD_PARTITIONS;
-			cnt++;
-
-			// There are enough free pages
-			if (cnt == SSD_PARTITIONS) {
-				return;
+		NVMEV_INFO("SQ size %d\n", sq->queue_size);
+		for (int j = 0; j < sq->queue_size; j++) {
+			struct nvme_rw_command *cmd = &sq_entry(j).rw;
+			uint64_t lpn = cmd->slba;
+			uint64_t size = cmd->length;
+			uint64_t end_lpn = cmd->slba + size / LBA_SIZE;
+			if (size == 0 || size % LBA_SIZE != 0) continue;
+			for (uint64_t k = lpn; k <= end_lpn; k++) {
+				needed_ppgs[GET_FTL_IDX(k)]++;
 			}
-		}
-
-		needed_ppgs[idx]--;
-		idx = (idx + 1) % SSD_PARTITIONS;
-	}
-
-	ppg = NULL;
-	list_for_each_entry(ppg, &buf->used_ppgs, list) {
-		if (ppg->status == VALID && ppg->pg_idx == buf->pg_per_ppg && needed_ppgs[ppg->ftl_idx] > 0) {
-			ppg->status = RMW_TARGET;
-			needed_ppgs[ppg->ftl_idx]--;
+			NVMEV_INFO("Start LPN: %lld, End LPN: %lld, Size: %lld\n", lpn, end_lpn, size);
 		}
 	}
 
-	return;
+	NVMEV_INFO("Needed PPGs: %d %d %d %d\n", needed_ppgs[0], needed_ppgs[1], needed_ppgs[2], needed_ppgs[3]);
+
+	// struct buffer_ppg *ppg = NULL;
+	// struct buffer_page *page = NULL;
+	// list_for_each_entry(ppg, &buf->used_ppgs, list) {
+	// 	if (ppg->status == VALID) {
+	// 		needed_ppgs[ppg->ftl_idx] -= (buf->pg_per_ppg - ppg->pg_idx);
+	// 	}
+	// 	else if (ppg->status == FLUSHING || ppg->status == RMW_TARGET) {
+	// 		needed_ppgs[ppg->ftl_idx] -= buf->pg_per_ppg;
+	// 	}
+	// }
+
+	// for (int i = 0; i < SSD_PARTITIONS; i++) {
+	// 	if (needed_ppgs[i] < 0) {
+	// 		needed_ppgs[i] = 0;
+	// 		continue;
+	// 	}
+	// 	needed_ppgs[i] = (needed_ppgs[i] + buf->pg_per_ppg - 1) / buf->pg_per_ppg;
+	// }
+
+	// int idx = 0;
+	// for (int i = 0; i < buf->free_ppgs_cnt; i++) {
+	// 	int cnt = 0;
+	// 	while (needed_ppgs[idx] == 0) {
+	// 		idx = (idx + 1) % SSD_PARTITIONS;
+	// 		cnt++;
+
+	// 		// There are enough free pages
+	// 		if (cnt == SSD_PARTITIONS) {
+	// 			return;
+	// 		}
+	// 	}
+
+	// 	needed_ppgs[idx]--;
+	// 	idx = (idx + 1) % SSD_PARTITIONS;
+	// }
+
+	// ppg = NULL;
+	// list_for_each_entry(ppg, &buf->used_ppgs, list) {
+	// 	if (ppg->status == VALID && ppg->pg_idx == buf->pg_per_ppg && needed_ppgs[ppg->ftl_idx] > 0) {
+	// 		ppg->status = RMW_TARGET;
+	// 		needed_ppgs[ppg->ftl_idx]--;
+	// 	}
+	// }
+
+	// return;
 #endif
-	int valid_ppgs = 0;
-	struct buffer_ppg *ppg;
-	list_for_each_entry(ppg, &buf->used_ppgs, list) {
-		if (ppg->status == VALID && ppg->pg_idx == buf->pg_per_ppg) {
-			valid_ppgs++;
+	struct buffer_ppg *tmp;
+	list_for_each_entry(tmp, &buf->used_ppgs, list) {
+		if (tmp->status == VALID && tmp->pg_idx == buf->pg_per_ppg) {
 			if (flush_amount > 0) {
-				ppg->status = RMW_TARGET;
+				tmp->status = RMW_TARGET;
 				flush_amount--;
 			}
 			else {

@@ -475,7 +475,7 @@ int nvmev_proc_io_sq(int sqid, int new_db, int old_db)
 	int seq;
 	int sq_entry = old_db;
 	int latest_db;
-
+	
 	if (unlikely(!sq))
 		return old_db;
 	if (unlikely(num_proc < 0))
