@@ -36,9 +36,7 @@
 
 /* Buffer Flush Target Policy */
 #define FIFO 0
-#define LRU 1
-#define FIFOPLUS 2
-#define LRUPLUS 3
+#define FIFO_GREEDY 1
 
 /* Buffer Flush Amount Policy */
 #define SINGLE 0
