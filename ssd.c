@@ -104,7 +104,6 @@ static void __buffer_fill_page(struct buffer *buf, uint64_t lpn, uint64_t size, 
 	if (page == NULL) {
 		ppg = __buffer_get_ppg(buf, GET_FTL_IDX(lpn));
 		if (ppg == NULL) { 
-			/* frequent error case */
 			if (list_empty(&buf->free_ppgs)) {
 				NVMEV_ERROR("Access to empty buffer - LPN: %lld, size: %lld, offset: %lld", lpn, size, offset);
 				struct buffer_ppg *block;
@@ -114,6 +113,7 @@ static void __buffer_fill_page(struct buffer *buf, uint64_t lpn, uint64_t size, 
 						NVMEV_INFO("page status - lpn: %lld, free_secs: %ld", block->pages[i].lpn, block->pages[i].free_secs);
 					}
 				}
+				NVMEV_ASSERT(0);
 			}
 			ppg = list_first_entry(&buf->free_ppgs, struct buffer_ppg, list);
 			list_move_tail(&ppg->list, &buf->used_ppgs);
@@ -148,7 +148,6 @@ static void __buffer_fill_page(struct buffer *buf, uint64_t lpn, uint64_t size, 
 	}
 
 	if (ppg->full_pages_cnt == buf->pg_per_ppg && ppg->pg_idx == buf->pg_per_ppg) {
-		// NVMEV_INFO("Filled ppg: %lld", ++filled_ppgs);
 		ppg->status = RMW_TARGET;
 	}
 
