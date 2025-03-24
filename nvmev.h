@@ -5,6 +5,7 @@
 
 #include <linux/pci.h>
 #include <linux/msi.h>
+#include <linux/version.h>
 #include <asm/apic.h>
 
 #include "nvme.h"
@@ -53,6 +54,18 @@
 #define NVMEV_DEBUG_VERBOSE(string, args...)
 #endif
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 3, 0)
+static inline size_t list_count_nodes(struct list_head *head)
+{
+       struct list_head *pos;
+       size_t count = 0;
+
+       list_for_each(pos, head)
+               count++;
+
+       return count;
+}
+#endif
 
 #define NR_MAX_IO_QUEUE 72
 #define NR_MAX_PARALLEL_IO 16384
