@@ -54,7 +54,7 @@ enum {
 
 enum {
 	VALID = 0,
-	RMW_TARGET = 1,
+	RMW_TARGET = 1, // JH: need RMW or FLUSH
 	FLUSHING = 2,
 };
 

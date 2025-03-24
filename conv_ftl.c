@@ -26,6 +26,7 @@ static inline bool check_flush_buffer(struct buffer *buf)
 #endif
 }
 
+// JH: whether to flush the buffer when allocation has failed
 static inline bool check_flush_buffer_allocate_fail(struct buffer *buf)
 {
 #if (FLUSH_TIMING_POLICY == IMMEDIATE)
@@ -33,7 +34,7 @@ static inline bool check_flush_buffer_allocate_fail(struct buffer *buf)
 #elif (FLUSH_TIMING_POLICY == FULL)
 	return true;
 #elif (FLUSH_TIMING_POLICY == WATERMARK_NAIVE || FLUSH_TIMING_POLICY == WATERMARK_HIGHLOW || FLUSH_TIMING_POLICY == WATERMARK_ONDEMAND)
-	return buf->used_ppgs_cnt >= buf->buffer_high_watermark;
+	return buf->used_ppgs_cnt >= buf->buffer_high_watermark; // JH: need deeper consideration
 #endif
 }
 
@@ -42,6 +43,7 @@ static inline bool check_flush_buffer_allocate_fail(struct buffer *buf)
 * Naive implementation: select the all buffer pages in the buffer when used buffer pages are more than threshold
 * LRU implementation: select the least recently used buffer pages in the buffer when used buffer pages are more than threshold
 */
+// JH: victim section
 static inline void select_flush_buffer(struct buffer *buf)
 {
 	size_t flush_amount;
@@ -84,6 +86,7 @@ static inline void select_flush_buffer(struct buffer *buf)
 			continue;
 		
 		// Have to ask this to SHIM
+		// JH: my job. currently this code is not functional to check the submitted cmd's fields
 		NVMEV_INFO("SQ size %d\n", sq->queue_size);
 		for (int j = 0; j < sq->queue_size; j++) {
 			struct nvme_rw_command *cmd = &sq_entry(j).rw;
@@ -99,58 +102,12 @@ static inline void select_flush_buffer(struct buffer *buf)
 	}
 
 	NVMEV_INFO("Needed PPGs: %d %d %d %d\n", needed_ppgs[0], needed_ppgs[1], needed_ppgs[2], needed_ppgs[3]);
-
-	// struct buffer_ppg *ppg = NULL;
-	// struct buffer_page *page = NULL;
-	// list_for_each_entry(ppg, &buf->used_ppgs, list) {
-	// 	if (ppg->status == VALID) {
-	// 		needed_ppgs[ppg->ftl_idx] -= (buf->pg_per_ppg - ppg->pg_idx);
-	// 	}
-	// 	else if (ppg->status == FLUSHING || ppg->status == RMW_TARGET) {
-	// 		needed_ppgs[ppg->ftl_idx] -= buf->pg_per_ppg;
-	// 	}
-	// }
-
-	// for (int i = 0; i < SSD_PARTITIONS; i++) {
-	// 	if (needed_ppgs[i] < 0) {
-	// 		needed_ppgs[i] = 0;
-	// 		continue;
-	// 	}
-	// 	needed_ppgs[i] = (needed_ppgs[i] + buf->pg_per_ppg - 1) / buf->pg_per_ppg;
-	// }
-
-	// int idx = 0;
-	// for (int i = 0; i < buf->free_ppgs_cnt; i++) {
-	// 	int cnt = 0;
-	// 	while (needed_ppgs[idx] == 0) {
-	// 		idx = (idx + 1) % SSD_PARTITIONS;
-	// 		cnt++;
-
-	// 		// There are enough free pages
-	// 		if (cnt == SSD_PARTITIONS) {
-	// 			return;
-	// 		}
-	// 	}
-
-	// 	needed_ppgs[idx]--;
-	// 	idx = (idx + 1) % SSD_PARTITIONS;
-	// }
-
-	// ppg = NULL;
-	// list_for_each_entry(ppg, &buf->used_ppgs, list) {
-	// 	if (ppg->status == VALID && ppg->pg_idx == buf->pg_per_ppg && needed_ppgs[ppg->ftl_idx] > 0) {
-	// 		ppg->status = RMW_TARGET;
-	// 		needed_ppgs[ppg->ftl_idx]--;
-	// 	}
-	// }
-
-	// return;
 #endif
 	struct buffer_ppg *tmp;
 	list_for_each_entry(tmp, &buf->used_ppgs, list) {
-		if (tmp->status == VALID && tmp->pg_idx == buf->pg_per_ppg) {
+		if (tmp->status == VALID && tmp->pg_idx == buf->pg_per_ppg) { // logically full
 			if (flush_amount > 0) {
-				tmp->status = RMW_TARGET;
+				tmp->status = RMW_TARGET; // we do not consider physicall full PPGs to be in this list at this moment. SHOULD be already flushed as soon as it it physically full
 				flush_amount--;
 			}
 			else {
@@ -1171,7 +1128,7 @@ static uint64_t conv_rmw(struct nvmev_ns *ns, struct nvmev_request *req, uint64_
 
 				if (page->free_secs > 0) {
 					if (is_same_flash_page(conv_ftl, ppa, prev_ppa)) {
-						xfer_size += spp->pgsz;
+						xfer_size += spp->pgsz; // JH: rather than page size, free_secs * sector_size.
 						continue;
 					} 
 						
@@ -1198,6 +1155,7 @@ static uint64_t conv_rmw(struct nvmev_ns *ns, struct nvmev_request *req, uint64_
 
 			/* check if the block is valid */
 			if (lpn == INVALID_LPN) {
+				NVMEV_ERROR("Invalid LPN during RMW\n");
 				continue;
 			}
 
@@ -1282,7 +1240,7 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 			;
 
 		if (check_flush_buffer_allocate_fail(wbuf)) {
-			select_flush_buffer(wbuf);
+			select_flush_buffer(wbuf); // foreground flush
 			conv_rmw(ns, req, nsecs_start);
 		}
 
@@ -1304,7 +1262,7 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 	while (!spin_trylock(&wbuf->lock))
 		;
 
-	/* Flush full pages */
+	/* Flush full (physical & logical) pages */
 	conv_rmw(ns, req, nsecs_start);
 
 	/* Check we need RMW */

@@ -147,8 +147,9 @@ static void __buffer_fill_page(struct buffer *buf, uint64_t lpn, uint64_t size, 
 		}
 	}
 
+	// check physicall full
 	if (ppg->full_pages_cnt == buf->pg_per_ppg && ppg->pg_idx == buf->pg_per_ppg) {
-		ppg->status = RMW_TARGET;
+		ppg->status = RMW_TARGET; // JH: FLUSH target; 
 	}
 
 	#if (FLUSH_TARGET_POLICY == FIFO_GREEDY)
@@ -186,7 +187,7 @@ bool buffer_allocatable_check(struct buffer *buf, uint64_t start_lpn, uint64_t e
 	for (; s_lpn <= e_lpn; s_lpn++) {
 		page = __buffer_get_page(buf, s_lpn);
 		if (page == NULL) {
-			required_pgs[GET_FTL_IDX(s_lpn)]++;
+			required_pgs[GET_FTL_IDX(s_lpn)]++; // JH: new data that is not an update
 		}
 	}
 
