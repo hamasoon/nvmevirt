@@ -1010,7 +1010,7 @@ static bool conv_read(struct nvmev_ns *ns, struct nvmev_request *req, struct nvm
 
 				// if the lpn is in the write buffer, advance the write buffer, not the NAND
 				if (buffer_search(wbuf, lpn) != NULL) {
-					nsecs_completed = ssd_advance_write_buffer(conv_ftl->ssd, nsecs_start, LBA_TO_BYTE(nr_lba));
+					nsecs_completed = ssd_advance_pcie(conv_ftl->ssd, nsecs_start, LBA_TO_BYTE(nr_lba));
 					nsecs_latest = max(nsecs_completed, nsecs_latest);
 					continue;
 				}
@@ -1268,7 +1268,7 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 	/* Check we need RMW */
 	if (check_flush_buffer(wbuf)) {
 		select_flush_buffer(wbuf);
-		nsecs_latest = max(conv_rmw(ns, req, nsecs_xfer_completed), nsecs_latest);
+		conv_rmw(ns, req, nsecs_latest);
 	}
 
 	spin_unlock(&wbuf->lock);
