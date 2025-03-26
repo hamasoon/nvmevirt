@@ -6,6 +6,8 @@
 #include <linux/pci.h>
 #include <linux/msi.h>
 #include <linux/version.h>
+#include <linux/rbtree.h>
+#include <linux/hashtable.h>
 #include <asm/apic.h>
 
 #include "nvme.h"

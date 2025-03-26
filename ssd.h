@@ -9,6 +9,7 @@
 #include "channel_model.h"
 #include "conv_ftl.h"
 
+
 /*
     Default malloc size (when sector size is 512B)
     Channel = 40 * 8 = 320
@@ -53,9 +54,10 @@ enum {
 };
 
 enum {
-	VALID = 0,
-	RMW_TARGET = 1, // JH: need RMW or FLUSH
-	FLUSHING = 2,
+	EMPTY = 0,
+	VALID = 1,
+	FLUSH_TARGET = 2, // JH: need RMW or FLUSH
+	FLUSHING = 3,
 };
 
 /* Cell type */
@@ -89,6 +91,8 @@ struct ppa {
 
 		uint64_t ppa;
 	};
+
+	int buffer_idx;
 };
 
 typedef int nand_sec_status_t;
@@ -158,32 +162,30 @@ struct buffer {
 	size_t sec_per_pg;
 	size_t ppg_size;
 	size_t pg_size;
-	// size_t free_pgs_cnt;
+	size_t sec_size;
+	size_t read_size_interval;
 	size_t flush_threshold;
 	size_t buffer_high_watermark;
 	size_t buffer_low_watermark;
 	size_t free_ppgs_cnt;
 	size_t used_ppgs_cnt;
+	size_t left_pgs[SSD_PARTITIONS];
 	size_t flushing_ppgs_cnt;
+	struct buffer_ppg *ppg_array;
 	struct list_head free_ppgs;
-	struct list_head used_ppgs;
+	struct list_head flushing_ppgs;
+	struct list_head *used_ppgs;
 };
 
-/*
-lpn: logical page number
-valid: whether the block is valid. if false, the block is currently begin written to NAND
-sectors: represent the sectors of the page
-list: list head for buffer
-*/
 struct buffer_ppg {
 	int status;
 	int ftl_idx;	
 	int pg_idx;
-	size_t full_pages_cnt;
+	size_t free_secs;
 	uint64_t access_time;
 	uint64_t complete_time;
 	struct buffer_page *pages;
-    struct list_head list;
+	struct list_head list;
 };
 
 struct buffer_page {
@@ -318,12 +320,12 @@ uint64_t ssd_advance_pcie(struct ssd *ssd, uint64_t request_time, uint64_t lengt
 uint64_t ssd_advance_write_buffer(struct ssd *ssd, uint64_t request_time, uint64_t length);
 uint64_t ssd_next_idle_time(struct ssd *ssd);
 
-void buffer_init(struct buffer *buf, size_t size, struct ssdparams *spp);
-bool buffer_allocatable_check(struct buffer *buf, uint64_t start_lpn, uint64_t end_lpn, uint64_t start_offset, uint64_t size);
-void buffer_allocate(struct buffer *buf, uint64_t start_lpn, uint64_t end_lpn, uint64_t start_offset, uint64_t size);
+void buffer_init(struct conv_ftl *conv_ftls, size_t size);
+bool buffer_allocatable_check(struct conv_ftl *conv_ftls, uint64_t start_lpn, uint64_t end_lpn, uint64_t start_offset, uint64_t size);
+void buffer_allocate(struct conv_ftl *conv_ftls, uint64_t start_lpn, uint64_t end_lpn, uint64_t start_offset, uint64_t size);
 bool buffer_release(struct buffer *buf, uint64_t complete_time);
 void buffer_refill(struct buffer *buf);
-struct buffer_page *buffer_search(struct buffer *buf, uint64_t lpn);
+struct buffer_page *buffer_search(struct conv_ftl *conv_ftl, uint64_t lpn);
 
 void adjust_ftl_latency(int target, int lat);
 #endif

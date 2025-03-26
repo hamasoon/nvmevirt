@@ -104,14 +104,16 @@ static inline void select_flush_buffer(struct buffer *buf)
 	NVMEV_INFO("Needed PPGs: %d %d %d %d\n", needed_ppgs[0], needed_ppgs[1], needed_ppgs[2], needed_ppgs[3]);
 #endif
 	struct buffer_ppg *tmp;
-	list_for_each_entry(tmp, &buf->used_ppgs, list) {
-		if (tmp->status == VALID && tmp->pg_idx == buf->pg_per_ppg) { // logically full
-			if (flush_amount > 0) {
-				tmp->status = RMW_TARGET; // we do not consider physicall full PPGs to be in this list at this moment. SHOULD be already flushed as soon as it it physically full
-				flush_amount--;
-			}
-			else {
+	for (size_t i = 0; i < buf->size / buf->read_size_interval; i++) {
+		tmp = NULL;
+		list_for_each_entry(tmp, &buf->used_ppgs[i], list) {
+			if (flush_amount == 0) {
 				break;
+			}
+			if (tmp->status == VALID) {
+				list_move_tail(&tmp->list, &buf->flushing_ppgs);
+				tmp->status = FLUSH_TARGET;
+				flush_amount--;
 			}
 		}
 	}
@@ -140,10 +142,21 @@ static inline struct ppa get_maptbl_ent(struct conv_ftl *conv_ftl, uint64_t lpn)
 	return conv_ftl->maptbl[lpn];
 }
 
+static inline int get_buffer_idx(struct conv_ftl *conv_ftl, uint64_t lpn)
+{
+	return conv_ftl->maptbl[lpn].buffer_idx;
+}
+
 static inline void set_maptbl_ent(struct conv_ftl *conv_ftl, uint64_t lpn, struct ppa *ppa)
 {
 	NVMEV_ASSERT(lpn < conv_ftl->ssd->sp.tt_pgs);
+	ppa->buffer_idx = -1;
 	conv_ftl->maptbl[lpn] = *ppa;
+}
+
+static inline void set_buffer_idx(struct conv_ftl *conv_ftl, uint64_t lpn, int idx)
+{
+	conv_ftl->maptbl[lpn].buffer_idx = idx;
 }
 
 static uint64_t ppa2pgidx(struct conv_ftl *conv_ftl, struct ppa *ppa)
@@ -507,7 +520,7 @@ void conv_init_namespace(struct nvmev_ns *ns, uint32_t id, uint64_t size, void *
 	}
 
 	conv_ftls[0].ssd->write_buffer = kmalloc(sizeof(struct buffer), GFP_KERNEL);
-	buffer_init(conv_ftls[0].ssd->write_buffer, spp.write_buffer_size, &spp);
+	buffer_init(conv_ftls, spp.write_buffer_size);
 
 	/* PCIe is shared by all instances. But write buffer is NOT.(bae)*/
 	for (i = 1; i < nr_parts; i++) {
@@ -1097,8 +1110,8 @@ static uint64_t conv_rmw(struct nvmev_ns *ns, struct nvmev_request *req, uint64_
 	struct ppa ppa;
 
 	/* read phase of read-modify-write operation fill empty cell of write buffer */
-	list_for_each_entry(ppg, &wbuf->used_ppgs, list) {
-		if(ppg->status != RMW_TARGET) {
+	list_for_each_entry(ppg, &wbuf->flushing_ppgs, list) {
+		if(ppg->status != FLUSH_TARGET) {
 			continue;
 		}
 		
@@ -1113,7 +1126,7 @@ static uint64_t conv_rmw(struct nvmev_ns *ns, struct nvmev_request *req, uint64_
 		int32_t xfer_size = 0;
 		conv_ftl = &conv_ftls[ppg->ftl_idx];
 
-		if (ppg->full_pages_cnt < wbuf->pg_per_ppg) {
+		if (ppg->free_secs != 0) {
 			prev_ppa = get_maptbl_ent(conv_ftl, LOCAL_LPN(ppg->pages[0].lpn));
 
 			for (size_t j = 0; j < wbuf->pg_per_ppg; j++) {
