@@ -11,15 +11,6 @@
 
 static uint64_t filled_ppgs = 0;
 
-// static int cmp(void *priv, const struct list_head *a, const struct list_head *b)
-// {
-// 	struct buffer_ppg *pa = list_entry(a, struct buffer_ppg, list);
-// 	struct buffer_ppg *pb = list_entry(b, struct buffer_ppg, list);
-
-// 	if (pa->full_pages_cnt == pb->full_pages_cnt)
-// 		return 0;
-// 	return (pa->full_pages_cnt > pb->full_pages_cnt) ? -1 : 1;
-// }
 static inline int get_buffer_idx(struct conv_ftl *conv_ftl, uint64_t lpn)
 {
 	return conv_ftl->maptbl[lpn].buffer_idx;
@@ -40,7 +31,7 @@ void buffer_init(struct conv_ftl *conv_ftls, size_t size)
 	struct conv_ftl *conv_ftl = &conv_ftls[0];
 	struct ssd *ssd = conv_ftl->ssd;
 	struct ssdparams *spp = &ssd->sp;
-	struct buffer *buf = &ssd->write_buffer;
+	struct buffer *buf = ssd->write_buffer;
 
 	spin_lock_init(&buf->lock);
 	buf->size = size;
@@ -210,7 +201,7 @@ bool buffer_allocatable_check(struct conv_ftl *conv_ftls, uint64_t start_lpn, ui
 
 	// check if there is enough free pages
 	for (; s_lpn <= e_lpn; s_lpn++) {
-		page = __buffer_get_page(buf, s_lpn);
+		page = __buffer_get_page(&conv_ftls[GET_FTL_IDX(s_lpn)], s_lpn);
 		if (page == NULL) {
 			required_pgs[GET_FTL_IDX(s_lpn)]++; // JH: new data that is not an update
 		}
@@ -248,10 +239,12 @@ void buffer_allocate(struct conv_ftl *conv_ftls, uint64_t start_lpn, uint64_t en
 	while (!spin_trylock(&buf->lock))
 		;
 
-	__buffer_fill_page(&conv_ftls[GET_FTL_IDX(start_lpn)], start_lpn++, start_size, start_offset);
+	__buffer_fill_page(&conv_ftls[GET_FTL_IDX(start_lpn)], start_lpn, start_size, start_offset);
+	start_lpn += 1;
 
 	for (size -= start_size; size > pgsz; size -= pgsz) {
-		__buffer_fill_page(&conv_ftls[GET_FTL_IDX(start_lpn)], start_lpn++, pgsz, 0);
+		__buffer_fill_page(&conv_ftls[GET_FTL_IDX(start_lpn)], start_lpn, pgsz, 0);
+		start_lpn += 1;
 	}
 
 	/* handle last page */

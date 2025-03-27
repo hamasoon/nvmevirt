@@ -35,7 +35,7 @@ ccflags-$(CONFIG_NVMEVIRT_NVM) += -DBASE_SSD=INTEL_OPTANE
 nvmev-$(CONFIG_NVMEVIRT_NVM) += simple_ftl.o
 
 ccflags-$(CONFIG_NVMEVIRT_SSD) += -DBASE_SSD=SAMSUNG_970PRO -DFLUSH_TARGET_POLICY=FIFO -DFLUSH_TIMING_POLICY=FULL -DFLUSH_AMOUNT_POLICY=BUFFER_ALL -DMAPPING_SIZE=MAPPING_16KB
-nvmev-$(CONFIG_NVMEVIRT_SSD) += ssd.o conv_ftl.o pqueue/pqueue.o channel_model.o hashtable.o
+nvmev-$(CONFIG_NVMEVIRT_SSD) += ssd.o conv_ftl.o pqueue/pqueue.o channel_model.o
 
 ccflags-$(CONFIG_NVMEVIRT_ZNS) += -DBASE_SSD=WD_ZN540
 #ccflags-$(CONFIG_NVMEVIRT_ZNS) += -DBASE_SSD=ZNS_PROTOTYPE

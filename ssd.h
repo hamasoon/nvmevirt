@@ -9,7 +9,6 @@
 #include "channel_model.h"
 #include "conv_ftl.h"
 
-
 /*
     Default malloc size (when sector size is 512B)
     Channel = 40 * 8 = 320
@@ -23,6 +22,8 @@
     maptbl  = 8 * 4194304 = 33554432
     rmap    = 8 * 4194304 = 33554432
 */
+
+struct conv_ftl;
 
 #define INVALID_PPA (~(0ULL))
 #define INVALID_LPN (~(0ULL))
