@@ -103,17 +103,16 @@ static inline void select_flush_buffer(struct buffer *buf)
 
 	NVMEV_INFO("Needed PPGs: %d %d %d %d\n", needed_ppgs[0], needed_ppgs[1], needed_ppgs[2], needed_ppgs[3]);
 #endif
-	struct buffer_ppg *tmp;
-	for (size_t i = 0; i < buf->size / buf->read_size_interval; i++) {
-		tmp = NULL;
-		list_for_each_entry(tmp, &buf->used_ppgs[i], list) {
-			if (flush_amount == 0) {
-				break;
-			}
-			if (tmp->status == VALID) {
-				list_move_tail(&tmp->list, &buf->flushing_ppgs);
-				tmp->status = FLUSH_TARGET;
+	for (size_t i = 0; i < buf->used_ppg_list_cnt; i++) {
+		struct buffer_ppg *iter, *tmp;
+		list_for_each_entry_safe(iter, tmp, &buf->used_ppgs[i], list) {
+			if (iter->status == VALID && iter->pg_idx >= buf->pg_per_ppg) {
+				list_move_tail(&iter->list, &buf->flushing_ppgs);
+				iter->status = FLUSH_TARGET;
 				flush_amount--;
+				if (flush_amount == 0) {
+					return;
+				}
 			}
 		}
 	}
@@ -142,21 +141,11 @@ static inline struct ppa get_maptbl_ent(struct conv_ftl *conv_ftl, uint64_t lpn)
 	return conv_ftl->maptbl[lpn];
 }
 
-static inline int get_buffer_idx(struct conv_ftl *conv_ftl, uint64_t lpn)
-{
-	return conv_ftl->maptbl[lpn].buffer_idx;
-}
-
 static inline void set_maptbl_ent(struct conv_ftl *conv_ftl, uint64_t lpn, struct ppa *ppa)
 {
 	NVMEV_ASSERT(lpn < conv_ftl->ssd->sp.tt_pgs);
 	ppa->buffer_idx = -1;
 	conv_ftl->maptbl[lpn] = *ppa;
-}
-
-static inline void set_buffer_idx(struct conv_ftl *conv_ftl, uint64_t lpn, int idx)
-{
-	conv_ftl->maptbl[lpn].buffer_idx = idx;
 }
 
 static uint64_t ppa2pgidx(struct conv_ftl *conv_ftl, struct ppa *ppa)
@@ -416,6 +405,7 @@ static struct ppa get_new_page(struct conv_ftl *conv_ftl, uint32_t io_type)
 	ppa.g.pg = wp->pg;
 	ppa.g.blk = wp->blk;
 	ppa.g.pl = wp->pl;
+	ppa.buffer_idx = -1;
 
 	NVMEV_ASSERT(ppa.g.pl == 0);
 
@@ -430,7 +420,13 @@ static void init_maptbl(struct conv_ftl *conv_ftl)
 	conv_ftl->maptbl = vmalloc(sizeof(struct ppa) * spp->tt_pgs);
 	for (i = 0; i < spp->tt_pgs; i++) {
 		conv_ftl->maptbl[i].ppa = UNMAPPED_PPA;
+		conv_ftl->maptbl[i].buffer_idx = -1;
 	}
+
+	// for (i = 0; i < spp->tt_pgs; i++) {
+	// 	NVMEV_INFO("maptbl[%d]: ppa %lld, buffer_idx %d\n", i, conv_ftl->maptbl[i].ppa,
+	// 		   conv_ftl->maptbl[i].buffer_idx);
+	// }
 }
 
 static void remove_maptbl(struct conv_ftl *conv_ftl)
@@ -1080,7 +1076,6 @@ static bool conv_read(struct nvmev_ns *ns, struct nvmev_request *req, struct nvm
 
 static uint64_t conv_rmw(struct nvmev_ns *ns, struct nvmev_request *req, uint64_t nsecs_rmw_start)
 {
-	// NVMEV_INFO("RMW Start\n");
 	struct conv_ftl *conv_ftls = (struct conv_ftl *)ns->ftls;
 	struct conv_ftl *conv_ftl = &conv_ftls[0];
 	struct ssd *ssd = conv_ftl->ssd;
@@ -1133,6 +1128,7 @@ static uint64_t conv_rmw(struct nvmev_ns *ns, struct nvmev_request *req, uint64_
 				page = &ppg->pages[j];
 				lpn = page->lpn;
 				local_lpn = LOCAL_LPN(lpn);
+
 				ppa = get_maptbl_ent(conv_ftl, local_lpn);
 
 				if (!mapped_ppa(&ppa) || !valid_ppa(conv_ftl, &ppa)) {
@@ -1141,7 +1137,7 @@ static uint64_t conv_rmw(struct nvmev_ns *ns, struct nvmev_request *req, uint64_
 
 				if (page->free_secs > 0) {
 					if (is_same_flash_page(conv_ftl, ppa, prev_ppa)) {
-						xfer_size += spp->pgsz; // JH: rather than page size, free_secs * sector_size.
+						xfer_size += page->free_secs * wbuf->sec_size; // JH: rather than page size, free_secs * sector_size.
 						continue;
 					} 
 						
@@ -1253,7 +1249,7 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 			;
 
 		if (check_flush_buffer_allocate_fail(wbuf)) {
-			select_flush_buffer(wbuf); // foreground flush
+			select_flush_buffer(wbuf);
 			conv_rmw(ns, req, nsecs_start);
 		}
 

@@ -43,21 +43,26 @@ void buffer_init(struct conv_ftl *conv_ftls, size_t size)
 	buf->ppg_per_buf = buf->size / buf->ppg_size;
 	buf->pg_per_ppg = spp->pgs_per_flashpg;
 	buf->sec_per_pg = spp->secs_per_pg;
-	buf->free_ppgs_cnt = buf->ppg_per_buf;
+	for (size_t i = 0; i < SSD_PARTITIONS; i++) {
+		buf->left_pgs[i] = 0;
+	}
 
+	buf->free_ppgs_cnt = buf->ppg_per_buf;
 	buf->used_ppgs_cnt = 0;
 	buf->flushing_ppgs_cnt = 0;
+	buf->used_ppg_list_cnt = buf->ppg_size / buf->read_size_interval;
+
 	buf->buffer_high_watermark = buf->ppg_per_buf / 2;
 	buf->buffer_low_watermark = buf->ppg_per_buf * 3 / 4;
 
 	INIT_LIST_HEAD(&buf->free_ppgs);
 	INIT_LIST_HEAD(&buf->flushing_ppgs);
 	
-	buf->used_ppgs = kmalloc(sizeof(struct list_head) * FLASH_PAGE_SIZE / buf->read_size_interval, GFP_KERNEL);
-	for (int i = 0; i < FLASH_PAGE_SIZE / KB(4); i++) {
+	buf->used_ppgs = kvmalloc(sizeof(struct list_head) * buf->used_ppg_list_cnt, GFP_KERNEL);
+	for (int i = 0; i < buf->used_ppg_list_cnt; i++) {
 		INIT_LIST_HEAD(&buf->used_ppgs[i]);
 	}
-	buf->ppg_array = (struct buffer_ppg*)kmalloc(sizeof(struct buffer_ppg) * buf->ppg_per_buf, GFP_KERNEL);
+	buf->ppg_array = (struct buffer_ppg*)kvmalloc(sizeof(struct buffer_ppg) * buf->ppg_per_buf, GFP_KERNEL);
 
 	for (int i = 0; i < buf->ppg_per_buf; i++) {
 		/* Initialize buffer PPG array entry */
@@ -68,11 +73,14 @@ void buffer_init(struct conv_ftl *conv_ftls, size_t size)
 		block->free_secs = buf->sec_per_pg * buf->pg_per_ppg;
 		block->access_time = (uint64_t)-1;
 		block->complete_time = 0;
-		block->pages = (struct buffer_page*)kmalloc(sizeof(struct buffer_page) * buf->pg_per_ppg, GFP_KERNEL);
+		block->pages = (struct buffer_page*)kvmalloc(sizeof(struct buffer_page) * buf->pg_per_ppg, GFP_KERNEL);
 		for (int j = 0; j < buf->pg_per_ppg; j++) {
 			block->pages[j].lpn = INVALID_LPN;
 			block->pages[j].free_secs = buf->sec_per_pg;
 			block->pages[j].sectors = kmalloc(sizeof(bool) * buf->sec_per_pg, GFP_KERNEL);
+			for (int k = 0; k < buf->sec_per_pg; k++) {
+				block->pages[j].sectors[k] = false;
+			}
 			block->pages[j].ppg = block;
 		}
 		list_add_tail(&block->list, &buf->free_ppgs);
@@ -85,7 +93,7 @@ static struct buffer_ppg* __buffer_get_ppg(struct conv_ftl *conv_ftl, size_t ftl
 	struct buffer *buf = conv_ftl->ssd->write_buffer;
 	struct buffer_ppg *ppg = NULL;
 
-	for (size_t i = buf->pg_size / buf->read_size_interval; i < buf->ppg_size / buf->read_size_interval; i++) {
+	for (size_t i = 0; i < buf->used_ppg_list_cnt; i++) {
 		list_for_each_entry(ppg, &buf->used_ppgs[i], list) {
 			if (ppg->ftl_idx == ftl_idx && ppg->status == VALID && ppg->pg_idx < buf->pg_per_ppg) {
 				return ppg;
@@ -101,7 +109,7 @@ static struct buffer_page* __buffer_get_page(struct conv_ftl *conv_ftl, uint64_t
 	struct buffer *buf = conv_ftl->ssd->write_buffer;
 	struct buffer_ppg *ppg = NULL;
 	struct buffer_page *page = NULL;
-	int idx = get_buffer_idx(conv_ftl, lpn);
+	int idx = get_buffer_idx(conv_ftl, LOCAL_LPN(lpn));
 
 	if (idx >= 0) {
 		ppg = &buf->ppg_array[idx];
@@ -123,29 +131,32 @@ static void __buffer_fill_page(struct conv_ftl *conv_ftl, uint64_t lpn, uint64_t
 
 	struct buffer *buf = conv_ftl->ssd->write_buffer;
 	struct buffer_ppg *ppg;
+	// NVMEV_INFO("Get buffer page - lpn: %lld, size: %lld, offset: %lld", lpn, size, offset);
 	struct buffer_page *page = __buffer_get_page(conv_ftl, lpn);
 
 	if (page == NULL) {
+		// NVMEV_INFO("Get buffer ppg");
 		ppg = __buffer_get_ppg(conv_ftl, GET_FTL_IDX(lpn));
+		// NVMEV_INFO("Get buffer ppg done");
 		if (ppg == NULL) { 
 			if (list_empty(&buf->free_ppgs)) {
 				NVMEV_ERROR("Access to empty buffer - LPN: %lld, size: %lld, offset: %lld", lpn, size, offset);
 			}
+			// NVMEV_INFO("Get free ppg - %ld", list_count_nodes(&buf->free_ppgs));
 			ppg = list_first_entry(&buf->free_ppgs, struct buffer_ppg, list);
+			// NVMEV_INFO("Get free ppg done");
 
 			// TODO: add lpn to map table
 			ppg->status = VALID;
 			ppg->ftl_idx = GET_FTL_IDX(lpn);
 			buf->free_ppgs_cnt--;
 			buf->used_ppgs_cnt++;
+			buf->left_pgs[ppg->ftl_idx] += buf->pg_per_ppg;
+			set_buffer_idx(conv_ftl, LOCAL_LPN(lpn), ppg->ftl_idx);	
 		}
 
 		page = &ppg->pages[ppg->pg_idx++];
-#if (FLUSH_TIMING_POLICY == IMMEDIATE)
-		if (ppg->pg_idx == buf->pg_per_ppg) {
-			ppg->status = RMW_TARGET;
-		}
-#endif
+		buf->left_pgs[ppg->ftl_idx] -= 1;
 	}
 	else {
 		ppg = page->ppg;
@@ -163,13 +174,26 @@ static void __buffer_fill_page(struct conv_ftl *conv_ftl, uint64_t lpn, uint64_t
 		}
 	}
 
+	if (ppg->free_secs == buf->pg_per_ppg * buf->sec_per_pg) {
+		NVMEV_ERROR("Free sec problem");
+	}
+
+	// NVMEV_INFO("Move list %lu, %lu", ppg->free_secs, ppg->free_secs * buf->sec_size / buf->read_size_interval);
 	list_move_tail(&ppg->list, &buf->used_ppgs[ppg->free_secs * buf->sec_size / buf->read_size_interval]);
+	// NVMEV_INFO("Move done");
 
 	// check physicall full
 	if (ppg->free_secs == 0) {
 		ppg->status = FLUSH_TARGET;
 		list_move_tail(&ppg->list, &buf->flushing_ppgs);
 	}
+
+#if (FLUSH_TIMING_POLICY == IMMEDIATE)
+	if (ppg->pg_idx == buf->pg_per_ppg) {
+		list_move_tail(&ppg->list, &buf->flushing_ppgs);
+		ppg->status = FLUSH_TARGET;
+	}
+#endif
 
 	return;
 }
@@ -206,6 +230,9 @@ bool buffer_allocatable_check(struct conv_ftl *conv_ftls, uint64_t start_lpn, ui
 			required_pgs[GET_FTL_IDX(s_lpn)]++; // JH: new data that is not an update
 		}
 	}
+
+	NVMEV_INFO("Check buffer - %d, %d, %d, %d, %d", left_ppgs, left_pgs[0], left_pgs[1], left_pgs[2], left_pgs[3]);
+	NVMEV_INFO("Check buffer - %d, %d, %d, %d", required_pgs[0], required_pgs[1], required_pgs[2], required_pgs[3]);
 
 	spin_unlock(&buf->lock);
 
@@ -251,6 +278,8 @@ void buffer_allocate(struct conv_ftl *conv_ftls, uint64_t start_lpn, uint64_t en
 	__buffer_fill_page(&conv_ftls[GET_FTL_IDX(start_lpn)], start_lpn, size, 0);
 
 	spin_unlock(&buf->lock);
+
+	return;
 }
 
 bool buffer_release(struct buffer *buf, uint64_t complete_time)
@@ -269,7 +298,7 @@ bool buffer_release(struct buffer *buf, uint64_t complete_time)
 			block->free_secs = buf->sec_per_pg * buf->pg_per_ppg;
 			block->access_time = (uint64_t)-1;
 			block->complete_time = 0;
-			for (size_t i = 0; i < block->pg_idx; i++) {
+			for (size_t i = 0; i < buf->pg_per_ppg; i++) {
 				block->pages[i].lpn = INVALID_LPN;
 				block->pages[i].free_secs = buf->sec_per_pg;
 				for (size_t j = 0; j < buf->sec_per_pg; j++) {
@@ -295,9 +324,9 @@ void buffer_refill(struct buffer *buf)
 	struct buffer_ppg *block, *tmp;
 
 	/* move all marked used blocks to free blocks */
-	for (size_t i = 0; i < buf->pg_size / buf->read_size_interval; i++) {
-		tmp = NULL;
-		list_for_each_entry(tmp, &buf->used_ppgs[i], list) {
+	for (size_t i = 0; i < buf->used_ppg_list_cnt; i++) {
+		block = tmp = NULL;
+		list_for_each_entry_safe(block, tmp, &buf->used_ppgs[i], list) {
 			list_move_tail(&block->list, &buf->free_ppgs);
 			block->status = EMPTY;
 			block->ftl_idx = -1;
@@ -331,7 +360,7 @@ struct buffer_page *buffer_search(struct conv_ftl *conv_ftl, uint64_t lpn)
 	while(!spin_trylock(&buf->lock))
 		;
 
-	int idx = get_buffer_idx(conv_ftl, lpn);
+	int idx = get_buffer_idx(conv_ftl, LOCAL_LPN(lpn));
 	
 	if (idx >= 0) {
 		ppg = &buf->ppg_array[idx];
@@ -345,7 +374,7 @@ struct buffer_page *buffer_search(struct conv_ftl *conv_ftl, uint64_t lpn)
 
 	spin_unlock(&buf->lock);
 
-	return NULL;
+	return page;
 }
 
 static void check_params(struct ssdparams *spp)
@@ -571,10 +600,11 @@ static void ssd_remove_buffer(struct buffer *buf)
 		for (int j = 0; j < buf->pg_per_ppg; j++) {
 			kfree(block->pages[j].sectors);
 		}
-		kfree(block->pages);
+		kvfree(block->pages);
 	}
 
-	kfree(buf->used_ppgs);
+	kvfree(buf->used_ppgs);
+	kvfree(buf->ppg_array);
 }
 
 static void ssd_remove_ch(struct ssd_channel *ch)
