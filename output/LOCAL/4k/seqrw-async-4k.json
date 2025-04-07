@@ -1,0 +1,362 @@
+fio: io_u error on file /dev/nvme3n1: Input/output error: read offset=484130816, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: read offset=466890752, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: write offset=498884608, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: read offset=972926976, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: read offset=466894848, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: write offset=468901888, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: read offset=466915328, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: write offset=468881408, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: write offset=468905984, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: read offset=466907136, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: write offset=498900992, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: write offset=482983936, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: read offset=466903040, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: read offset=466886656, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: read offset=466911232, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: write offset=468897792, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: write offset=468889600, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: write offset=468893696, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: read offset=466898944, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: read offset=496455680, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: write offset=468885504, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: write offset=468910080, buflen=4096
+fio: pid=113009, err=5/file:io_u.c:1845, func=io_u error, error=Input/output error
+fio: io_u error on file /dev/nvme3n1: Input/output error: read offset=496463872, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: write offset=498892800, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: read offset=496480256, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: read offset=496447488, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: write offset=498888704, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: write offset=498896896, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: read offset=496488448, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: read offset=496472064, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: read offset=496476160, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: read offset=496484352, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: read offset=496467968, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: read offset=496459776, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: read offset=496451584, buflen=4096
+fio: pid=113011, err=5/file:io_u.c:1845, func=io_u error, error=Input/output error
+fio: io_u error on file /dev/nvme3n1: Input/output error: write offset=482988032, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: write offset=482967552, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: write offset=973271040, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: write offset=973262848, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: read offset=972931072, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: write offset=483004416, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: read offset=972922880, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: read offset=972918784, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: write offset=482971648, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: write offset=973258752, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: write offset=483000320, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: write offset=482992128, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: read offset=484139008, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: write offset=973291520, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: read offset=972935168, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: write offset=973287424, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: read offset=484134912, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: read offset=484126720, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: write offset=482975744, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: write offset=482979840, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: write offset=973275136, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: read offset=972939264, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: read offset=972914688, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: write offset=973283328, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: write offset=973279232, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: write offset=973266944, buflen=4096
+fio: pid=113008, err=5/file:io_u.c:1845, func=io_u error, error=Input/output error
+fio: io_u error on file /dev/nvme3n1: Input/output error: read offset=484122624, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: read offset=484143104, buflen=4096
+fio: io_u error on file /dev/nvme3n1: Input/output error: write offset=482996224, buflen=4096
+fio: pid=113010, err=5/file:io_u.c:1845, func=io_u error, error=Input/output error
+{
+  "fio version" : "fio-3.28",
+  "timestamp" : 1743452578,
+  "timestamp_ms" : 1743452578227,
+  "time" : "Tue Apr  1 05:22:58 2025",
+  "global options" : {
+    "bs" : "4k",
+    "ioengine" : "io_uring",
+    "size" : "12G",
+    "numjobs" : "4",
+    "iodepth" : "16",
+    "group_reporting" : "1",
+    "direct" : "1",
+    "thread" : "1",
+    "filename" : "/dev/nvme3n1"
+  },
+  "jobs" : [
+    {
+      "jobname" : "seqwrite",
+      "groupid" : 0,
+      "error" : 5,
+      "eta" : 0,
+      "elapsed" : 129,
+      "job options" : {
+        "rw" : "rw"
+      },
+      "read" : {
+        "io_bytes" : 2420371456,
+        "io_kbytes" : 2363644,
+        "bw_bytes" : 18836161,
+        "bw" : 18394,
+        "iops" : 4598.921367,
+        "runtime" : 128496,
+        "total_ios" : 590943,
+        "short_ios" : 0,
+        "drop_ios" : 0,
+        "slat_ns" : {
+          "min" : 1260,
+          "max" : 28019,
+          "mean" : 1888.529273,
+          "stddev" : 785.534840,
+          "N" : 590943
+        },
+        "clat_ns" : {
+          "min" : 40,
+          "max" : 1967497,
+          "mean" : 237273.715500,
+          "stddev" : 213082.008512,
+          "N" : 590911,
+          "percentile" : {
+            "1.000000" : 11200,
+            "5.000000" : 30848,
+            "10.000000" : 34560,
+            "20.000000" : 38144,
+            "30.000000" : 55552,
+            "40.000000" : 116224,
+            "50.000000" : 187392,
+            "60.000000" : 259072,
+            "70.000000" : 325632,
+            "80.000000" : 407552,
+            "90.000000" : 528384,
+            "95.000000" : 643072,
+            "99.000000" : 888832,
+            "99.500000" : 978944,
+            "99.900000" : 1204224,
+            "99.950000" : 1286144,
+            "99.990000" : 1581056
+          }
+        },
+        "lat_ns" : {
+          "min" : 4040,
+          "max" : 1968957,
+          "mean" : 239215.684477,
+          "stddev" : 212926.679413,
+          "N" : 590911
+        },
+        "bw_min" : 697888,
+        "bw_max" : 1211688,
+        "bw_agg" : 100.000000,
+        "bw_mean" : 945457.600000,
+        "bw_dev" : 58598.904764,
+        "bw_samples" : 20,
+        "iops_min" : 174472,
+        "iops_max" : 302922,
+        "iops_mean" : 236364.400000,
+        "iops_stddev" : 14649.726191,
+        "iops_samples" : 20
+      },
+      "write" : {
+        "io_bytes" : 2423992320,
+        "io_kbytes" : 2367180,
+        "bw_bytes" : 18864340,
+        "bw" : 18422,
+        "iops" : 4605.800959,
+        "runtime" : 128496,
+        "total_ios" : 591827,
+        "short_ios" : 0,
+        "drop_ios" : 0,
+        "slat_ns" : {
+          "min" : 1240,
+          "max" : 106039,
+          "mean" : 1881.886360,
+          "stddev" : 803.422341,
+          "N" : 591827
+        },
+        "clat_ns" : {
+          "min" : 70,
+          "max" : 280097,
+          "mean" : 21238.586872,
+          "stddev" : 15966.341928,
+          "N" : 591795,
+          "percentile" : {
+            "1.000000" : 8512,
+            "5.000000" : 9408,
+            "10.000000" : 9920,
+            "20.000000" : 10560,
+            "30.000000" : 11072,
+            "40.000000" : 11712,
+            "50.000000" : 12864,
+            "60.000000" : 14784,
+            "70.000000" : 19840,
+            "80.000000" : 39680,
+            "90.000000" : 44288,
+            "95.000000" : 46848,
+            "99.000000" : 61696,
+            "99.500000" : 85504,
+            "99.900000" : 138240,
+            "99.950000" : 156672,
+            "99.990000" : 203776
+          }
+        },
+        "lat_ns" : {
+          "min" : 8269,
+          "max" : 281467,
+          "mean" : 23173.250790,
+          "stddev" : 16182.378079,
+          "N" : 591795
+        },
+        "bw_min" : 699424,
+        "bw_max" : 1213856,
+        "bw_agg" : 100.000000,
+        "bw_mean" : 946872.000000,
+        "bw_dev" : 58540.742960,
+        "bw_samples" : 20,
+        "iops_min" : 174856,
+        "iops_max" : 303464,
+        "iops_mean" : 236718.000000,
+        "iops_stddev" : 14635.185740,
+        "iops_samples" : 20
+      },
+      "trim" : {
+        "io_bytes" : 0,
+        "io_kbytes" : 0,
+        "bw_bytes" : 0,
+        "bw" : 0,
+        "iops" : 0.000000,
+        "runtime" : 0,
+        "total_ios" : 0,
+        "short_ios" : 0,
+        "drop_ios" : 0,
+        "slat_ns" : {
+          "min" : 0,
+          "max" : 0,
+          "mean" : 0.000000,
+          "stddev" : 0.000000,
+          "N" : 0
+        },
+        "clat_ns" : {
+          "min" : 0,
+          "max" : 0,
+          "mean" : 0.000000,
+          "stddev" : 0.000000,
+          "N" : 0
+        },
+        "lat_ns" : {
+          "min" : 0,
+          "max" : 0,
+          "mean" : 0.000000,
+          "stddev" : 0.000000,
+          "N" : 0
+        },
+        "bw_min" : 0,
+        "bw_max" : 0,
+        "bw_agg" : 0.000000,
+        "bw_mean" : 0.000000,
+        "bw_dev" : 0.000000,
+        "bw_samples" : 0,
+        "iops_min" : 0,
+        "iops_max" : 0,
+        "iops_mean" : 0.000000,
+        "iops_stddev" : 0.000000,
+        "iops_samples" : 0
+      },
+      "sync" : {
+        "total_ios" : 0,
+        "lat_ns" : {
+          "min" : 0,
+          "max" : 0,
+          "mean" : 0.000000,
+          "stddev" : 0.000000,
+          "N" : 0
+        }
+      },
+      "job_runtime" : 513980,
+      "usr_cpu" : 0.120627,
+      "sys_cpu" : 0.681155,
+      "ctx" : 506923,
+      "majf" : 0,
+      "minf" : 4,
+      "iodepth_level" : {
+        "1" : 0.100000,
+        "2" : 0.100000,
+        "4" : 0.100000,
+        "8" : 0.100000,
+        "16" : 99.994927,
+        "32" : 0.000000,
+        ">=64" : 0.000000
+      },
+      "iodepth_submit" : {
+        "0" : 0.000000,
+        "4" : 100.000000,
+        "8" : 0.000000,
+        "16" : 0.000000,
+        "32" : 0.000000,
+        "64" : 0.000000,
+        ">=64" : 0.000000
+      },
+      "iodepth_complete" : {
+        "0" : 0.000000,
+        "4" : 99.999662,
+        "8" : 0.000000,
+        "16" : 0.100000,
+        "32" : 0.000000,
+        "64" : 0.000000,
+        ">=64" : 0.000000
+      },
+      "latency_ns" : {
+        "2" : 0.000000,
+        "4" : 0.000000,
+        "10" : 0.000000,
+        "20" : 0.000000,
+        "50" : 0.010000,
+        "100" : 0.010000,
+        "250" : 0.000000,
+        "500" : 0.010000,
+        "750" : 0.000000,
+        "1000" : 0.000000
+      },
+      "latency_us" : {
+        "2" : 0.010000,
+        "4" : 0.022236,
+        "10" : 6.011566,
+        "20" : 30.435672,
+        "50" : 27.035180,
+        "100" : 5.182242,
+        "250" : 10.677731,
+        "500" : 14.675381,
+        "750" : 4.665404,
+        "1000" : 1.071806
+      },
+      "latency_ms" : {
+        "2" : 0.216526,
+        "4" : 0.000000,
+        "10" : 0.000000,
+        "20" : 0.000000,
+        "50" : 0.000000,
+        "100" : 0.000000,
+        "250" : 0.000000,
+        "500" : 0.000000,
+        "750" : 0.000000,
+        "1000" : 0.000000,
+        "2000" : 0.000000,
+        ">=2000" : 0.000000
+      },
+      "latency_depth" : 16,
+      "latency_target" : 0,
+      "latency_percentile" : 100.000000,
+      "latency_window" : 0
+    }
+  ],
+  "disk_util" : [
+    {
+      "name" : "nvme3n1",
+      "read_ios" : 591040,
+      "write_ios" : 591795,
+      "read_merges" : 0,
+      "write_merges" : 0,
+      "read_ticks" : 133586,
+      "write_ticks" : 5898,
+      "in_queue" : 139484,
+      "util" : 99.176352
+    }
+  ]
+}

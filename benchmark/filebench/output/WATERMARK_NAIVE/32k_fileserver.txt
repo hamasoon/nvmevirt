@@ -4,24 +4,24 @@ Filebench Version 1.5-alpha3
 0.002: Populating and pre-allocating filesets
 0.035: bigfileset populated: 100000 files, avg. dir. width = 20, avg. dir. depth = 3.8, 0 leafdirs, 12510.457MB total size
 0.035: Removing bigfileset tree (if exists)
-0.037: Pre-allocating directories in bigfileset tree
-0.144: Pre-allocating files in bigfileset tree
-6.308: Waiting for pre-allocation to finish (in case of a parallel pre-allocation)
-6.308: Population and pre-allocation of filesets completed
-6.308: Starting 1 filereader instances
-7.313: Running...
-67.320: Run took 60 seconds...
-67.327: Per-Operation Breakdown
-statfile1            1059783ops    17662ops/s   0.0mb/s    0.003ms/op [0.001ms - 0.547ms]
-deletefile1          1059783ops    17662ops/s   0.0mb/s    1.350ms/op [0.014ms - 119.249ms]
-closefile3           1059822ops    17663ops/s   0.0mb/s    0.001ms/op [0.000ms - 1.100ms]
-readfile1            1059822ops    17663ops/s 2333.5mb/s    0.595ms/op [0.001ms - 32.428ms]
-openfile2            1059845ops    17663ops/s   0.0mb/s    0.192ms/op [0.002ms - 13.230ms]
-closefile2           1059845ops    17663ops/s   0.0mb/s    0.001ms/op [0.000ms - 0.424ms]
-appendfilerand1      1059845ops    17663ops/s 138.0mb/s    0.971ms/op [0.003ms - 32.549ms]
-openfile1            1059880ops    17664ops/s   0.0mb/s    0.193ms/op [0.002ms - 13.281ms]
-closefile1           1059880ops    17664ops/s   0.0mb/s    0.001ms/op [0.000ms - 0.458ms]
-wrtfile1             1059880ops    17664ops/s 2210.4mb/s    0.234ms/op [0.004ms - 32.447ms]
-createfile1          1059882ops    17664ops/s   0.0mb/s    1.037ms/op [0.011ms - 33.040ms]
-67.327: IO Summary: 11658267 ops 194292.588 ops/s 17663/35327 rd/wr 4682.0mb/s 0.416ms/op
-67.327: Shutting down processes
+0.036: Pre-allocating directories in bigfileset tree
+0.142: Pre-allocating files in bigfileset tree
+6.362: Waiting for pre-allocation to finish (in case of a parallel pre-allocation)
+6.362: Population and pre-allocation of filesets completed
+6.363: Starting 1 filereader instances
+7.368: Running...
+67.374: Run took 60 seconds...
+67.382: Per-Operation Breakdown
+statfile1            1038465ops    17307ops/s   0.0mb/s    0.003ms/op [0.001ms - 0.478ms]
+deletefile1          1038465ops    17307ops/s   0.0mb/s    1.566ms/op [0.015ms - 66.332ms]
+closefile3           1038503ops    17307ops/s   0.0mb/s    0.001ms/op [0.000ms - 12.858ms]
+readfile1            1038503ops    17307ops/s 2288.2mb/s    0.586ms/op [0.001ms - 45.341ms]
+openfile2            1038518ops    17308ops/s   0.0mb/s    0.192ms/op [0.002ms - 16.865ms]
+closefile2           1038518ops    17308ops/s   0.0mb/s    0.001ms/op [0.000ms - 0.351ms]
+appendfilerand1      1038518ops    17308ops/s 135.3mb/s    0.954ms/op [0.003ms - 40.375ms]
+openfile1            1038552ops    17308ops/s   0.0mb/s    0.193ms/op [0.002ms - 16.844ms]
+closefile1           1038552ops    17308ops/s   0.0mb/s    0.001ms/op [0.000ms - 0.390ms]
+wrtfile1             1038552ops    17308ops/s 2164.9mb/s    0.224ms/op [0.003ms - 40.184ms]
+createfile1          1038555ops    17308ops/s   0.0mb/s    1.007ms/op [0.010ms - 45.729ms]
+67.382: IO Summary: 11423701 ops 190383.159 ops/s 17307/34616 rd/wr 4588.3mb/s 0.430ms/op
+67.382: Shutting down processes

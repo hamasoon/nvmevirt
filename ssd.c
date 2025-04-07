@@ -231,9 +231,6 @@ bool buffer_allocatable_check(struct conv_ftl *conv_ftls, uint64_t start_lpn, ui
 		}
 	}
 
-	NVMEV_INFO("Check buffer - %d, %d, %d, %d, %d", left_ppgs, left_pgs[0], left_pgs[1], left_pgs[2], left_pgs[3]);
-	NVMEV_INFO("Check buffer - %d, %d, %d, %d", required_pgs[0], required_pgs[1], required_pgs[2], required_pgs[3]);
-
 	spin_unlock(&buf->lock);
 
 	for (int i = 0; i < nr_parts; i++) {
