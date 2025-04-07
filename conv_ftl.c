@@ -47,6 +47,7 @@ static inline bool check_flush_buffer_allocate_fail(struct buffer *buf)
 static inline void select_flush_buffer(struct buffer *buf)
 {
 	size_t flush_amount;
+	struct buffer_ppg *tmp;
 #if (FLUSH_TIMING_POLICY == IMMEDIATE)
 	return;
 #elif (FLUSH_TIMING_POLICY == FULL)
@@ -75,35 +76,57 @@ static inline void select_flush_buffer(struct buffer *buf)
 	}
 #elif (FLUSH_TIMING_POLICY == WATERMARK_ONDEMAND)
 	/* IN PROGRESS */
-	flush_amount = 1;
+	struct nvmev_submission_queue *sq;	
+	struct nvme_rw_command *cmd;
+	int new_db, old_db, qid, seq, num_proc, sq_entry;
+	uint64_t lpn, size, end_lpn, k;
 	int needed_ppgs[SSD_PARTITIONS] = {0, };
 
+	flush_amount = 1;
 	// Collecting write requests and extracting needed ppgs
-	for (int qid = 1; qid <= nvmev_vdev->nr_sq; qid++) {
-		struct nvmev_submission_queue *sq = nvmev_vdev->sqes[qid];
-		int dbs = nvmev_vdev->dbs[qid * 2];
-		if (!sq)
+	for (qid = 1; qid <= nvmev_vdev->nr_sq; qid++) {
+		if (nvmev_vdev->sqes[qid] == NULL)
 			continue;
+		new_db = nvmev_vdev->dbs[qid * 2];
+		old_db = nvmev_vdev->old_dbs[qid * 2];
 		
-		// Have to ask this to SHIM
-		// JH: my job. currently this code is not functional to check the submitted cmd's fields
-		NVMEV_INFO("SQ size %d\n", sq->queue_size);
-		for (int j = 0; j < sq->queue_size; j++) {
-			struct nvme_rw_command *cmd = &sq_entry(j).rw;
-			uint64_t lpn = cmd->slba;
-			uint64_t size = cmd->length;
-			uint64_t end_lpn = cmd->slba + size / LBA_SIZE;
-			if (size == 0 || size % LBA_SIZE != 0) continue;
-			for (uint64_t k = lpn; k <= end_lpn; k++) {
-				needed_ppgs[GET_FTL_IDX(k)]++;
+		if (new_db != old_db) { // queue is not empty
+			sq = nvmev_vdev->sqes[qid];
+			num_proc = new_db - old_db;
+			sq_entry = old_db;
+
+			if (unlikely(!sq)) {
+				NVMEV_ERROR("SQ %d is NULL\n", qid);
+				ASSERT(0);
+				return;
 			}
-			NVMEV_INFO("Start LPN: %lld, End LPN: %lld, Size: %lld\n", lpn, end_lpn, size);
+			if (unlikely(num_proc < 0)) {
+				num_proc += sq->queue_size;
+			}
+
+			for (seq = 0; seq < num_proc; seq++) {
+				cmd = &sq_entry(sq_entry).rw;
+				if (cmd->opcode != nvme_cmd_write)
+					continue; //  only consider write commands
+
+				lpn = cmd->slba;
+				size = cmd->length;
+				end_lpn = cmd->slba + size / LBA_SIZE;
+				if (size == 0 || size % LBA_SIZE != 0) continue;
+				for (k = lpn; k <= end_lpn; k++) {
+					needed_ppgs[GET_FTL_IDX(k)]++;
+				}
+				NVMEV_INFO("Start LPN: %lld, End LPN: %lld, Size: %lld\n", lpn, end_lpn, size);
+
+				if (++sq_entry == sq->queue_size) {
+					sq_entry = 0; // wrap around
+				}
+			}
 		}
 	}
 
 	NVMEV_INFO("Needed PPGs: %d %d %d %d\n", needed_ppgs[0], needed_ppgs[1], needed_ppgs[2], needed_ppgs[3]);
 #endif
-	struct buffer_ppg *tmp;
 	list_for_each_entry(tmp, &buf->used_ppgs, list) {
 		if (tmp->status == VALID && tmp->pg_idx == buf->pg_per_ppg) { // logically full
 			if (flush_amount > 0) {
