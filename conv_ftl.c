@@ -1055,6 +1055,7 @@ static bool conv_read(struct nvmev_ns *ns, struct nvmev_request *req, struct nvm
 					}
 					nsecs_completed = ssd_advance_nand(conv_ftl->ssd, &srd);
 					nsecs_latest = max(nsecs_completed, nsecs_latest);
+					xfer_size = 0; // reset xfer_size
 				}
 
 				if (spp->pgsz > LBA_TO_BYTE(nr_lba)) {
@@ -1076,6 +1077,7 @@ static bool conv_read(struct nvmev_ns *ns, struct nvmev_request *req, struct nvm
 				}
 				nsecs_completed = ssd_advance_nand(conv_ftl->ssd, &srd);
 				nsecs_latest = max(nsecs_completed, nsecs_latest);
+				xfer_size = 0; // reset xfer_size
 			}
 		}
 	}
@@ -1160,6 +1162,7 @@ static uint64_t conv_rmw(struct nvmev_ns *ns, struct nvmev_request *req, uint64_
 						srd.ppa = &prev_ppa;
 						nsecs_completed = ssd_advance_nand(conv_ftl->ssd, &srd);
 						nsecs_write_start = max(nsecs_completed, nsecs_write_start);
+						xfer_size = 0;
 					}
 						
 					xfer_size = spp->pgsz;
