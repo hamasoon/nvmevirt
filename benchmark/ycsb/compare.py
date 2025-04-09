@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 
 PATTERN = r"(\d+ sec): \d+ operations; ([\d.]+) current ops/sec;"
 WORKLOADS = ['a', 'b', 'c', 'd', 'e', 'f']
-BENCHMARK = [
-    "IMMEDIATE", "FULL_SINGLE", "FULL_HALF", "FULL_ALL", "WATERMARK_NAIVE", "WATERMARK_HIGHLOW", "LOCAL"
+POLICY = [
+    "IMMEDIATE", "FULL_SINGLE", "FULL_HALF", "FULL_ALL", "WATERMARK_NAIVE", "WATERMARK_HIGHLOW"
 ]
 MAPPING = ["4k", "16k", "32k"]
 
@@ -50,10 +50,10 @@ def read_data(mapping, workload, benchmark):
                 
     return data, timeline
 
-def plot_data(data: pd.DataFrame, target):
+def plot_data(data: pd.DataFrame, target, title):
     print(data)
     
-    unique_benchmark = BENCHMARK + ['origin']
+    unique_benchmark = POLICY + ['origin']
     origin_val = data.loc['origin', target]
     color_dict = {"4k": "skyblue", "16k": "lightgreen", "32k": "orange"}
     width = 0.2  # bar 폭
@@ -96,12 +96,13 @@ def plot_data(data: pd.DataFrame, target):
                     )
                     
     plt.axhline(origin_val, color='red', linestyle='--', linewidth=1, label="Origin Value")
-    plt.title(f'{target}', fontsize=14)
+    plt.title(f'{title}', fontsize=14)
     plt.ylabel('Raw Value', fontsize=12)
     plt.xticks(np.arange(len(unique_benchmark)), unique_benchmark, rotation=45, fontsize=8)
     plt.legend(title="Mapping", loc="lower right", fontsize=10)
     plt.tight_layout()
-    plt.savefig(os.path.join(os.path.dirname(__file__), f'output/{target}.png'))
+    plt.savefig(os.path.join(os.path.dirname(__file__), f'output/{title}.png'))
+    plt.clf()
 
 def plot_timeline_data(df1, df2, df3, df4):
     for workload in WORKLOADS:
@@ -125,11 +126,12 @@ def plot_timeline_data(df1, df2, df3, df4):
 if __name__ == '__main__':
     data = pd.DataFrame(columns=['Throughput', 'Read Lat', 'Insert Lat', 'Update Lat', 'Scan Lat', 'RMW Lat'])
     
-    for benchmark in BENCHMARK:
-        for mapping in MAPPING:
-            tmp, _ = read_data(mapping, 'a', benchmark)
-            data.loc[f'{benchmark}_{mapping}', :] = tmp
-            
-    data.loc['origin', :] = read_data('origin', 'a', 'origin')[0]
+    for workload in WORKLOADS:
+        for policy in POLICY:
+            for mapping in MAPPING:
+                tmp, _ = read_data(mapping, workload, policy)
+                data.loc[f'{policy}_{mapping}', :] = tmp
+                
+        data.loc['origin', :] = read_data('origin', workload, 'origin')[0]
     
-    plot_data(data, 'Throughput')
+        plot_data(data, 'Throughput', f'Workload{workload.capitalize()} Throughput')
