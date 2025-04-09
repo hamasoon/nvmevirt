@@ -125,7 +125,63 @@ static inline void select_flush_buffer(struct buffer *buf)
 		}
 	}
 
-	NVMEV_INFO("Needed PPGs: %d %d %d %d\n", needed_ppgs[0], needed_ppgs[1], needed_ppgs[2], needed_ppgs[3]);
+	struct buffer_ppg *ppg = NULL;
+	struct buffer_page *page = NULL;
+	list_for_each_entry(ppg, &buf->flushing_ppgs, list) {
+		needed_ppgs[ppg->ftl_idx] -= buf->pg_per_ppg;
+	}
+
+	for (int i = 0; i < SSD_PARTITIONS; i++) {
+		if (needed_ppgs[i] < 0) {
+			needed_ppgs[i] = 0;
+			continue;
+		}
+		needed_ppgs[i] = (needed_ppgs[i] + buf->pg_per_ppg - 1) / buf->pg_per_ppg;
+	}
+
+	int free_ppgs = buf->free_ppgs_cnt;
+	while (free_ppgs > 0) {
+        bool is_end = true;
+        for (int i = 0; i < SSD_PARTITIONS && free_ppgs > 0; i++) {
+            if (needed_ppgs[i] > 0) { 
+                needed_ppgs[i]--; 
+                free_ppgs--; 
+                is_end = false;
+                if (free_ppgs == 0) {
+                    break;
+                }
+            }
+        }
+
+        if (is_end) {
+            break;
+        }
+    }
+
+	for (size_t i = 0; i < buf->used_ppg_list_cnt; i++) {
+		struct buffer_ppg *iter, *tmp;
+		list_for_each_entry_safe(iter, tmp, &buf->used_ppgs[i], list) {
+			bool is_end = true;
+
+			if (iter->status == VALID && iter->pg_idx >= buf->pg_per_ppg && needed_ppgs[iter->ftl_idx] > 0) {
+				list_move_tail(&iter->list, &buf->flushing_ppgs);
+				iter->status = FLUSH_TARGET;
+				needed_ppgs[iter->ftl_idx]--;
+			}
+
+			for (int j = 0; j < SSD_PARTITIONS; j++) {
+				if (needed_ppgs[j] > 0) {
+					is_end = false;
+				}
+			}
+
+			if (is_end) {
+				return;
+			}
+		}
+	}
+
+	return;
 #endif
 	for (size_t i = 0; i < buf->used_ppg_list_cnt; i++) {
 		struct buffer_ppg *iter, *tmp;
