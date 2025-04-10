@@ -85,6 +85,10 @@ void buffer_init(struct conv_ftl *conv_ftls, size_t size)
 		}
 		list_add_tail(&block->list, &buf->free_ppgs);
 	}
+
+	buf->rmw_write_cnt = 0;
+	buf->direct_write_cnt = 0;
+	buf->write_size_cnt = (uint64_t*)kvmalloc(sizeof(uint64_t) * 65, GFP_KERNEL);
 }
 
 /* get block from buffer that match with lpn return NULL if not found */
@@ -185,6 +189,7 @@ static void __buffer_fill_page(struct conv_ftl *conv_ftl, uint64_t lpn, uint64_t
 	// check physicall full
 	if (ppg->free_secs == 0) {
 		ppg->status = FLUSH_TARGET;
+		buf->direct_write_cnt++;
 		list_move_tail(&ppg->list, &buf->flushing_ppgs);
 	}
 
@@ -262,6 +267,14 @@ void buffer_allocate(struct conv_ftl *conv_ftls, uint64_t start_lpn, uint64_t en
 	/* handle first page */
 	while (!spin_trylock(&buf->lock))
 		;
+
+
+	if (size > KB(256)) {
+		buf->write_size_cnt[KB(256) / KB(4)]++;
+	}
+	else {
+		buf->write_size_cnt[size / KB(4)]++;
+	}
 
 	__buffer_fill_page(&conv_ftls[GET_FTL_IDX(start_lpn)], start_lpn, start_size, start_offset);
 	start_lpn += 1;
@@ -600,8 +613,16 @@ static void ssd_remove_buffer(struct buffer *buf)
 		kvfree(block->pages);
 	}
 
+	NVMEV_INFO("RMW write count: %lld", buf->rmw_write_cnt);
+	NVMEV_INFO("Direct write count: %lld", buf->direct_write_cnt);
+	NVMEV_INFO("Buffer write size count: ");
+	for (size_t i = 1; i < 65; i++) {
+		NVMEV_INFO("%lu: %lld ", i * KB(4), buf->write_size_cnt[i]);
+	}
+
 	kvfree(buf->used_ppgs);
 	kvfree(buf->ppg_array);
+	kvfree(buf->write_size_cnt);
 }
 
 static void ssd_remove_ch(struct ssd_channel *ch)

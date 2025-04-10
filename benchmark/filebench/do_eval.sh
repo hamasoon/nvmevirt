@@ -1,7 +1,11 @@
 #!/bin/bash
 #"IMMEDIATE" 
-POLICY=("FULL_SINGLE" "FULL_HALF" "FULL_ALL" "WATERMARK_NAIVE" "WATERMARK_HIGHLOW")
-MAPPING_SIZE=("4k" "16k" "32k")
+# POLICY=("FULL_SINGLE" "FULL_HALF" "FULL_ALL" "WATERMARK_NAIVE" "WATERMARK_HIGHLOW")
+# MAPPING_SIZE=("4k" "16k" "32k")
+# WORKLOAD=("fileserver" "webserver" "varmail" "webproxy")
+
+POLICY=("FULL_HALF")
+MAPPING_SIZE=("16k")
 WORKLOAD=("fileserver" "webserver" "varmail" "webproxy")
 
 echo 0 | sudo tee /proc/sys/kernel/randomize_va_space
@@ -26,6 +30,7 @@ for policy in "${POLICY[@]}"; do
             sudo filebench -f ${workload}.f > "output/${policy}/${map}_${workload}.txt"
             sudo umount /mnt/nvme
             sudo rmmod nvmev
+            sudo dmesg > "output/${policy}/${map}_${workload}.log"
         done
     done
 done
