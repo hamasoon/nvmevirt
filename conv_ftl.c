@@ -79,7 +79,7 @@ static inline void select_flush_buffer(struct buffer *buf)
 	struct nvmev_submission_queue *sq;	
 	struct nvme_rw_command *cmd;
 	int new_db, old_db, qid, seq, num_proc, sq_entry;
-	uint64_t lpn, size, end_lpn, k;
+	uint64_t lpn, nr_lba, end_lpn, k;
 	int needed_ppgs[SSD_PARTITIONS] = {0, };
 
 	flush_amount = 1;
@@ -109,14 +109,16 @@ static inline void select_flush_buffer(struct buffer *buf)
 				if (cmd->opcode != nvme_cmd_write)
 					continue; //  only consider write commands
 
-				lpn = cmd->slba;
-				size = cmd->length;
-				end_lpn = cmd->slba + size / LBA_SIZE;
-				if (size == 0 || size % LBA_SIZE != 0) continue;
+				lpn = cmd->slba / buf->sec_per_pg;
+				nr_lba = cmd->length + 1;
+				end_lpn = (cmd->slba + nr_lba - 1) / buf->sec_per_pg;
+				if (nr_lba == 0) {
+					continue;
+				}
 				for (k = lpn; k <= end_lpn; k++) {
 					needed_ppgs[GET_FTL_IDX(k)]++;
 				}
-				NVMEV_INFO("Start LPN: %lld, End LPN: %lld, Size: %lld\n", lpn, end_lpn, size);
+				NVMEV_DEBUG("Start LPN: %lld, End LPN: %lld, Size: %lld\n", lpn, end_lpn, nr_lba << LBA_BITS);
 
 				if (++sq_entry == sq->queue_size) {
 					sq_entry = 0; // wrap around
