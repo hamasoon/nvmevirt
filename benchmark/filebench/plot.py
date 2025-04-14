@@ -1,6 +1,19 @@
 import os
+import re
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+
+PATTERN = (
+    r'IO Summary:\s+'         # "IO Summary:" 다음 공백을 매칭한다이다.
+    r'(\d+)\s+ops\s+'         # 첫 번째 그룹: ops 값 (정수)을 캡처한다이다.
+    r'(\d+(?:\.\d+)?)\s+ops/s\s+'  # 두 번째 그룹: ops/s 값 (소수점 포함)을 캡처한다이다.
+    r'(\d+\/\d+)\s+rd/wr\s+'   # 세 번째 그룹: rd/wr 값 (숫자/숫자 형식)을 캡처한다이다.
+    r'(\d+(?:\.\d+)?)mb/s\s+'  # 네 번째 그룹: mb/s 값 (소수점 포함)을 캡처한다이다.
+    r'(\d+(?:\.\d+)?)ms/op'    # 다섯 번째 그룹: ms/op 값 (소수점 포함)을 캡처한다이다.
+)
+POLICY = ["IMMEDIATE", "FULL_SINGLE", "FULL_HALF", "FULL_ALL", "WATERMARK_NAIVE", "WATERMARK_HIGHLOW"]
+MAPPING = ["4k", "16k", "32k"]
 
 def get_operations(workload):
     if workload == 'fileserver':
@@ -15,61 +28,99 @@ def get_operations(workload):
         return ['closefile', 'readfile', 'openfile', 'appendfilerand']
         
 
-def read_data(bs, workloads):
-    filepath = os.path.join(os.path.dirname(__file__), 'output/' + bs + '_' + workloads + '.txt')
-    data_type = ['ops/sec', 'bw', 'lat']
-    ops = get_operations(workloads) + ['total']
-    result = pd.DataFrame(columns=ops, index=data_type)
+def read_data(workloads):
+    ret = pd.DataFrame(columns=POLICY, index=MAPPING)
     
-    with open(filepath, 'r') as f:
-        data = f.readlines()
-        data = [d.strip() for d in data]
-        for line in data:
-            word = [w.strip() for w in line.split()]
-            if word[1] == 'IO':
-                result.at['ops/sec', 'total'] = float(word[5])
-                result.at['bw', 'total'] = float(word[9][:-4])
-                result.at['lat', 'total'] = float(word[10][:-5])
+    for policy in POLICY:
+        for mapping in MAPPING:
+            filename = f"output/{policy}/{mapping}_{workloads}.txt"
+            filepath = os.path.join(os.path.dirname(__file__), filename)
+            with open(filepath, "r", encoding="utf-8") as f:
+                lines = f.readlines()
+                for line in lines:
+                    match = re.search(PATTERN, line)
+                    if match:
+                        ops    = float(match.group(1))
+                        ops_s  = float(match.group(2))
+                        rd_wr  = match.group(3)
+                        mb_s   = float(match.group(4))
+                        ms_op  = float(match.group(5))
+                        
+                        ret.loc[mapping, policy] = ops_s
+                        break
             
-            for op in ops:
-                if op in word[0]:
-                    result.at['ops/sec', op] = float(word[2][:-5])
-                    result.at['bw', op] = float(word[3][:-4])
-                    result.at['lat', op] = float(word[4][:-5])
-            
-    return result
+    return ret
 
-def plot_summary(data1, data2, data3, data4, workload):
-    data_type = ['ops/sec', 'bw', 'lat']
-    label = ['Ops/sec', 'Bandwidth (MB/s)', 'Latency (ms)']
+def read_origin_data(workload):
+    filename = f"output/origin_{workload}.txt"
+    filepath = os.path.join(os.path.dirname(__file__), filename)
     
-    for t, l in zip(data_type, label):
-        values = [data1.loc[t, 'total'], data2.loc[t, 'total'], data3.loc[t, 'total'], data4.loc[t, 'total']]
-        ratio = [format(values[i] / values[3] * 100, '.2f') + '%' for i in range(4)]
-        plt.clf()
-        plt.figure(figsize=(9, 6))
-        bar = plt.bar(['4K', '16K', '32K', 'Origin'], values, alpha=0.7, color=['white', 'white', 'gray', 'gray'], edgecolor='black')
-        bar[0].set_label('4K')
-        bar[1].set_label('16K')
-        bar[2].set_label('32K')
-        bar[3].set_label('Origin')
-        bar[1].set_hatch('/')
-        bar[3].set_hatch('/')
-        
-        idx = 0
-        for rect in bar:
-            height = rect.get_height()
-            plt.text(rect.get_x() + rect.get_width()/2.0, height, f'{ratio[idx]}', ha='center', va='bottom')
-            idx += 1
-        
-        plt.xlabel('Block Size (Byte)')
-        plt.ylabel(l)
-        plt.title(workload + ' - ' + l)
-        
-        if t == 'ops/sec':
-            plt.savefig(os.path.join(os.path.dirname(__file__), f'plot/{workload}_ops.sec.png'))
+    with open(filepath, "r", encoding="utf-8") as f:
+        lines = f.readlines()
+        for line in lines:
+            match = re.search(PATTERN, line)
+            if match:
+                ops    = float(match.group(1))
+                ops_s  = float(match.group(2))
+                rd_wr  = match.group(3)
+                mb_s   = float(match.group(4))
+                ms_op  = float(match.group(5))
+                
+                return ops_s
+
+def plot_summary(workload):
+    data = read_data(workload)
+    
+    unique_benchmark = POLICY
+    origin_val = read_origin_data(workload)
+    color_dict = {"4k": "skyblue", "16k": "lightgreen", "32k": "orange"}
+    width = 0.2  # bar 폭
+    
+    plt.clf()
+    plt.plot(figsize=(30, 16))
+    
+    for i, bench in enumerate(unique_benchmark):
+        if bench == 'ORIGIN':
+            val = origin_val
+            plt.bar(i, val, width, color='gray', label="Origin" if i == len(unique_benchmark)-1 else "")
+            
         else:
-            plt.savefig(os.path.join(os.path.dirname(__file__), f'plot/{workload}_{t}.png'))
+            for k, mapping in enumerate(MAPPING):
+                offset = (k - (len(MAPPING) - 1) / 2) * width
+                val = data.loc[mapping, bench]
+                bars = plt.bar(
+                    i + offset, 
+                    val, 
+                    width, 
+                    color=color_dict.get(mapping, 'gray'),
+                    label=mapping.capitalize() if i == 0 else ""
+                )
+                
+                # 비율 계산 후 소수점 둘째 자리에서 반올림
+                ratio = 0.0
+                if origin_val != 0:
+                    ratio = round((val / origin_val) * 100, 2)
+                
+                # 텍스트 표시 (회전 + 약간 위로)
+                for bar in bars:
+                    bar_height = bar.get_height()
+                    bar_xcenter = bar.get_x() + bar.get_width()/2
+                    plt.text(
+                        bar_xcenter, 
+                        bar_height - len(f"{ratio}%") * 0.02 * bar_height, 
+                        f"{ratio}%", 
+                        ha='center', va='bottom', 
+                        fontsize=8,       # 조금 작은 폰트
+                        rotation=270       # 세로로 표시
+                    )
+                    
+    plt.axhline(origin_val, color='red', linestyle='--', linewidth=1, label="Origin Value")
+    plt.title(f'{workload}', fontsize=14)
+    plt.ylabel(f'ops/sec', fontsize=12)
+    plt.xticks(np.arange(len(unique_benchmark)), unique_benchmark, rotation=45, fontsize=8)
+    plt.legend(title="Mapping", loc="lower right", fontsize=10)
+    plt.tight_layout()
+    plt.savefig(os.path.join(os.path.dirname(__file__), f'plot/{workload}.png'))
         
 def plot_ops(data1, data2, data3):
     data_type = ['ops/sec', 'bw', 'lat']
@@ -82,8 +133,4 @@ if __name__ == '__main__':
     workloads = ['varmail', 'webserver', 'webproxy', 'fileserver']
 
     for w in workloads:
-        data_4k = read_data('4k', w)
-        data_16k = read_data('16k', w)
-        data_32k = read_data('32k', w)
-        data_origin = read_data('origin', w)
-        plot_summary(data_4k, data_16k, data_32k, data_origin, w)
+        plot_summary(w)

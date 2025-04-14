@@ -1082,6 +1082,7 @@ static bool conv_read(struct nvmev_ns *ns, struct nvmev_request *req, struct nvm
 		return false;
 	}
 
+	wbuf->read_cnt += nr_lba;
 	// interleaving read requests over all parts
 	for (i = 0; (i < nr_parts) && (start_lpn <= end_lpn); i++, start_lpn += pgs_per_flashpg) {
 		xfer_size = 0;
@@ -1111,6 +1112,7 @@ static bool conv_read(struct nvmev_ns *ns, struct nvmev_request *req, struct nvm
 				if (buffer_search(conv_ftl, lpn) != NULL) {
 					nsecs_completed = ssd_advance_pcie(conv_ftl->ssd, nsecs_start, LBA_TO_BYTE(nr_lba));
 					nsecs_latest = max(nsecs_completed, nsecs_latest);
+					wbuf->read_hit_cnt++;
 					continue;
 				}
 
@@ -1351,6 +1353,7 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 		return false;
 	}
 
+	wbuf->write_cnt += nr_lba;
 	buffer_allocate(conv_ftls, start_lpn, end_lpn, start_offset, size);
 
 	nvmev_vdev->user_write += size;

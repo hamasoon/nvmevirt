@@ -1,12 +1,12 @@
 #!/bin/bash
 #"IMMEDIATE" 
-# POLICY=("FULL_SINGLE" "FULL_HALF" "FULL_ALL" "WATERMARK_NAIVE" "WATERMARK_HIGHLOW")
+# POLICY=("IMMEDIATE" "FULL_SINGLE" "FULL_HALF" "FULL_ALL" "WATERMARK_NAIVE" "WATERMARK_HIGHLOW")
 # MAPPING_SIZE=("4k" "16k" "32k")
 # WORKLOAD=("fileserver" "webserver" "varmail" "webproxy")
 
-POLICY=("FULL_HALF")
+POLICY=("FULL_ALL")
 MAPPING_SIZE=("16k")
-WORKLOAD=("fileserver" "webserver" "varmail" "webproxy")
+WORKLOAD=("webproxy")
 
 echo 0 | sudo tee /proc/sys/kernel/randomize_va_space
 

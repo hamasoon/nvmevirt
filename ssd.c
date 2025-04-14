@@ -89,6 +89,10 @@ void buffer_init(struct conv_ftl *conv_ftls, size_t size)
 	buf->rmw_write_cnt = 0;
 	buf->direct_write_cnt = 0;
 	buf->write_size_cnt = (uint64_t*)kvmalloc(sizeof(uint64_t) * 65, GFP_KERNEL);
+	buf->read_cnt = 0;
+	buf->write_cnt = 0;
+	buf->read_hit_cnt = 0;
+	buf->write_hit_cnt = 0;
 }
 
 /* get block from buffer that match with lpn return NULL if not found */
@@ -164,6 +168,7 @@ static void __buffer_fill_page(struct conv_ftl *conv_ftl, uint64_t lpn, uint64_t
 	}
 	else {
 		ppg = page->ppg;
+		buf->write_hit_cnt++;
 	}
 
 	ppg->access_time = local_clock();
@@ -613,12 +618,16 @@ static void ssd_remove_buffer(struct buffer *buf)
 		kvfree(block->pages);
 	}
 
+	NVMEV_INFO("Write Size count: %lld Sec", buf->write_cnt);
+	NVMEV_INFO("Read Size count: %lld Sec", buf->read_cnt);
 	NVMEV_INFO("RMW write count: %lld", buf->rmw_write_cnt);
 	NVMEV_INFO("Direct write count: %lld", buf->direct_write_cnt);
 	NVMEV_INFO("Buffer write size count: ");
 	for (size_t i = 1; i < 65; i++) {
 		NVMEV_INFO("%lu: %lld ", i * KB(4), buf->write_size_cnt[i]);
 	}
+	NVMEV_INFO("Write Hit Count: %lld", buf->write_hit_cnt);
+	NVMEV_INFO("Read Hit Count: %lld", buf->read_hit_cnt);
 
 	kvfree(buf->used_ppgs);
 	kvfree(buf->ppg_array);
