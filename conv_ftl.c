@@ -11,7 +11,7 @@
 #define cq_entry(entry_id) cq->cq[CQ_ENTRY_TO_PAGE_NUM(entry_id)][CQ_ENTRY_TO_PAGE_OFFSET(entry_id)]
 
 static uint64_t time = 0;
-static bool full_waiting = false;
+static bool stall = false;
 
 // check number of free blocks in buffer less than threshold
 // currently, threshold is half of the total blocks
@@ -126,13 +126,17 @@ static inline void select_flush_buffer(struct buffer *buf)
 		}
 	}
 
+	// Subtracting the number of pages that are already in the flushing list
 	struct buffer_ppg *ppg = NULL;
 	struct buffer_page *page = NULL;
 	list_for_each_entry(ppg, &buf->flushing_ppgs, list) {
 		needed_ppgs[ppg->ftl_idx] -= buf->pg_per_ppg;
 	}
 
+	// Subtracting the number of pages that are left in the buffer
+	// and rounding up the number of logical pages to the number of physical pages
 	for (int i = 0; i < SSD_PARTITIONS; i++) {
+		needed_ppgs[i] -= buf->left_pgs[i];
 		if (needed_ppgs[i] < 0) {
 			needed_ppgs[i] = 0;
 			continue;
@@ -140,6 +144,8 @@ static inline void select_flush_buffer(struct buffer *buf)
 		needed_ppgs[i] = (needed_ppgs[i] + buf->pg_per_ppg - 1) / buf->pg_per_ppg;
 	}
 
+	// Subtracting the number of free ppgs
+	// For fair allocation, need to subtract as Round-Robin
 	int free_ppgs = buf->free_ppgs_cnt;
 	while (free_ppgs > 0) {
 		bool is_end = true;
@@ -159,6 +165,8 @@ static inline void select_flush_buffer(struct buffer *buf)
 		}
 	}
 
+	// If there are still needed ppgs, select the ppgs to flush
+	// and move them to the flushing list
 	for (size_t i = 0; i < buf->used_ppg_list_cnt; i++) {
 		struct buffer_ppg *iter, *tmp;
 		list_for_each_entry_safe(iter, tmp, &buf->used_ppgs[i], list) {
@@ -1041,7 +1049,6 @@ static bool conv_read(struct nvmev_ns *ns, struct nvmev_request *req, struct nvm
 	struct conv_ftl *conv_ftls = (struct conv_ftl *)ns->ftls;
 	struct conv_ftl *conv_ftl = &conv_ftls[0];
 	struct ssd *ssd = conv_ftl->ssd;
-	/* wbuf and spp are shared by all instances*/
 	struct buffer *wbuf = ssd->write_buffer;
 	struct ssdparams *spp = &conv_ftl->ssd->sp;
 
@@ -1054,7 +1061,6 @@ static bool conv_read(struct nvmev_ns *ns, struct nvmev_request *req, struct nvm
 	uint64_t nsecs_completed, nsecs_latest = nsecs_start;
 	uint32_t xfer_size, i;
 	uint32_t nr_parts = ns->nr_parts;
-	uint32_t ssd_read_cnt = 0;
 	size_t buffered_block_cnt = 0;
 	int pgs_per_flashpg = spp->pgs_per_flashpg;
 
@@ -1125,6 +1131,12 @@ static bool conv_read(struct nvmev_ns *ns, struct nvmev_request *req, struct nvm
 					}
 					nsecs_completed = ssd_advance_nand(conv_ftl->ssd, &srd);
 					nsecs_latest = max(nsecs_completed, nsecs_latest);
+					if (xfer_size > KB(32)) {
+						wbuf->read_size_cnt[KB(32) / KB(4)]++;
+					}
+					else {
+						wbuf->read_size_cnt[xfer_size / KB(4)]++;
+					}
 				}
 
 				if (spp->pgsz > LBA_TO_BYTE(nr_lba)) {
@@ -1146,6 +1158,12 @@ static bool conv_read(struct nvmev_ns *ns, struct nvmev_request *req, struct nvm
 				}
 				nsecs_completed = ssd_advance_nand(conv_ftl->ssd, &srd);
 				nsecs_latest = max(nsecs_completed, nsecs_latest);
+				if (xfer_size > KB(32)) {
+					wbuf->read_size_cnt[KB(32) / KB(4)]++;
+				}
+				else {
+					wbuf->read_size_cnt[xfer_size / KB(4)]++;
+				}
 			}
 		}
 	}
@@ -1328,6 +1346,7 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 
 	if (!buffer_allocatable_check(conv_ftls, start_lpn, end_lpn, start_offset, size)){
 		NVMEV_DEBUG("%s: buffer_allocate failed\n", __func__);
+		stall = true;
 		time = local_clock();
 		while (!spin_trylock(&wbuf->lock))
 			;
@@ -1340,6 +1359,11 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 		spin_unlock(&wbuf->lock);
 
 		return false;
+	}
+
+	if (stall) {
+		stall = false;
+		wbuf->stall_time += local_clock() - time;
 	}
 
 	wbuf->write_cnt += nr_lba;

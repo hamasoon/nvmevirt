@@ -89,10 +89,12 @@ void buffer_init(struct conv_ftl *conv_ftls, size_t size)
 	buf->rmw_write_cnt = 0;
 	buf->direct_write_cnt = 0;
 	buf->write_size_cnt = (uint64_t*)kvmalloc(sizeof(uint64_t) * 65, GFP_KERNEL);
+	buf->read_size_cnt = (uint64_t*)kvmalloc(sizeof(uint64_t) * 9, GFP_KERNEL);
 	buf->read_cnt = 0;
 	buf->write_cnt = 0;
 	buf->read_hit_cnt = 0;
 	buf->write_hit_cnt = 0;
+	buf->stall_time = 0;
 }
 
 /* get block from buffer that match with lpn return NULL if not found */
@@ -626,8 +628,13 @@ static void ssd_remove_buffer(struct buffer *buf)
 	for (size_t i = 1; i < 65; i++) {
 		NVMEV_INFO("%lu: %lld ", i * KB(4), buf->write_size_cnt[i]);
 	}
+	NVMEV_INFO("Buffer read size count: ");
+	for (size_t i = 1; i < 9; i++) {
+		NVMEV_INFO("%lu: %lld ", i * KB(4), buf->read_size_cnt[i]);
+	}
 	NVMEV_INFO("Write Hit Count: %lld", buf->write_hit_cnt);
 	NVMEV_INFO("Read Hit Count: %lld", buf->read_hit_cnt);
+	NVMEV_INFO("Buffer stall time: %lld", buf->stall_time);
 
 	kvfree(buf->used_ppgs);
 	kvfree(buf->ppg_array);
