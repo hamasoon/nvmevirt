@@ -177,6 +177,14 @@ struct buffer {
 	struct list_head free_ppgs;
 	struct list_head flushing_ppgs;
 	struct list_head *used_ppgs;
+
+	uint64_t rmw_write_cnt;
+	uint64_t direct_write_cnt;
+	uint64_t *write_size_cnt;
+	uint64_t read_cnt;
+	uint64_t write_cnt;
+	uint64_t read_hit_cnt;
+	uint64_t write_hit_cnt;
 };
 
 struct buffer_ppg {

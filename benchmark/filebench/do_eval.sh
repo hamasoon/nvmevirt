@@ -1,6 +1,10 @@
 #!/bin/bash
 #"IMMEDIATE" 
-POLICY=("FULL_SINGLE" "FULL_HALF" "FULL_ALL" "WATERMARK_NAIVE" "WATERMARK_HIGHLOW")
+# POLICY=("IMMEDIATE" "FULL_SINGLE" "FULL_HALF" "FULL_ALL" "WATERMARK_NAIVE" "WATERMARK_HIGHLOW" "WATERMARK_ONDEMAND")
+# MAPPING_SIZE=("4k" "16k" "32k")
+# WORKLOAD=("fileserver" "webserver" "varmail" "webproxy")
+
+POLICY=("WATERMARK_ONDEMAND")
 MAPPING_SIZE=("4k" "16k" "32k")
 WORKLOAD=("fileserver" "webserver" "varmail" "webproxy")
 
@@ -26,6 +30,7 @@ for policy in "${POLICY[@]}"; do
             sudo filebench -f ${workload}.f > "output/${policy}/${map}_${workload}.txt"
             sudo umount /mnt/nvme
             sudo rmmod nvmev
+            sudo dmesg > "output/${policy}/${map}_${workload}.log"
         done
     done
 done

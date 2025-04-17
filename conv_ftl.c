@@ -75,7 +75,6 @@ static inline void select_flush_buffer(struct buffer *buf)
 		return;
 	}
 #elif (FLUSH_TIMING_POLICY == WATERMARK_ONDEMAND)
-	/* IN PROGRESS */
 	struct nvmev_submission_queue *sq;	
 	struct nvme_rw_command *cmd;
 	int new_db, old_db, qid, seq, num_proc, sq_entry;
@@ -143,22 +142,22 @@ static inline void select_flush_buffer(struct buffer *buf)
 
 	int free_ppgs = buf->free_ppgs_cnt;
 	while (free_ppgs > 0) {
-        bool is_end = true;
-        for (int i = 0; i < SSD_PARTITIONS && free_ppgs > 0; i++) {
-            if (needed_ppgs[i] > 0) { 
-                needed_ppgs[i]--; 
-                free_ppgs--; 
-                is_end = false;
-                if (free_ppgs == 0) {
-                    break;
-                }
-            }
-        }
+		bool is_end = true;
+		for (int i = 0; i < SSD_PARTITIONS && free_ppgs > 0; i++) {
+			if (needed_ppgs[i] > 0) { 
+				needed_ppgs[i]--; 
+				free_ppgs--; 
+				is_end = false;
+				if (free_ppgs == 0) {
+					break;
+				}
+			}
+		}
 
-        if (is_end) {
-            break;
-        }
-    }
+		if (is_end) {
+			break;
+		}
+	}
 
 	for (size_t i = 0; i < buf->used_ppg_list_cnt; i++) {
 		struct buffer_ppg *iter, *tmp;
@@ -190,6 +189,7 @@ static inline void select_flush_buffer(struct buffer *buf)
 		list_for_each_entry_safe(iter, tmp, &buf->used_ppgs[i], list) {
 			if (iter->status == VALID && iter->pg_idx >= buf->pg_per_ppg) {
 				list_move_tail(&iter->list, &buf->flushing_ppgs);
+				buf->rmw_write_cnt++;
 				iter->status = FLUSH_TARGET;
 				flush_amount--;
 				if (flush_amount == 0) {
@@ -1074,6 +1074,7 @@ static bool conv_read(struct nvmev_ns *ns, struct nvmev_request *req, struct nvm
 		return false;
 	}
 
+	wbuf->read_cnt += nr_lba;
 	// interleaving read requests over all parts
 	for (i = 0; (i < nr_parts) && (start_lpn <= end_lpn); i++, start_lpn += pgs_per_flashpg) {
 		xfer_size = 0;
@@ -1103,6 +1104,7 @@ static bool conv_read(struct nvmev_ns *ns, struct nvmev_request *req, struct nvm
 				if (buffer_search(conv_ftl, lpn) != NULL) {
 					nsecs_completed = ssd_advance_pcie(conv_ftl->ssd, nsecs_start, LBA_TO_BYTE(nr_lba));
 					nsecs_latest = max(nsecs_completed, nsecs_latest);
+					wbuf->read_hit_cnt++;
 					continue;
 				}
 
@@ -1340,6 +1342,7 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 		return false;
 	}
 
+	wbuf->write_cnt += nr_lba;
 	buffer_allocate(conv_ftls, start_lpn, end_lpn, start_offset, size);
 
 	nvmev_vdev->user_write += size;
