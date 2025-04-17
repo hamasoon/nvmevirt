@@ -75,11 +75,10 @@ static inline void select_flush_buffer(struct buffer *buf)
 		return;
 	}
 #elif (FLUSH_TIMING_POLICY == WATERMARK_ONDEMAND)
-	/* IN PROGRESS */
 	struct nvmev_submission_queue *sq;	
 	struct nvme_rw_command *cmd;
 	int new_db, old_db, qid, seq, num_proc, sq_entry;
-	uint64_t lpn, size, end_lpn, k;
+	uint64_t lpn, nr_lba, end_lpn, k;
 	int needed_ppgs[SSD_PARTITIONS] = {0, };
 
 	flush_amount = 1;
@@ -109,14 +108,16 @@ static inline void select_flush_buffer(struct buffer *buf)
 				if (cmd->opcode != nvme_cmd_write)
 					continue; //  only consider write commands
 
-				lpn = cmd->slba;
-				size = cmd->length;
-				end_lpn = cmd->slba + size / LBA_SIZE;
-				if (size == 0 || size % LBA_SIZE != 0) continue;
+				lpn = cmd->slba / buf->sec_per_pg;
+				nr_lba = cmd->length + 1;
+				end_lpn = (cmd->slba + nr_lba - 1) / buf->sec_per_pg;
+				if (nr_lba == 0) {
+					continue;
+				}
 				for (k = lpn; k <= end_lpn; k++) {
 					needed_ppgs[GET_FTL_IDX(k)]++;
 				}
-				NVMEV_INFO("Start LPN: %lld, End LPN: %lld, Size: %lld\n", lpn, end_lpn, size);
+				NVMEV_DEBUG("Start LPN: %lld, End LPN: %lld, Size: %lld\n", lpn, end_lpn, nr_lba << LBA_BITS);
 
 				if (++sq_entry == sq->queue_size) {
 					sq_entry = 0; // wrap around
@@ -125,18 +126,13 @@ static inline void select_flush_buffer(struct buffer *buf)
 		}
 	}
 
-	NVMEV_INFO("Needed PPGs Step1: [1]-%d, [2]-%d, [3]-%d, [4]-%d\n", needed_ppgs[0], needed_ppgs[1], needed_ppgs[2], needed_ppgs[3]);
-
 	struct buffer_ppg *ppg = NULL;
 	struct buffer_page *page = NULL;
 	list_for_each_entry(ppg, &buf->flushing_ppgs, list) {
 		needed_ppgs[ppg->ftl_idx] -= buf->pg_per_ppg;
 	}
 
-	NVMEV_INFO("Needed PPGs Step2: [1]-%d, [2]-%d, [3]-%d, [4]-%d\n", needed_ppgs[0], needed_ppgs[1], needed_ppgs[2], needed_ppgs[3]);
-
 	for (int i = 0; i < SSD_PARTITIONS; i++) {
-		needed_ppgs[i] -= buf->left_pgs[i];
 		if (needed_ppgs[i] < 0) {
 			needed_ppgs[i] = 0;
 			continue;
@@ -144,28 +140,24 @@ static inline void select_flush_buffer(struct buffer *buf)
 		needed_ppgs[i] = (needed_ppgs[i] + buf->pg_per_ppg - 1) / buf->pg_per_ppg;
 	}
 
-	NVMEV_INFO("Needed PPGs Step3: [1]-%d, [2]-%d, [3]-%d, [4]-%d\n", needed_ppgs[0], needed_ppgs[1], needed_ppgs[2], needed_ppgs[3]);
-
 	int free_ppgs = buf->free_ppgs_cnt;
 	while (free_ppgs > 0) {
-        bool is_end = true;
-        for (int i = 0; i < SSD_PARTITIONS && free_ppgs > 0; i++) {
-            if (needed_ppgs[i] > 0) { 
-                needed_ppgs[i]--; 
-                free_ppgs--; 
-                is_end = false;
-                if (free_ppgs == 0) {
-                    break;
-                }
-            }
-        }
+		bool is_end = true;
+		for (int i = 0; i < SSD_PARTITIONS && free_ppgs > 0; i++) {
+			if (needed_ppgs[i] > 0) { 
+				needed_ppgs[i]--; 
+				free_ppgs--; 
+				is_end = false;
+				if (free_ppgs == 0) {
+					break;
+				}
+			}
+		}
 
-        if (is_end) {
-            break;
-        }
-    }
-
-	NVMEV_INFO("Needed PPGs Step4: [1]-%d, [2]-%d, [3]-%d, [4]-%d\n", needed_ppgs[0], needed_ppgs[1], needed_ppgs[2], needed_ppgs[3]);
+		if (is_end) {
+			break;
+		}
+	}
 
 	for (size_t i = 0; i < buf->used_ppg_list_cnt; i++) {
 		struct buffer_ppg *iter, *tmp;
