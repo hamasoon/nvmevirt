@@ -1363,7 +1363,7 @@ static bool conv_write(struct nvmev_ns *ns, struct nvmev_request *req, struct nv
 
 	if (stall) {
 		stall = false;
-		wbuf->stall_time += local_clock() - time;
+		wbuf->stall_time += (local_clock() - time) / 1000;
 	}
 
 	wbuf->write_cnt += nr_lba;

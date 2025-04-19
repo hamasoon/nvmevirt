@@ -190,3 +190,239 @@ Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
 #13 0x00007ffff7926850 in clone3 () at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
 81	../sysdeps/unix/sysv/linux/x86_64/clone3.S: No such file or directory.
 [Inferior 1 (process 20406) detached]
+RocksDB:    version 9.8.0
+Date:       Thu Apr 17 16:44:48 2025
+CPU:        32 * AMD Ryzen 9 7950X3D 16-Core Processor
+CPUCache:   1024 KB
+2025/04/17-16:45:48  ... thread 25: (443000,443000) ops and (7379.7,7379.7) ops/second in (60.029297,60.029297) seconds
+2025/04/17-16:45:48  ... thread 29: (444000,444000) ops and (7392.5,7392.5) ops/second in (60.060661,60.060661) seconds
+2025/04/17-16:45:48  ... thread 9: (443000,443000) ops and (7373.5,7373.5) ops/second in (60.080032,60.080032) seconds
+2025/04/17-16:45:48  ... thread 8: (443000,443000) ops and (7372.1,7372.1) ops/second in (60.091264,60.091264) seconds
+2025/04/17-16:45:48  ... thread 16: (445000,445000) ops and (7404.6,7404.6) ops/second in (60.098048,60.098048) seconds
+2025/04/17-16:45:48  ... thread 7: (443000,443000) ops and (7367.6,7367.6) ops/second in (60.127887,60.127887) seconds
+2025/04/17-16:45:48  ... thread 1: (447000,447000) ops and (7433.4,7433.4) ops/second in (60.133910,60.133910) seconds
+2025/04/17-16:45:48  ... thread 13: (446000,446000) ops and (7412.5,7412.5) ops/second in (60.168768,60.168768) seconds
+2025/04/17-16:45:48  ... thread 31: (445000,445000) ops and (7391.1,7391.1) ops/second in (60.207893,60.207893) seconds
+2025/04/17-16:45:48  ... thread 24: (446000,446000) ops and (7404.9,7404.9) ops/second in (60.230740,60.230740) seconds
+2025/04/17-16:45:49  ... thread 23: (445000,445000) ops and (7386.3,7386.3) ops/second in (60.247012,60.247012) seconds
+2025/04/17-16:45:49  ... thread 3: (446000,446000) ops and (7397.6,7397.6) ops/second in (60.290010,60.290010) seconds
+2025/04/17-16:45:49  ... thread 30: (445000,445000) ops and (7379.5,7379.5) ops/second in (60.302058,60.302058) seconds
+2025/04/17-16:45:49  ... thread 15: (442000,442000) ops and (7325.3,7325.3) ops/second in (60.338911,60.338911) seconds
+2025/04/17-16:45:49  ... thread 22: (446000,446000) ops and (7386.0,7386.0) ops/second in (60.384281,60.384281) seconds
+2025/04/17-16:45:49  ... thread 20: (445000,445000) ops and (7368.7,7368.7) ops/second in (60.390638,60.390638) seconds
+2025/04/17-16:45:49  ... thread 4: (447000,447000) ops and (7395.8,7395.8) ops/second in (60.439544,60.439544) seconds
+2025/04/17-16:45:49  ... thread 14: (444000,444000) ops and (7345.2,7345.2) ops/second in (60.447651,60.447651) seconds
+2025/04/17-16:45:49  ... thread 11: (446000,446000) ops and (7377.0,7377.0) ops/second in (60.458220,60.458220) seconds
+2025/04/17-16:45:49  ... thread 10: (446000,446000) ops and (7372.5,7372.5) ops/second in (60.494702,60.494702) seconds
+2025/04/17-16:45:49  ... thread 19: (444000,444000) ops and (7336.2,7336.2) ops/second in (60.521871,60.521871) seconds
+2025/04/17-16:45:49  ... thread 18: (444000,444000) ops and (7335.3,7335.3) ops/second in (60.528845,60.528845) seconds
+2025/04/17-16:45:49  ... thread 6: (444000,444000) ops and (7334.2,7334.2) ops/second in (60.538605,60.538605) seconds
+2025/04/17-16:45:49  ... thread 28: (443000,443000) ops and (7308.8,7308.8) ops/second in (60.612055,60.612055) seconds
+2025/04/17-16:45:49  ... thread 21: (442000,442000) ops and (7289.8,7289.8) ops/second in (60.632916,60.632916) seconds
+2025/04/17-16:45:49  ... thread 5: (446000,446000) ops and (7352.4,7352.4) ops/second in (60.660749,60.660749) seconds
+2025/04/17-16:45:49  ... thread 26: (445000,445000) ops and (7330.0,7330.0) ops/second in (60.709043,60.709043) seconds
+2025/04/17-16:45:49  ... thread 27: (443000,443000) ops and (7296.4,7296.4) ops/second in (60.715033,60.715033) seconds
+2025/04/17-16:45:49  ... thread 32: (443000,443000) ops and (7293.5,7293.5) ops/second in (60.738956,60.738956) seconds
+2025/04/17-16:45:49  ... thread 17: (444000,444000) ops and (7307.5,7307.5) ops/second in (60.759751,60.759751) seconds
+2025/04/17-16:45:49  ... thread 12: (445000,445000) ops and (7309.9,7309.9) ops/second in (60.876373,60.876373) seconds
+2025/04/17-16:45:49  ... thread 2: (443000,443000) ops and (7269.1,7269.1) ops/second in (60.942616,60.942616) seconds
+2025/04/17-16:46:02  ... thread 0: (26000,26000) ops and (354.2,354.2) ops/second in (73.397231,73.397231) seconds
+
+** Compaction Stats [default] **
+Level    Files   Size     Score Read(GB)  Rn(GB) Rnp1(GB) Write(GB) Wnew(GB) Moved(GB) W-Amp Rd(MB/s) Wr(MB/s) Comp(sec) CompMergeCPU(sec) Comp(cnt) Avg(sec) KeyIn KeyDrop Rblob(GB) Wblob(GB)
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  L1      8/0   932.67 MB   0.9      5.5     5.5      0.0       3.4      3.4       0.0   0.6    127.2     79.6     44.06             43.70         1   44.059   9946K  3624K       0.0       0.0
+  L2     20/0    2.52 GB   0.3      0.0     0.0      0.0       0.0      0.0       2.5   0.0      0.0      0.0      0.00              0.00         0    0.000       0      0       0.0       0.0
+ Sum     28/0    3.43 GB   0.0      5.5     5.5      0.0       3.4      3.4       2.5   0.0    127.2     79.6     44.06             43.70         1   44.059   9946K  3624K       0.0       0.0
+ Int      0/0    0.00 KB   0.0      5.5     5.5      0.0       3.4      3.4       2.5 3678567035.0    127.2     79.6     44.06             43.70         1   44.059   9946K  3624K       0.0       0.0
+
+** Compaction Stats [default] **
+Priority    Files   Size     Score Read(GB)  Rn(GB) Rnp1(GB) Write(GB) Wnew(GB) Moved(GB) W-Amp Rd(MB/s) Wr(MB/s) Comp(sec) CompMergeCPU(sec) Comp(cnt) Avg(sec) KeyIn KeyDrop Rblob(GB) Wblob(GB)
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Low      0/0    0.00 KB   0.0      5.5     5.5      0.0       3.4      3.4       0.0   0.0    127.2     79.6     44.06             43.70         1   44.059   9946K  3624K       0.0       0.0
+
+Blob file count: 0, total size: 0.0 GB, garbage size: 0.0 GB, space amp: 0.0
+
+Uptime(secs): 73.4 total, 73.4 interval
+Flush(GB): cumulative 0.000, interval 0.000
+AddFile(GB): cumulative 0.000, interval 0.000
+AddFile(Total Files): cumulative 0, interval 0
+AddFile(L0 Files): cumulative 0, interval 0
+AddFile(Keys): cumulative 0, interval 0
+Cumulative compaction: 3.43 GB write, 47.79 MB/s write, 5.47 GB read, 76.38 MB/s read, 44.1 seconds
+Interval compaction: 3.43 GB write, 47.80 MB/s write, 5.47 GB read, 76.38 MB/s read, 44.1 seconds
+Estimated pending compaction bytes: 0
+Write Stall (count): cf-l0-file-count-limit-delays-with-ongoing-compaction: 0, cf-l0-file-count-limit-stops-with-ongoing-compaction: 0, l0-file-count-limit-delays: 0, l0-file-count-limit-stops: 1, memtable-limit-delays: 0, memtable-limit-stops: 0, pending-compaction-bytes-delays: 0, pending-compaction-bytes-stops: 0, total-delays: 0, total-stops: 1
+interval: 0 total count
+Block cache LRUCache@0x5f1cc411d5c0#15581 capacity: 16.00 GB seed: 19990717 usage: 0.09 KB table_size: 1024 occupancy: 1 collections: 1 last_copies: 0 last_secs: 2.6e-05 secs_since: 73
+Block cache entry stats(count,size,portion): Misc(1,0.00 KB,0%)
+
+** File Read Latency Histogram By Level [default] **
+
+** DB Stats **
+Uptime(secs): 73.4 total, 73.4 interval
+Cumulative writes: 26K writes, 26K keys, 26K commit groups, 1.0 writes per commit group, ingest: 0.03 GB, 0.41 MB/s
+Cumulative WAL: 26K writes, 26K syncs, 1.00 writes per sync, written: 0.03 GB, 0.41 MB/s
+Cumulative stall: 00:00:44.076 H:M:S, 60.0 percent
+Interval writes: 26K writes, 26K keys, 26K commit groups, 1.0 writes per commit group, ingest: 30.40 MB, 0.41 MB/s
+Interval WAL: 26K writes, 26K syncs, 1.00 writes per sync, written: 0.03 GB, 0.41 MB/s
+Interval stall: 00:00:44.076 H:M:S, 60.0 percent
+Write Stall (count): write-buffer-manager-limit-stops: 0
+num-running-compactions: 0
+num-running-flushes: 0
+
+2025/04/17-16:46:48  ... thread 25: (62000,505000) ops and (1033.1,4206.8) ops/second in (60.015723,120.045020) seconds
+2025/04/17-16:46:48  ... thread 1: (63000,510000) ops and (1049.2,4243.7) ops/second in (60.045508,120.179418) seconds
+2025/04/17-16:46:49  ... thread 29: (61000,505000) ops and (1011.8,4196.2) ops/second in (60.287477,120.348138) seconds
+2025/04/17-16:46:49  ... thread 24: (62000,508000) ops and (1031.0,4220.5) ops/second in (60.132898,120.363638) seconds
+2025/04/17-16:46:49  ... thread 23: (63000,508000) ops and (1047.8,4220.2) ops/second in (60.125966,120.372978) seconds
+2025/04/17-16:46:49  ... thread 9: (62000,505000) ops and (1027.3,4193.2) ops/second in (60.353747,120.433779) seconds
+2025/04/17-16:46:49  ... thread 4: (63000,510000) ops and (1049.6,4233.6) ops/second in (60.025127,120.464671) seconds
+2025/04/17-16:46:49  ... thread 30: (62000,507000) ops and (1030.3,4208.2) ops/second in (60.176321,120.478379) seconds
+2025/04/17-16:46:49  ... thread 11: (62000,508000) ops and (1032.9,4216.4) ops/second in (60.025005,120.483225) seconds
+2025/04/17-16:46:49  ... thread 31: (62000,507000) ops and (1027.6,4205.9) ops/second in (60.336817,120.544710) seconds
+2025/04/17-16:46:49  ... thread 19: (62000,506000) ops and (1032.2,4196.1) ops/second in (60.066946,120.588817) seconds
+2025/04/17-16:46:49  ... thread 6: (62000,506000) ops and (1031.4,4193.9) ops/second in (60.113706,120.652311) seconds
+2025/04/17-16:46:49  ... thread 21: (62000,504000) ops and (1032.0,4175.3) ops/second in (60.076111,120.709027) seconds
+2025/04/17-16:46:49  ... thread 14: (63000,507000) ops and (1043.7,4196.6) ops/second in (60.364417,120.812068) seconds
+2025/04/17-16:46:49  ... thread 20: (62000,507000) ops and (1026.1,4196.5) ops/second in (60.424173,120.814811) seconds
+2025/04/17-16:46:49  ... thread 3: (62000,508000) ops and (1023.8,4203.5) ops/second in (60.561356,120.851366) seconds
+2025/04/17-16:46:49  ... thread 26: (62000,507000) ops and (1030.8,4195.1) ops/second in (60.147459,120.856502) seconds
+2025/04/17-16:46:49  ... thread 13: (62000,508000) ops and (1021.5,4203.0) ops/second in (60.696516,120.865284) seconds
+2025/04/17-16:46:49  ... thread 16: (63000,508000) ops and (1036.7,4202.9) ops/second in (60.771946,120.869994) seconds
+2025/04/17-16:46:49  ... thread 15: (62000,504000) ops and (1022.6,4166.3) ops/second in (60.632398,120.971309) seconds
+2025/04/17-16:46:49  ... thread 2: (62000,505000) ops and (1030.8,4170.5) ops/second in (60.145947,121.088563) seconds
+2025/04/17-16:46:49  ... thread 8: (63000,506000) ops and (1032.0,4177.0) ops/second in (61.047823,121.139087) seconds
+2025/04/17-16:46:49  ... thread 7: (62000,505000) ops and (1015.1,4166.6) ops/second in (61.075114,121.203001) seconds
+2025/04/17-16:46:50  ... thread 10: (63000,509000) ops and (1036.7,4197.5) ops/second in (60.768164,121.262866) seconds
+2025/04/17-16:46:50  ... thread 12: (63000,508000) ops and (1043.1,4189.0) ops/second in (60.394239,121.270612) seconds
+2025/04/17-16:46:50  ... thread 22: (62000,508000) ops and (1018.2,4188.9) ops/second in (60.888967,121.273248) seconds
+2025/04/17-16:46:50  ... thread 32: (61000,504000) ops and (1007.2,4155.0) ops/second in (60.561398,121.300354) seconds
+2025/04/17-16:46:50  ... thread 5: (62000,508000) ops and (1022.0,4187.0) ops/second in (60.666241,121.326990) seconds
+2025/04/17-16:46:50  ... thread 28: (61000,504000) ops and (1004.2,4152.9) ops/second in (60.747835,121.359890) seconds
+2025/04/17-16:46:50  ... thread 18: (63000,507000) ops and (1034.9,4176.1) ops/second in (60.875416,121.404261) seconds
+2025/04/17-16:46:50  ... thread 27: (63000,506000) ops and (1037.4,4166.5) ops/second in (60.731035,121.446068) seconds
+2025/04/17-16:46:50  ... thread 17: (62000,506000) ops and (1016.0,4155.0) ops/second in (61.021632,121.781383) seconds
+2025/04/17-16:47:49  ... thread 29: (55000,560000) ops and (914.0,3102.1) ops/second in (60.172163,180.520301) seconds
+2025/04/17-16:47:49  ... thread 30: (56000,563000) ops and (930.6,3116.5) ops/second in (60.173299,180.651678) seconds
+2025/04/17-16:47:49  ... thread 6: (56000,562000) ops and (932.4,3109.9) ops/second in (60.061935,180.714246) seconds
+2025/04/17-16:47:49  ... thread 23: (56000,564000) ops and (927.8,3120.6) ops/second in (60.360498,180.733476) seconds
+2025/04/17-16:47:49  ... thread 19: (56000,562000) ops and (929.7,3108.0) ops/second in (60.234218,180.823035) seconds
+2025/04/17-16:47:49  ... thread 31: (56000,563000) ops and (928.0,3112.4) ops/second in (60.344865,180.889575) seconds
+2025/04/17-16:47:49  ... thread 25: (57000,562000) ops and (935.1,3105.0) ops/second in (60.953642,180.998662) seconds
+2025/04/17-16:47:49  ... thread 1: (56000,566000) ops and (920.6,3126.9) ops/second in (60.830072,181.009490) seconds
+2025/04/17-16:47:49  ... thread 21: (56000,560000) ops and (927.6,3092.6) ops/second in (60.367641,181.076668) seconds
+2025/04/17-16:47:49  ... thread 9: (56000,561000) ops and (922.8,3097.4) ops/second in (60.684273,181.118052) seconds
+2025/04/17-16:47:49  ... thread 11: (56000,564000) ops and (922.8,3113.2) ops/second in (60.681900,181.165125) seconds
+2025/04/17-16:47:50  ... thread 13: (57000,565000) ops and (943.7,3117.0) ops/second in (60.397765,181.263049) seconds
+2025/04/17-16:47:50  ... thread 24: (56000,564000) ops and (919.5,3111.4) ops/second in (60.905907,181.269545) seconds
+2025/04/17-16:47:50  ... thread 32: (56000,560000) ops and (932.6,3088.0) ops/second in (60.044841,181.345195) seconds
+2025/04/17-16:47:50  ... thread 16: (56000,564000) ops and (925.2,3109.2) ops/second in (60.525474,181.395468) seconds
+2025/04/17-16:47:50  ... thread 2: (56000,561000) ops and (928.2,3092.3) ops/second in (60.330791,181.419354) seconds
+2025/04/17-16:47:50  ... thread 14: (56000,563000) ops and (923.9,3103.2) ops/second in (60.611732,181.423800) seconds
+2025/04/17-16:47:50  ... thread 28: (56000,560000) ops and (931.4,3085.6) ops/second in (60.126405,181.486295) seconds
+2025/04/17-16:47:50  ... thread 26: (56000,563000) ops and (923.5,3102.0) ops/second in (60.640870,181.497372) seconds
+2025/04/17-16:47:50  ... thread 4: (57000,567000) ops and (933.5,3123.6) ops/second in (61.058235,181.522906) seconds
+2025/04/17-16:47:50  ... thread 5: (55000,563000) ops and (912.9,3100.6) ops/second in (60.248407,181.575397) seconds
+2025/04/17-16:47:50  ... thread 3: (55000,563000) ops and (905.6,3100.5) ops/second in (60.733770,181.585136) seconds
+2025/04/17-16:47:50  ... thread 8: (55000,561000) ops and (909.5,3089.0) ops/second in (60.474860,181.613947) seconds
+2025/04/17-16:47:50  ... thread 22: (55000,563000) ops and (909.2,3097.4) ops/second in (60.493704,181.766952) seconds
+2025/04/17-16:47:50  ... thread 20: (56000,563000) ops and (918.7,3097.3) ops/second in (60.957111,181.771922) seconds
+2025/04/17-16:47:50  ... thread 15: (56000,560000) ops and (920.1,3079.8) ops/second in (60.860076,181.831385) seconds
+2025/04/17-16:47:50  ... thread 12: (55000,563000) ops and (906.9,3094.8) ops/second in (60.647619,181.918231) seconds
+2025/04/17-16:47:50  ... thread 7: (56000,561000) ops and (921.7,3083.1) ops/second in (60.757795,181.960796) seconds
+2025/04/17-16:47:50  ... thread 27: (56000,562000) ops and (923.9,3086.9) ops/second in (60.615171,182.061239) seconds
+2025/04/17-16:47:50  ... thread 17: (55000,561000) ops and (911.1,3080.0) ops/second in (60.363840,182.145223) seconds
+2025/04/17-16:47:50  ... thread 10: (57000,566000) ops and (936.0,3107.1) ops/second in (60.899855,182.162721) seconds
+2025/04/17-16:47:51  ... thread 18: (56000,563000) ops and (916.5,3084.9) ops/second in (61.099954,182.504215) seconds
+Get returned an error: IO error: While pread offset 135028719 len 53: /mnt/nvme/db/000112.sst: Input/output error
+Get returned an error: IO error: While open a file for random read: /mnt/nvme/db/000125.sst: Input/output error
+Received signal 6 (Aborted)
+put or merge error: IO error: While fdatasync: /mnt/nvme/wal/000102.log: Input/output error
+Received signal 6 (Aborted)
+Invoking GDB for stack trace...
+Get returned an error: IO error: While open a file for random read: /mnt/nvme/db/000109.sst: Input/output error
+Received signal 6 (Aborted)
+Get returned an error: IO error: While open a file for random read: /mnt/nvme/db/000109.sst: Input/output error
+Received signal 6 (Aborted)
+Get returned an error: IO error: While open a file for random read: /mnt/nvme/db/000119.sst: Input/output error
+Received signal 6 (Aborted)
+Get returned an error: IO error: While open a file for random read: /mnt/nvme/db/000109.sst: Input/output error
+Received signal 6 (Aborted)
+Get returned an error: IO error: While open a file for random read: /mnt/nvme/db/000109.sst: Input/output error
+Received signal 6 (Aborted)
+Get returned an error: IO error: While open a file for random read: /mnt/nvme/db/000109.sst: Input/output error
+Received signal 6 (Aborted)
+Get returned an error: IO error: While open a file for random read: /mnt/nvme/db/000109.sst: Input/output error
+Received signal 6 (Aborted)
+Get returned an error: IO error: While open a file for random read: /mnt/nvme/db/000109.sst: Input/output error
+Received signal 6 (Aborted)
+Get returned an error: IO error: While open a file for random read: /mnt/nvme/db/000119.sst: Input/output error
+Received signal 6 (Aborted)
+Get returned an error: IO error: While open a file for random read: /mnt/nvme/db/000119.sst: Input/output error
+Received signal 6 (Aborted)
+Get returned an error: IO error: While open a file for random read: /mnt/nvme/db/000119.sst: Input/output error
+Received signal 6 (Aborted)
+Get returned an error: IO error: While open a file for random read: /mnt/nvme/db/000119.sst: Input/output error
+Received signal 6 (Aborted)
+Get returned an error: IO error: While open a file for random read: /mnt/nvme/db/000109.sst: Input/output error
+Received signal 6 (Aborted)
+Get returned an error: IO error: While open a file for random read: /mnt/nvme/db/000109.sst: Input/output error
+Received signal 6 (Aborted)
+Get returned an error: IO error: While open a file for random read: /mnt/nvme/db/000109.sst: Input/output error
+Received signal 6 (Aborted)
+Get returned an error: IO error: While open a file for random read: /mnt/nvme/db/000109.sst: Input/output error
+Received signal 6 (Aborted)
+Get returned an error: IO error: While open a file for random read: /mnt/nvme/db/000119.sst: Input/output error
+Received signal 6 (Aborted)
+Get returned an error: IO error: While open a file for random read: /mnt/nvme/db/000119.sst: Input/output error
+Received signal 6 (Aborted)
+Get returned an error: IO error: While open a file for random read: /mnt/nvme/db/000109.sst: Input/output error
+Received signal 6 (Aborted)
+Get returned an error: IO error: While open a file for random read: /mnt/nvme/db/000109.sst: Input/output error
+Received signal 6 (Aborted)
+Get returned an error: IO error: While open a file for random read: /mnt/nvme/db/000119.sst: Input/output error
+Received signal 6 (Aborted)
+Get returned an error: IO error: While open a file for random read: /mnt/nvme/db/000109.sst: Input/output error
+Received signal 6 (Aborted)
+Get returned an error: IO error: While open a file for random read: /mnt/nvme/db/000109.sst: Input/output error
+Received signal 6 (Aborted)
+Get returned an error: IO error: While open a file for random read: /mnt/nvme/db/000109.sst: Input/output error
+Received signal 6 (Aborted)
+Get returned an error: IO error: While open a file for random read: /mnt/nvme/db/000119.sst: Input/output error
+Received signal 6 (Aborted)
+Get returned an error: IO error: While open a file for random read: /mnt/nvme/db/000109.sst: Input/output error
+Received signal 6 (Aborted)
+Get returned an error: IO error: While open a file for random read: /mnt/nvme/db/000109.sst: Input/output error
+Received signal 6 (Aborted)
+Get returned an error: IO error: While open a file for random read: /mnt/nvme/db/000109.sst: Input/output error
+Received signal 6 (Aborted)
+Get returned an error: IO error: While open a file for random read: /mnt/nvme/db/000119.sst: Input/output error
+Received signal 6 (Aborted)
+Get returned an error: IO error: While open a file for random read: /mnt/nvme/db/000124.sst: Input/output error
+Received signal 6 (Aborted)
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+0x00007265890ea42f in __GI___wait4 (pid=21097, stat_loc=0x72652bdfe46c, options=0, usage=0x0) at ../sysdeps/unix/sysv/linux/wait4.c:30
+30	../sysdeps/unix/sysv/linux/wait4.c: No such file or directory.
+#4  __pthread_kill_implementation (no_tid=0, signo=6, threadid=125778853365312) at ./nptl/pthread_kill.c:44
+44	./nptl/pthread_kill.c: No such file or directory.
+#5  __pthread_kill_internal (signo=6, threadid=125778853365312) at ./nptl/pthread_kill.c:78
+78	in ./nptl/pthread_kill.c
+#6  __GI___pthread_kill (threadid=125778853365312, signo=signo@entry=6) at ./nptl/pthread_kill.c:89
+89	in ./nptl/pthread_kill.c
+#7  0x0000726589042476 in __GI_raise (sig=sig@entry=6) at ../sysdeps/posix/raise.c:26
+26	../sysdeps/posix/raise.c: No such file or directory.
+#8  0x00007265890287f3 in __GI_abort () at ./stdlib/abort.c:79
+79	./stdlib/abort.c: No such file or directory.
+#9  0x00005f1cb24ae8e9 in rocksdb::Benchmark::ReadRandom (this=0x7ffe8d32edb0, thread=0x5f1cc41d7980) at tools/db_bench_tool.cc:6190
+6190	        abort();
+#10 0x00005f1cb248fbba in rocksdb::Benchmark::ThreadBody (v=0x5f1cc413eb68) at tools/db_bench_tool.cc:3981
+3981	    (arg->bm->*(arg->method))(thread);
+#11 0x00005f1cb26ea249 in rocksdb::(anonymous namespace)::StartThreadWrapper (arg=0x5f1cc4134d00) at env/env_posix.cc:469
+469	  state->user_function(state->arg);
+#12 0x0000726589094ac3 in start_thread (arg=<optimized out>) at ./nptl/pthread_create.c:442
+442	./nptl/pthread_create.c: No such file or directory.
+#13 0x0000726589126850 in clone3 () at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+81	../sysdeps/unix/sysv/linux/x86_64/clone3.S: No such file or directory.
+[Inferior 1 (process 15647) detached]

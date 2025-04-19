@@ -639,6 +639,7 @@ static void ssd_remove_buffer(struct buffer *buf)
 	kvfree(buf->used_ppgs);
 	kvfree(buf->ppg_array);
 	kvfree(buf->write_size_cnt);
+	kvfree(buf->read_size_cnt);
 }
 
 static void ssd_remove_ch(struct ssd_channel *ch)
