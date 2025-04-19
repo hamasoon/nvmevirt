@@ -190,6 +190,29 @@ static inline void select_flush_buffer(struct buffer *buf)
 		}
 	}
 
+	// If there are still needed ppgs, select the ppgs to flush
+	int left_needed_ppgs = 0;
+	for (int i = 0; i < SSD_PARTITIONS; i++) {
+		left_needed_ppgs += needed_ppgs[i];
+	}
+
+	for (size_t i = 0; i < buf->used_ppg_list_cnt; i++) {
+		struct buffer_ppg *iter, *tmp;
+		list_for_each_entry_safe(iter, tmp, &buf->used_ppgs[i], list) {
+			bool is_end = true;
+
+			if (iter->status == VALID && iter->pg_idx >= buf->pg_per_ppg && left_needed_ppgs > 0) {
+				list_move_tail(&iter->list, &buf->flushing_ppgs);
+				iter->status = FLUSH_TARGET;
+				left_needed_ppgs--;
+
+				if (left_needed_ppgs == 0) {
+					return;
+				}
+			}
+		}
+	}
+
 	return;
 #endif
 	for (size_t i = 0; i < buf->used_ppg_list_cnt; i++) {
