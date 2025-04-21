@@ -1153,6 +1153,7 @@ static bool conv_read(struct nvmev_ns *ns, struct nvmev_request *req, struct nvm
 						srd.stime = spp->fw_rd_lat + nsecs_start;
 					}
 					nsecs_completed = ssd_advance_nand(conv_ftl->ssd, &srd);
+					xfer_size = 0;
 					nsecs_latest = max(nsecs_completed, nsecs_latest);
 					if (xfer_size > KB(32)) {
 						wbuf->read_size_cnt[KB(32) / KB(4)]++;
@@ -1180,6 +1181,7 @@ static bool conv_read(struct nvmev_ns *ns, struct nvmev_request *req, struct nvm
 					srd.stime = spp->fw_rd_lat + nsecs_start;
 				}
 				nsecs_completed = ssd_advance_nand(conv_ftl->ssd, &srd);
+				xfer_size = 0;
 				nsecs_latest = max(nsecs_completed, nsecs_latest);
 				if (xfer_size > KB(32)) {
 					wbuf->read_size_cnt[KB(32) / KB(4)]++;
@@ -1247,8 +1249,6 @@ static uint64_t conv_rmw(struct nvmev_ns *ns, struct nvmev_request *req, uint64_
 		conv_ftl = &conv_ftls[ppg->ftl_idx];
 
 		if (ppg->free_secs != 0) {
-			prev_ppa = get_maptbl_ent(conv_ftl, LOCAL_LPN(ppg->pages[0].lpn));
-
 			for (size_t j = 0; j < wbuf->pg_per_ppg; j++) {
 				page = &ppg->pages[j];
 				lpn = page->lpn;
@@ -1259,27 +1259,16 @@ static uint64_t conv_rmw(struct nvmev_ns *ns, struct nvmev_request *req, uint64_
 				if (!mapped_ppa(&ppa) || !valid_ppa(conv_ftl, &ppa)) {
 					continue;
 				}
-
+				
 				if (page->free_secs > 0) {
-					if (is_same_flash_page(conv_ftl, ppa, prev_ppa)) {
-						xfer_size += page->free_secs * wbuf->sec_size; // JH: rather than page size, free_secs * sector_size.
-						continue;
-					} 
-						
-					if (xfer_size > 0) {
-						srd.xfer_size = xfer_size;
-						srd.ppa = &prev_ppa;
-						nsecs_completed = ssd_advance_nand(conv_ftl->ssd, &srd);
-						nsecs_write_start = max(nsecs_completed, nsecs_write_start);
-					}
-						
-					xfer_size = spp->pgsz;
+					xfer_size = page->free_secs * wbuf->sec_size; // JH: rather than page size, free_secs * sector_size.
+					srd.xfer_size = xfer_size;
+					srd.ppa = &ppa;
+					nsecs_completed = ssd_advance_nand(conv_ftl->ssd, &srd);
+					nsecs_write_start = max(nsecs_completed, nsecs_write_start);						
 				}
-
-				prev_ppa = ppa;
 			}
 		}
-
 		swr.stime = nsecs_write_start;
 
 		/* Assumption: all pages in physical buffer page */
