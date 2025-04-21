@@ -12,7 +12,7 @@ PATTERN = (
     r'(\d+(?:\.\d+)?)mb/s\s+'  # 네 번째 그룹: mb/s 값 (소수점 포함)을 캡처한다이다.
     r'(\d+(?:\.\d+)?)ms/op'    # 다섯 번째 그룹: ms/op 값 (소수점 포함)을 캡처한다이다.
 )
-POLICY = ["IMMEDIATE", "FULL_SINGLE", "FULL_HALF", "FULL_ALL", "WATERMARK_NAIVE", "WATERMARK_HIGHLOW"]
+POLICY = ["IMMEDIATE", "FULL_SINGLE", "FULL_HALF", "FULL_ALL", "WATERMARK_NAIVE", "WATERMARK_HIGHLOW", "WATERMARK_ONDEMAND"]
 MAPPING = ["4k", "16k", "32k"]
 
 def get_operations(workload):

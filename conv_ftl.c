@@ -21,8 +21,10 @@ static inline bool check_flush_buffer(struct buffer *buf)
 	return false;
 #elif (FLUSH_TIMING_POLICY == FULL)
 	return false;
-#elif (FLUSH_TIMING_POLICY == WATERMARK_NAIVE || FLUSH_TIMING_POLICY == WATERMARK_HIGHLOW || FLUSH_TIMING_POLICY == WATERMARK_ONDEMAND)
+#elif (FLUSH_TIMING_POLICY == WATERMARK_NAIVE || FLUSH_TIMING_POLICY == WATERMARK_HIGHLOW)
 	return buf->used_ppgs_cnt >= buf->buffer_high_watermark;
+#elif (FLUSH_TIMING_POLICY == WATERMARK_ONDEMAND)
+	return true; 
 #endif
 }
 
@@ -33,8 +35,10 @@ static inline bool check_flush_buffer_allocate_fail(struct buffer *buf)
 	return false;
 #elif (FLUSH_TIMING_POLICY == FULL)
 	return true;
-#elif (FLUSH_TIMING_POLICY == WATERMARK_NAIVE || FLUSH_TIMING_POLICY == WATERMARK_HIGHLOW || FLUSH_TIMING_POLICY == WATERMARK_ONDEMAND)
+#elif (FLUSH_TIMING_POLICY == WATERMARK_NAIVE || FLUSH_TIMING_POLICY == WATERMARK_HIGHLOW)
 	return buf->used_ppgs_cnt >= buf->buffer_high_watermark; // JH: need deeper consideration
+#elif (FLUSH_TIMING_POLICY == WATERMARK_ONDEMAND)
+	return true; 
 #endif
 }
 
@@ -88,6 +92,7 @@ static inline void select_flush_buffer(struct buffer *buf)
 			continue;
 		new_db = nvmev_vdev->dbs[qid * 2];
 		old_db = nvmev_vdev->old_dbs[qid * 2];
+		int considered_command_cnt = 2048;
 		
 		if (new_db != old_db) { // queue is not empty
 			sq = nvmev_vdev->sqes[qid];
@@ -103,7 +108,7 @@ static inline void select_flush_buffer(struct buffer *buf)
 				num_proc += sq->queue_size;
 			}
 
-			for (seq = 0; seq < num_proc; seq++) {
+			for (seq = 0; seq < num_proc && considered_command_cnt > 0; seq++) {
 				cmd = &sq_entry(sq_entry).rw;
 				if (cmd->opcode != nvme_cmd_write)
 					continue; //  only consider write commands
@@ -111,6 +116,7 @@ static inline void select_flush_buffer(struct buffer *buf)
 				lpn = cmd->slba / buf->sec_per_pg;
 				nr_lba = cmd->length + 1;
 				end_lpn = (cmd->slba + nr_lba - 1) / buf->sec_per_pg;
+				considered_command_cnt--;
 				if (nr_lba == 0) {
 					continue;
 				}
@@ -129,9 +135,9 @@ static inline void select_flush_buffer(struct buffer *buf)
 	// Subtracting the number of pages that are already in the flushing list
 	struct buffer_ppg *ppg = NULL;
 	struct buffer_page *page = NULL;
-	list_for_each_entry(ppg, &buf->flushing_ppgs, list) {
-		needed_ppgs[ppg->ftl_idx] -= buf->pg_per_ppg;
-	}
+	// list_for_each_entry(ppg, &buf->flushing_ppgs, list) {
+	// 	needed_ppgs[ppg->ftl_idx] -= buf->pg_per_ppg;
+	// }
 
 	// Subtracting the number of pages that are left in the buffer
 	// and rounding up the number of logical pages to the number of physical pages
@@ -174,6 +180,7 @@ static inline void select_flush_buffer(struct buffer *buf)
 
 			if (iter->status == VALID && iter->pg_idx >= buf->pg_per_ppg && needed_ppgs[iter->ftl_idx] > 0) {
 				list_move_tail(&iter->list, &buf->flushing_ppgs);
+				buf->rmw_write_cnt++;
 				iter->status = FLUSH_TARGET;
 				needed_ppgs[iter->ftl_idx]--;
 			}
@@ -203,6 +210,7 @@ static inline void select_flush_buffer(struct buffer *buf)
 
 			if (iter->status == VALID && iter->pg_idx >= buf->pg_per_ppg && left_needed_ppgs > 0) {
 				list_move_tail(&iter->list, &buf->flushing_ppgs);
+				buf->rmw_write_cnt++;
 				iter->status = FLUSH_TARGET;
 				left_needed_ppgs--;
 
