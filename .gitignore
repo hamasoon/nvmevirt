@@ -180,3 +180,5 @@ ret.txt
 bench.py
 .clang-format
 test/test
+/benchmark/
+/device_files

@@ -50,6 +50,7 @@ void buffer_init(struct conv_ftl *conv_ftls, size_t size)
 	buf->free_ppgs_cnt = buf->ppg_per_buf;
 	buf->used_ppgs_cnt = 0;
 	buf->flushing_ppgs_cnt = 0;
+	buf->rmw_flushing_cnt = 0;
 	buf->used_ppg_list_cnt = buf->ppg_size / buf->read_size_interval;
 
 	buf->buffer_high_watermark = buf->ppg_per_buf / 2;
@@ -312,6 +313,9 @@ bool buffer_release(struct buffer *buf, uint64_t complete_time)
 			block->status = EMPTY;
 			block->ftl_idx = -1;
 			block->pg_idx = 0;
+			if (block->free_secs != 0) {
+				buf->rmw_flushing_cnt--;
+			}
 			block->free_secs = buf->sec_per_pg * buf->pg_per_ppg;
 			block->access_time = (uint64_t)-1;
 			block->complete_time = 0;

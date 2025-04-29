@@ -173,6 +173,7 @@ struct buffer {
 	size_t left_pgs[SSD_PARTITIONS];
 	size_t flushing_ppgs_cnt;
 	size_t used_ppg_list_cnt;
+	size_t rmw_flushing_cnt;
 	struct buffer_ppg *ppg_array;
 	struct list_head free_ppgs;
 	struct list_head flushing_ppgs;

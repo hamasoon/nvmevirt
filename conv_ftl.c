@@ -34,11 +34,11 @@ static inline bool check_flush_buffer_allocate_fail(struct buffer *buf)
 #if (FLUSH_TIMING_POLICY == IMMEDIATE)
 	return false;
 #elif (FLUSH_TIMING_POLICY == FULL)
-	return true;
+	return buf->rmw_flushing_cnt == 0;
 #elif (FLUSH_TIMING_POLICY == WATERMARK_NAIVE || FLUSH_TIMING_POLICY == WATERMARK_HIGHLOW)
 	return buf->used_ppgs_cnt >= buf->buffer_high_watermark; // JH: need deeper consideration
 #elif (FLUSH_TIMING_POLICY == WATERMARK_ONDEMAND)
-	return true; 
+	return true;
 #endif
 }
 
@@ -1257,6 +1257,7 @@ static uint64_t conv_rmw(struct nvmev_ns *ns, struct nvmev_request *req, uint64_
 		conv_ftl = &conv_ftls[ppg->ftl_idx];
 
 		if (ppg->free_secs != 0) {
+			wbuf->rmw_flushing_cnt++;
 			for (size_t j = 0; j < wbuf->pg_per_ppg; j++) {
 				page = &ppg->pages[j];
 				lpn = page->lpn;
