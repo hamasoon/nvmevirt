@@ -197,7 +197,6 @@ static void __buffer_fill_page(struct conv_ftl *conv_ftl, uint64_t lpn, uint64_t
 	// check physicall full
 	if (ppg->free_secs == 0) {
 		ppg->status = FLUSH_TARGET;
-		buf->direct_write_cnt++;
 		list_move_tail(&ppg->list, &buf->flushing_ppgs);
 	}
 

@@ -180,7 +180,6 @@ static inline void select_flush_buffer(struct buffer *buf)
 
 			if (iter->status == VALID && iter->pg_idx >= buf->pg_per_ppg && needed_ppgs[iter->ftl_idx] > 0) {
 				list_move_tail(&iter->list, &buf->flushing_ppgs);
-				buf->rmw_write_cnt++;
 				iter->status = FLUSH_TARGET;
 				needed_ppgs[iter->ftl_idx]--;
 			}
@@ -210,7 +209,6 @@ static inline void select_flush_buffer(struct buffer *buf)
 
 			if (iter->status == VALID && iter->pg_idx >= buf->pg_per_ppg && left_needed_ppgs > 0) {
 				list_move_tail(&iter->list, &buf->flushing_ppgs);
-				buf->rmw_write_cnt++;
 				iter->status = FLUSH_TARGET;
 				left_needed_ppgs--;
 
@@ -228,7 +226,6 @@ static inline void select_flush_buffer(struct buffer *buf)
 		list_for_each_entry_safe(iter, tmp, &buf->used_ppgs[i], list) {
 			if (iter->status == VALID && iter->pg_idx >= buf->pg_per_ppg) {
 				list_move_tail(&iter->list, &buf->flushing_ppgs);
-				buf->rmw_write_cnt++;
 				iter->status = FLUSH_TARGET;
 				flush_amount--;
 				if (flush_amount == 0) {
@@ -1160,15 +1157,17 @@ static bool conv_read(struct nvmev_ns *ns, struct nvmev_request *req, struct nvm
 					} else {
 						srd.stime = spp->fw_rd_lat + nsecs_start;
 					}
-					nsecs_completed = ssd_advance_nand(conv_ftl->ssd, &srd);
-					xfer_size = 0;
-					nsecs_latest = max(nsecs_completed, nsecs_latest);
-					if (xfer_size > KB(32)) {
+
+					if (xfer_size >= KB(32)) {
 						wbuf->read_size_cnt[KB(32) / KB(4)]++;
 					}
 					else {
 						wbuf->read_size_cnt[xfer_size / KB(4)]++;
 					}
+
+					nsecs_completed = ssd_advance_nand(conv_ftl->ssd, &srd);
+					nsecs_latest = max(nsecs_completed, nsecs_latest);
+					xfer_size = 0;
 				}
 
 				if (spp->pgsz > LBA_TO_BYTE(nr_lba)) {
@@ -1188,15 +1187,17 @@ static bool conv_read(struct nvmev_ns *ns, struct nvmev_request *req, struct nvm
 				} else {
 					srd.stime = spp->fw_rd_lat + nsecs_start;
 				}
-				nsecs_completed = ssd_advance_nand(conv_ftl->ssd, &srd);
-				xfer_size = 0;
-				nsecs_latest = max(nsecs_completed, nsecs_latest);
+				
 				if (xfer_size > KB(32)) {
 					wbuf->read_size_cnt[KB(32) / KB(4)]++;
 				}
 				else {
 					wbuf->read_size_cnt[xfer_size / KB(4)]++;
 				}
+
+				nsecs_completed = ssd_advance_nand(conv_ftl->ssd, &srd);
+				nsecs_latest = max(nsecs_completed, nsecs_latest);
+				xfer_size = 0;
 			}
 		}
 	}
@@ -1258,6 +1259,7 @@ static uint64_t conv_rmw(struct nvmev_ns *ns, struct nvmev_request *req, uint64_
 
 		if (ppg->free_secs != 0) {
 			wbuf->rmw_flushing_cnt++;
+			wbuf->rmw_write_cnt++;
 			for (size_t j = 0; j < wbuf->pg_per_ppg; j++) {
 				page = &ppg->pages[j];
 				lpn = page->lpn;
@@ -1277,6 +1279,10 @@ static uint64_t conv_rmw(struct nvmev_ns *ns, struct nvmev_request *req, uint64_
 					nsecs_write_start = max(nsecs_completed, nsecs_write_start);						
 				}
 			}
+		}
+		else 
+		{
+			wbuf->direct_write_cnt++;
 		}
 		swr.stime = nsecs_write_start;
 
