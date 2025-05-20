@@ -93,7 +93,8 @@ struct ppa {
 		uint64_t ppa;
 	};
 
-	int buffer_idx;
+	int ftl_idx;
+	int arr_idx;
 };
 
 typedef int nand_sec_status_t;
@@ -192,6 +193,7 @@ struct buffer {
 
 struct buffer_ppg {
 	int status;
+	int array_idx;
 	int ftl_idx;	
 	int pg_idx;
 	size_t free_secs;

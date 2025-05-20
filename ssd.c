@@ -13,12 +13,14 @@ static uint64_t filled_ppgs = 0;
 
 static inline int get_buffer_idx(struct conv_ftl *conv_ftl, uint64_t lpn)
 {
-	return conv_ftl->maptbl[lpn].buffer_idx;
+	int idx = conv_ftl->maptbl[lpn].arr_idx;
+	return idx;
 }
 
-static inline void set_buffer_idx(struct conv_ftl *conv_ftl, uint64_t lpn, int idx)
+static inline void set_buffer_idx(struct conv_ftl *conv_ftl, uint64_t lpn, int ftl_idx, int arr_idx)
 {
-	conv_ftl->maptbl[lpn].buffer_idx = idx;
+	conv_ftl->maptbl[lpn].ftl_idx = ftl_idx;
+	conv_ftl->maptbl[lpn].arr_idx = arr_idx;
 }
 
 static inline uint64_t __get_ioclock(struct ssd *ssd)
@@ -69,6 +71,7 @@ void buffer_init(struct conv_ftl *conv_ftls, size_t size)
 		/* Initialize buffer PPG array entry */
 		struct buffer_ppg *block = &buf->ppg_array[i];
 		block->status = EMPTY;
+		block->array_idx = i;
 		block->ftl_idx = -1;
 		block->pg_idx = 0;
 		block->free_secs = buf->sec_per_pg * buf->pg_per_ppg;
@@ -142,7 +145,6 @@ static void __buffer_fill_page(struct conv_ftl *conv_ftl, uint64_t lpn, uint64_t
 
 	struct buffer *buf = conv_ftl->ssd->write_buffer;
 	struct buffer_ppg *ppg;
-	// NVMEV_INFO("Get buffer page - lpn: %lld, size: %lld, offset: %lld", lpn, size, offset);
 	struct buffer_page *page = __buffer_get_page(conv_ftl, lpn);
 
 	if (page == NULL) {
@@ -153,9 +155,7 @@ static void __buffer_fill_page(struct conv_ftl *conv_ftl, uint64_t lpn, uint64_t
 			if (list_empty(&buf->free_ppgs)) {
 				NVMEV_ERROR("Access to empty buffer - LPN: %lld, size: %lld, offset: %lld", lpn, size, offset);
 			}
-			// NVMEV_INFO("Get free ppg - %ld", list_count_nodes(&buf->free_ppgs));
 			ppg = list_first_entry(&buf->free_ppgs, struct buffer_ppg, list);
-			// NVMEV_INFO("Get free ppg done");
 
 			// TODO: add lpn to map table
 			ppg->status = VALID;
@@ -163,9 +163,9 @@ static void __buffer_fill_page(struct conv_ftl *conv_ftl, uint64_t lpn, uint64_t
 			buf->free_ppgs_cnt--;
 			buf->used_ppgs_cnt++;
 			buf->left_pgs[ppg->ftl_idx] += buf->pg_per_ppg;
-			set_buffer_idx(conv_ftl, LOCAL_LPN(lpn), ppg->ftl_idx);	
 		}
-
+		
+		set_buffer_idx(conv_ftl, LOCAL_LPN(lpn), ppg->ftl_idx, ppg->array_idx);
 		page = &ppg->pages[ppg->pg_idx++];
 		buf->left_pgs[ppg->ftl_idx] -= 1;
 	}

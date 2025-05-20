@@ -262,7 +262,8 @@ static inline struct ppa get_maptbl_ent(struct conv_ftl *conv_ftl, uint64_t lpn)
 static inline void set_maptbl_ent(struct conv_ftl *conv_ftl, uint64_t lpn, struct ppa *ppa)
 {
 	NVMEV_ASSERT(lpn < conv_ftl->ssd->sp.tt_pgs);
-	ppa->buffer_idx = -1;
+	ppa->ftl_idx = -1;
+	ppa->arr_idx = -1;
 	conv_ftl->maptbl[lpn] = *ppa;
 }
 
@@ -523,7 +524,8 @@ static struct ppa get_new_page(struct conv_ftl *conv_ftl, uint32_t io_type)
 	ppa.g.pg = wp->pg;
 	ppa.g.blk = wp->blk;
 	ppa.g.pl = wp->pl;
-	ppa.buffer_idx = -1;
+	ppa.ftl_idx = -1;
+	ppa.arr_idx = -1;
 
 	NVMEV_ASSERT(ppa.g.pl == 0);
 
@@ -538,7 +540,8 @@ static void init_maptbl(struct conv_ftl *conv_ftl)
 	conv_ftl->maptbl = vmalloc(sizeof(struct ppa) * spp->tt_pgs);
 	for (i = 0; i < spp->tt_pgs; i++) {
 		conv_ftl->maptbl[i].ppa = UNMAPPED_PPA;
-		conv_ftl->maptbl[i].buffer_idx = -1;
+		conv_ftl->maptbl[i].ftl_idx = -1;
+		conv_ftl->maptbl[i].arr_idx = -1;
 	}
 
 	// for (i = 0; i < spp->tt_pgs; i++) {
