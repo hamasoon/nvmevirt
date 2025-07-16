@@ -1,7 +1,0 @@
-[global]
-include global.fio
-
-[seqread]
-time_based=1
-runtime=60
-rw=read

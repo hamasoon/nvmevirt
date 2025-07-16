@@ -1,6 +1,0 @@
-numjobs=${JOB}
-iodepth=${DEPTH}
-filename=${DEV}
-group_reporting=1
-direct=1
-thread=1

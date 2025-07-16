@@ -1,5 +1,0 @@
-[global]
-include global_timeline.fio
-
-[seqread]
-rw=read
